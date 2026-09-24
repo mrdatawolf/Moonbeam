@@ -1,0 +1,237 @@
+{
+  "job": "summarize",
+  "description": "Summarize a Moonbeam run log for a board member. Rubric-scored.",
+  "maxTokens": 400,
+  "cases": [
+    {
+      "id": "summarize-tests-failed",
+      "input": "run-tests-failed.log",
+      "rubric": {
+        "maxWords": 150,
+        "facts": [
+          {
+            "id": "task-id",
+            "any": [
+              "TASK-006"
+            ]
+          },
+          {
+            "id": "outcome-failed",
+            "any": [
+              "re:\\bfail(ed|ure)?\\b"
+            ]
+          },
+          {
+            "id": "time-limit",
+            "any": [
+              "time limit",
+              "time_limit",
+              "wall-clock",
+              "timed out",
+              "timeout",
+              "15m",
+              "15 min"
+            ]
+          },
+          {
+            "id": "remaining-test",
+            "any": [
+              "claim is exclusive",
+              "concurrent",
+              "claim race",
+              "race condition",
+              "409"
+            ]
+          },
+          {
+            "id": "migration-touched",
+            "any": [
+              "migration",
+              "0003_task_state",
+              "unique index",
+              "unique constraint"
+            ]
+          }
+        ],
+        "forbidden": [
+          {
+            "id": "claims-all-tests-pass",
+            "any": [
+              "re:(?<!not )\\ball (\\d+ )?tests (passed|pass)\\b",
+              "re:\\bsucceeded\\b"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "summarize-paused-scope",
+      "input": "run-paused-scope.log",
+      "rubric": {
+        "maxWords": 120,
+        "facts": [
+          {
+            "id": "task-id",
+            "any": [
+              "TASK-008"
+            ]
+          },
+          {
+            "id": "state-paused",
+            "any": [
+              "re:\\bpause"
+            ]
+          },
+          {
+            "id": "scope-category",
+            "any": [
+              "scope"
+            ]
+          },
+          {
+            "id": "the-question",
+            "any": [
+              "openPauseCount",
+              "pause count",
+              "projects.ts",
+              "/api/projects"
+            ]
+          },
+          {
+            "id": "outside-envelope",
+            "any": [
+              "outside",
+              "envelope",
+              "not in scope",
+              "out of scope"
+            ]
+          }
+        ],
+        "forbidden": [
+          {
+            "id": "claims-completed",
+            "any": [
+              "re:(?<!not )(?<!n't )(?<!never )\\b(completed|succeeded|finished successfully)\\b"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "summarize-completed",
+      "input": "run-completed.log",
+      "rubric": {
+        "maxWords": 120,
+        "facts": [
+          {
+            "id": "task-id",
+            "any": [
+              "TASK-005"
+            ]
+          },
+          {
+            "id": "outcome-succeeded",
+            "any": [
+              "succeeded",
+              "success",
+              "completed"
+            ]
+          },
+          {
+            "id": "contract-written",
+            "any": [
+              "CONTRACT-002",
+              "identity contract",
+              "contract for identity"
+            ]
+          },
+          {
+            "id": "moved-to-review",
+            "any": [
+              "in_review",
+              "in review",
+              "review"
+            ]
+          },
+          {
+            "id": "cost",
+            "any": [
+              "0.92"
+            ]
+          }
+        ],
+        "forbidden": [
+          {
+            "id": "claims-failure",
+            "any": [
+              "re:\\bfail(ed|ure)\\b",
+              "re:\\berror(ed)?\\b"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "summarize-endpoint-down",
+      "input": "run-endpoint-down.log",
+      "rubric": {
+        "maxWords": 120,
+        "facts": [
+          {
+            "id": "task-id",
+            "any": [
+              "TASK-012"
+            ]
+          },
+          {
+            "id": "unreachable",
+            "any": [
+              "ECONNREFUSED",
+              "connection refused",
+              "unreachable",
+              "could not connect",
+              "couldn't connect",
+              "cannot connect",
+              "failed to connect"
+            ]
+          },
+          {
+            "id": "endpoint",
+            "any": [
+              "192.168.203.118"
+            ]
+          },
+          {
+            "id": "three-attempts",
+            "any": [
+              "re:\\b(3|three)\\b.{0,20}(attempt|retr|tries|times)",
+              "re:(attempt|retr|tries).{0,20}\\b(3|three)\\b"
+            ]
+          },
+          {
+            "id": "no-review-done",
+            "any": [
+              "no review",
+              "not reviewed",
+              "review was not",
+              "without a review",
+              "awaiting a reviewer",
+              "still in in_review",
+              "remains in in_review",
+              "remains in review",
+              "no work"
+            ]
+          }
+        ],
+        "forbidden": [
+          {
+            "id": "claims-review-passed",
+            "any": [
+              "re:\\b(approved|accepted|review passed|succeeded)\\b"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

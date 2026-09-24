@@ -1,0 +1,57 @@
+{
+  "job": "categorize",
+  "description": "Classify a pause question into exactly one of the five pause categories (TEMPLATE/docs/workflow/pauses.md). Exact match.",
+  "maxTokens": 40,
+  "cases": [
+    {
+      "id": "pause-missing-requirement-1",
+      "expected": "Missing requirement",
+      "pause": "Question: What should the task list show when a project has no tasks yet?\nContext: I am building the task list page for TASK-007. The task file's desired outcome and acceptance criteria describe the list with tasks but say nothing about the empty state. No contract is linked, and docs/PROJECT.md does not mention it.\nOptions: (a) show an empty message with a 'Propose task' button; (b) show an empty table.\nEffect: the empty-state component is waiting on the answer."
+    },
+    {
+      "id": "pause-missing-requirement-2",
+      "expected": "Missing requirement",
+      "pause": "Question: Should the run cost column round to cents or show the raw provider figure?\nContext: TASK-008 asks for a cost column on the dashboard. Its acceptance criteria only say 'cost is visible'. The provider reports cost to six decimal places. Nothing in the task, its contracts, or docs/PROJECT.md specifies the precision.\nOptions: round to $0.01; show four decimals; show the raw value.\nEffect: the formatter and its tests are waiting."
+    },
+    {
+      "id": "pause-ambiguous-contract-1",
+      "expected": "Ambiguous contract",
+      "pause": "Question: When a claim is released, does the task return to 'approved' or stay 'in_progress'?\nContext: CONTRACT-001 section 4.2 says a released claim 'returns the task to the pool', which could mean the approved state or just an unclaimed in_progress task. Section 5 lists no transition from in_progress back to approved. The two readings produce different API behavior.\nOptions: (a) move to approved; (b) keep in_progress with no claimant.\nEffect: the release endpoint is waiting."
+    },
+    {
+      "id": "pause-ambiguous-contract-2",
+      "expected": "Ambiguous contract",
+      "pause": "Question: Which rule wins for split approval: the contract or the ADR?\nContext: CONTRACT-001 says splits of an approved task are approved automatically. ADR-005 says any change to the scope envelope needs board approval, and a split narrows the envelope into new ones. The linked contract and the ADR disagree on whether a split needs the board.\nOptions: follow the contract (auto-approve); follow the ADR (require approval).\nEffect: the split endpoint's state handling is waiting."
+    },
+    {
+      "id": "pause-environment-1",
+      "expected": "Environment / access",
+      "pause": "Question: Can someone start the PostgreSQL test database or give me its connection string?\nContext: TASK-006 requires the integration tests in server/src/routes/ to pass. They need DATABASE_URL, which is not set in this runner, and docs/DEVELOPMENT.md does not say how to get one. Connecting to localhost:5432 is refused.\nOptions: provide DATABASE_URL; allow me to run the tests against an in-memory fake instead.\nEffect: validation of the implementation is waiting."
+    },
+    {
+      "id": "pause-environment-2",
+      "expected": "Environment / access",
+      "pause": "Question: Can I get read access to the llama.cpp host at 192.168.203.118?\nContext: I am validating the local-model runner for TASK-012. The endpoint times out from this dev box, and the runner setup notes do not list any VPN or firewall rule. I cannot run the validation the task requires without reaching it.\nOptions: open the firewall for this box; point me at a different endpoint.\nEffect: the task's validation step is waiting."
+    },
+    {
+      "id": "pause-human-judgment-1",
+      "expected": "Human-judgment decision",
+      "pause": "Question: Should run logs be stored in PostgreSQL or as files on disk with a path in the database?\nContext: TASK-006 needs somewhere to keep raw run logs. Both approaches meet the acceptance criteria. Storing them in PostgreSQL keeps backups simple but grows the database quickly; files are cheaper but add a second thing to back up. No ADR covers log storage. This is an architecture choice.\nOptions: (a) PostgreSQL text column; (b) files plus a path column.\nRecommendation: (b).\nEffect: the logs table migration is waiting."
+    },
+    {
+      "id": "pause-human-judgment-2",
+      "expected": "Human-judgment decision",
+      "pause": "Question: Which should ship first, the pause review page or the cost report?\nContext: Both are approved, both touch ui/src/pages/, and I can only run one at a time on this branch without overlapping paths. The board has not ranked them.\nOptions: pause review first (closes gaps sooner); cost report first (the office manager asked for it).\nEffect: I cannot pick the next task until this is decided."
+    },
+    {
+      "id": "pause-scope-1",
+      "expected": "Scope question",
+      "pause": "Question: May I edit packages/shared/src/types.ts to add the RunStatus type?\nContext: TASK-009 lists ui/src/pages/runs/ as its only path. The run view needs a RunStatus type that the server also uses, and the natural home is packages/shared, which is not listed. I cannot tell whether a shared type addition is inside the task's envelope.\nOptions: add it to packages/shared; define a local copy in ui/src/pages/runs/.\nEffect: the run status badge is waiting."
+    },
+    {
+      "id": "pause-scope-2",
+      "expected": "Scope question",
+      "pause": "Question: Is fixing the broken markdown links in docs/workflow/lifecycle.md part of this task?\nContext: TASK-004 revises CONTRACT-001, and its envelope is docs/contracts/CONTRACT-001-task-lifecycle.md. While updating cross-references I found four dead links in lifecycle.md that point at the old contract sections. The task does not say whether dependent docs are included.\nOptions: fix them here; leave them and propose a follow-up task.\nEffect: the cross-reference update is waiting."
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+diff --git a/server/src/routes/tasks.ts b/server/src/routes/tasks.ts
+index 3c1e2a9..8f04b7d 100644
+--- a/server/src/routes/tasks.ts
++++ b/server/src/routes/tasks.ts
+@@ -88,6 +88,9 @@ export function registerTaskRoutes(app: FastifyInstance, db: Db) {
++    if (actor.kind !== 'human') {
++      return reply.code(403).send({ error: 'only a human board member may accept work' });
++    }
+diff --git a/server/src/lifecycle/transitions.ts b/server/src/lifecycle/transitions.ts
+index 0aa11bb..0bb22cc 100644
+--- a/server/src/lifecycle/transitions.ts
++++ b/server/src/lifecycle/transitions.ts
+@@ -20,3 +20,4 @@ export const ALLOWED = {
+   in_review: ['completed', 'in_progress'],
++  completed: [],
+ };
+diff --git a/packages/shared/src/types.ts b/packages/shared/src/types.ts
+index 5e5e5e5..6f6f6f6 100644
+--- a/packages/shared/src/types.ts
++++ b/packages/shared/src/types.ts
+@@ -8,3 +8,4 @@ export type ActorKind = 'human' | 'agent';
++export type TaskState = 'proposed' | 'approved' | 'in_progress' | 'in_review' | 'completed';

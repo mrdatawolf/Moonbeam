@@ -1,0 +1,48 @@
+diff --git a/server/src/routes/tasks.ts b/server/src/routes/tasks.ts
+index 3c1e2a9..8f04b7d 100644
+--- a/server/src/routes/tasks.ts
++++ b/server/src/routes/tasks.ts
+@@ -88,12 +88,19 @@ export function registerTaskRoutes(app: FastifyInstance, db: Db) {
+   app.post('/api/tasks/:id/accept', async (req, reply) => {
+     const { id } = req.params as { id: string };
+     const actor = await resolveActor(req, db);
++    if (actor.kind !== 'human') {
++      return reply.code(403).send({ error: 'only a human board member may accept work' });
++    }
+     const task = await db.tasks.get(id);
+     if (!task) return reply.code(404).send({ error: 'task not found' });
+-    await transition(db, task, 'completed', actor);
++    if (task.state !== 'in_review') {
++      return reply.code(409).send({ error: `cannot accept a task in state ${task.state}` });
++    }
++    await transition(db, task, 'completed', actor);
+     return reply.code(200).send(await db.tasks.get(id));
+   });
+diff --git a/server/src/routes/tasks.test.ts b/server/src/routes/tasks.test.ts
+index 51aa0c2..c7d9e13 100644
+--- a/server/src/routes/tasks.test.ts
++++ b/server/src/routes/tasks.test.ts
+@@ -140,6 +140,28 @@ describe('POST /api/tasks/:id/accept', () => {
+     expect(res.statusCode).toBe(200);
+   });
++
++  it('rejects accept by an agent actor', async () => {
++    const task = await seedTask(db, { state: 'in_review' });
++    const res = await app.inject({
++      method: 'POST',
++      url: `/api/tasks/${task.id}/accept`,
++      headers: { 'x-moonbeam-actor': 'agent:implementer' },
++    });
++    expect(res.statusCode).toBe(403);
++  });
++
++  it('rejects accept of a task that is not in review', async () => {
++    const task = await seedTask(db, { state: 'in_progress' });
++    const res = await app.inject({
++      method: 'POST',
++      url: `/api/tasks/${task.id}/accept`,
++      headers: { 'x-moonbeam-actor': 'human:patrick' },
++    });
++    expect(res.statusCode).toBe(409);
++  });
+ });

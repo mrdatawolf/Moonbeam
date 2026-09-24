@@ -1,0 +1,2220 @@
+{
+  "tool": "moonbeam-model-eval",
+  "version": 1,
+  "startedAt": "2026-09-24T20:19:01.116Z",
+  "finishedAt": "2026-09-24T20:23:33.678Z",
+  "endpoint": "http://192.168.203.117:8080",
+  "model": "sugatoray/DeepSeek-Coder-V2-Lite-Instruct-Q4_K_M-GGUF",
+  "modelMeta": {
+    "vocab_type": 2,
+    "n_vocab": 102400,
+    "n_ctx": 18944,
+    "n_ctx_train": 163840,
+    "n_embd": 2048,
+    "n_params": 15706484224,
+    "size": 10360420352
+  },
+  "label": "TASK-011 validation run (DeepSeek-Coder-V2-Lite Q4_K_M, n_ctx 18944)",
+  "settings": {
+    "temperature": 0,
+    "top_p": 1,
+    "seed": 42,
+    "timeoutMs": 180000,
+    "repeat": 2,
+    "cachePrompt": false,
+    "passThreshold": 1
+  },
+  "host": "debian",
+  "summary": [
+    {
+      "job": "summarize",
+      "cases": 8,
+      "meanScore": 0.75,
+      "passed": 2,
+      "errors": 0,
+      "timeouts": 0,
+      "meanLatencyMs": 9158,
+      "promptTokens": 6512,
+      "completionTokens": 842,
+      "unstableCases": []
+    },
+    {
+      "job": "categorize",
+      "cases": 20,
+      "meanScore": 1,
+      "passed": 20,
+      "errors": 0,
+      "timeouts": 0,
+      "meanLatencyMs": 2251,
+      "promptTokens": 8492,
+      "completionTokens": 76,
+      "unstableCases": []
+    },
+    {
+      "job": "handoff",
+      "cases": 6,
+      "meanScore": 0.822,
+      "passed": 0,
+      "errors": 0,
+      "timeouts": 0,
+      "meanLatencyMs": 19279,
+      "promptTokens": 5150,
+      "completionTokens": 1766,
+      "unstableCases": []
+    },
+    {
+      "job": "scope",
+      "cases": 10,
+      "meanScore": 0.2,
+      "passed": 2,
+      "errors": 0,
+      "timeouts": 0,
+      "meanLatencyMs": 3857,
+      "promptTokens": 6248,
+      "completionTokens": 180,
+      "unstableCases": []
+    }
+  ],
+  "results": [
+    {
+      "job": "summarize",
+      "id": "summarize-tests-failed",
+      "attempt": 1,
+      "latencyMs": 11900,
+      "usage": {
+        "completion_tokens": 127,
+        "prompt_tokens": 1195,
+        "total_tokens": 1322,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 1195,
+        "prompt_ms": 4781.237,
+        "prompt_per_token_ms": 4.001035146443515,
+        "prompt_per_second": 249.93532008557617,
+        "predicted_n": 127,
+        "predicted_ms": 6833.649,
+        "predicted_per_token_ms": 53.80825984251969,
+        "predicted_per_second": 18.584507340075557
+      },
+      "finishReason": "stop",
+      "score": 1,
+      "pass": true,
+      "checks": [
+        {
+          "check": "mentions:task-id",
+          "pass": true
+        },
+        {
+          "check": "mentions:outcome-failed",
+          "pass": true
+        },
+        {
+          "check": "mentions:time-limit",
+          "pass": true
+        },
+        {
+          "check": "mentions:remaining-test",
+          "pass": true
+        },
+        {
+          "check": "mentions:migration-touched",
+          "pass": true
+        },
+        {
+          "check": "absent:claims-all-tests-pass",
+          "pass": true
+        },
+        {
+          "check": "length<=150w",
+          "pass": true,
+          "detail": "77 words"
+        }
+      ],
+      "rawOutput": " **Summary:**\n\n**Task ID:** TASK-006  \n**Final Outcome:** Failed due to time limit.  \n**Key Events:**  \n- Code implementation and migration changes.  \n- Linting and testing.  \n- Two critical test failures related to claim handling.  \n- Migration update to fix claim race condition.  \n- Time limit reached after multiple attempts.  \n\n**Human Action Needed:**  \n- Review the test failures and ensure the unique constraint in the migration is correctly implemented.  \n- Consider increasing the time budget for future runs if necessary."
+    },
+    {
+      "job": "summarize",
+      "id": "summarize-tests-failed",
+      "attempt": 2,
+      "latencyMs": 11565,
+      "usage": {
+        "completion_tokens": 127,
+        "prompt_tokens": 1195,
+        "total_tokens": 1322,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 1195,
+        "prompt_ms": 4823.49,
+        "prompt_per_token_ms": 4.03639330543933,
+        "prompt_per_second": 247.7459267045231,
+        "predicted_n": 127,
+        "predicted_ms": 6731.851,
+        "predicted_per_token_ms": 53.00670078740157,
+        "predicted_per_second": 18.865539359085638
+      },
+      "finishReason": "stop",
+      "score": 1,
+      "pass": true,
+      "checks": [
+        {
+          "check": "mentions:task-id",
+          "pass": true
+        },
+        {
+          "check": "mentions:outcome-failed",
+          "pass": true
+        },
+        {
+          "check": "mentions:time-limit",
+          "pass": true
+        },
+        {
+          "check": "mentions:remaining-test",
+          "pass": true
+        },
+        {
+          "check": "mentions:migration-touched",
+          "pass": true
+        },
+        {
+          "check": "absent:claims-all-tests-pass",
+          "pass": true
+        },
+        {
+          "check": "length<=150w",
+          "pass": true,
+          "detail": "77 words"
+        }
+      ],
+      "rawOutput": " **Summary:**\n\n**Task ID:** TASK-006  \n**Final Outcome:** Failed due to time limit.  \n**Key Events:**  \n- Code implementation and migration changes.  \n- Linting and testing.  \n- Two critical test failures related to claim handling.  \n- Migration update to fix claim race condition.  \n- Time limit reached after multiple attempts.  \n\n**Human Action Needed:**  \n- Review the test failures and ensure the unique constraint in the migration is correctly implemented.  \n- Consider increasing the time budget for future runs if necessary."
+    },
+    {
+      "job": "summarize",
+      "id": "summarize-paused-scope",
+      "attempt": 1,
+      "latencyMs": 12537,
+      "usage": {
+        "completion_tokens": 177,
+        "prompt_tokens": 722,
+        "total_tokens": 899,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 722,
+        "prompt_ms": 3207.125,
+        "prompt_per_token_ms": 4.442001385041551,
+        "prompt_per_second": 225.12374790505515,
+        "predicted_n": 177,
+        "predicted_ms": 8965.92,
+        "predicted_per_token_ms": 50.65491525423729,
+        "predicted_per_second": 19.741420846940414
+      },
+      "finishReason": "stop",
+      "score": 0.714,
+      "pass": false,
+      "checks": [
+        {
+          "check": "mentions:task-id",
+          "pass": true
+        },
+        {
+          "check": "mentions:state-paused",
+          "pass": true
+        },
+        {
+          "check": "mentions:scope-category",
+          "pass": true
+        },
+        {
+          "check": "mentions:the-question",
+          "pass": true
+        },
+        {
+          "check": "mentions:outside-envelope",
+          "pass": false
+        },
+        {
+          "check": "absent:claims-completed",
+          "pass": false
+        },
+        {
+          "check": "length<=120w",
+          "pass": true,
+          "detail": "102 words"
+        }
+      ],
+      "rawOutput": " **Summary for Board Member:**\n\n**Task ID:** TASK-008  \n**Final Outcome:** The agent completed the dashboard UI components but encountered a scope issue regarding fetching project pause counts.  \n**Key Events:**  \n1. Agent started a run for TASK-008.  \n2. Agent read project-specific documentation.  \n3. Agent identified a need for per-project pause counts.  \n4. Agent paused due to a scope limitation.  \n5. A pause was opened to discuss API response modification.  \n\n**Human Intervention Needed:**  \nThe agent paused due to a scope issue regarding fetching project pause counts. A decision is needed on whether to add `openPauseCount` to the API response in `server/src/routes/projects.ts` or fetch pauses separately."
+    },
+    {
+      "job": "summarize",
+      "id": "summarize-paused-scope",
+      "attempt": 2,
+      "latencyMs": 12378,
+      "usage": {
+        "completion_tokens": 177,
+        "prompt_tokens": 722,
+        "total_tokens": 899,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 722,
+        "prompt_ms": 3272.627,
+        "prompt_per_token_ms": 4.532724376731302,
+        "prompt_per_second": 220.61787059753524,
+        "predicted_n": 177,
+        "predicted_ms": 9097.477,
+        "predicted_per_token_ms": 51.398175141242945,
+        "predicted_per_second": 19.455943664380793
+      },
+      "finishReason": "stop",
+      "score": 0.714,
+      "pass": false,
+      "checks": [
+        {
+          "check": "mentions:task-id",
+          "pass": true
+        },
+        {
+          "check": "mentions:state-paused",
+          "pass": true
+        },
+        {
+          "check": "mentions:scope-category",
+          "pass": true
+        },
+        {
+          "check": "mentions:the-question",
+          "pass": true
+        },
+        {
+          "check": "mentions:outside-envelope",
+          "pass": false
+        },
+        {
+          "check": "absent:claims-completed",
+          "pass": false
+        },
+        {
+          "check": "length<=120w",
+          "pass": true,
+          "detail": "102 words"
+        }
+      ],
+      "rawOutput": " **Summary for Board Member:**\n\n**Task ID:** TASK-008  \n**Final Outcome:** The agent completed the dashboard UI components but encountered a scope issue regarding fetching project pause counts.  \n**Key Events:**  \n1. Agent started a run for TASK-008.  \n2. Agent read project-specific documentation.  \n3. Agent identified a need for per-project pause counts.  \n4. Agent paused due to a scope limitation.  \n5. A pause was opened to discuss API response modification.  \n\n**Human Intervention Needed:**  \nThe agent paused due to a scope issue regarding fetching project pause counts. A decision is needed on whether to add `openPauseCount` to the API response in `server/src/routes/projects.ts` or fetch pauses separately."
+    },
+    {
+      "job": "summarize",
+      "id": "summarize-completed",
+      "attempt": 1,
+      "latencyMs": 7479,
+      "usage": {
+        "completion_tokens": 74,
+        "prompt_tokens": 670,
+        "total_tokens": 744,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 670,
+        "prompt_ms": 3578.409,
+        "prompt_per_token_ms": 5.340908955223881,
+        "prompt_per_second": 187.23404730985195,
+        "predicted_n": 74,
+        "predicted_ms": 3609.037,
+        "predicted_per_token_ms": 48.77077027027027,
+        "predicted_per_second": 20.504084607611393
+      },
+      "finishReason": "stop",
+      "score": 0.571,
+      "pass": false,
+      "checks": [
+        {
+          "check": "mentions:task-id",
+          "pass": true
+        },
+        {
+          "check": "mentions:outcome-succeeded",
+          "pass": true
+        },
+        {
+          "check": "mentions:contract-written",
+          "pass": false
+        },
+        {
+          "check": "mentions:moved-to-review",
+          "pass": false
+        },
+        {
+          "check": "mentions:cost",
+          "pass": false
+        },
+        {
+          "check": "absent:claims-failure",
+          "pass": true
+        },
+        {
+          "check": "length<=120w",
+          "pass": true,
+          "detail": "41 words"
+        }
+      ],
+      "rawOutput": " **Summary for Board Member:**\n\n**Task ID:** TASK-005  \n**Final Outcome:** The task was completed successfully.  \n**Key Events:** The agent read task and architectural documents, wrote new contract documentation, ran a markdown linter, and handed off the implementation.  \n**Human Intervention Needed:** None noted."
+    },
+    {
+      "job": "summarize",
+      "id": "summarize-completed",
+      "attempt": 2,
+      "latencyMs": 6762,
+      "usage": {
+        "completion_tokens": 74,
+        "prompt_tokens": 670,
+        "total_tokens": 744,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 670,
+        "prompt_ms": 3113.368,
+        "prompt_per_token_ms": 4.646817910447761,
+        "prompt_per_second": 215.20102988146598,
+        "predicted_n": 74,
+        "predicted_ms": 3641.197,
+        "predicted_per_token_ms": 49.20536486486487,
+        "predicted_per_second": 20.32298719349708
+      },
+      "finishReason": "stop",
+      "score": 0.571,
+      "pass": false,
+      "checks": [
+        {
+          "check": "mentions:task-id",
+          "pass": true
+        },
+        {
+          "check": "mentions:outcome-succeeded",
+          "pass": true
+        },
+        {
+          "check": "mentions:contract-written",
+          "pass": false
+        },
+        {
+          "check": "mentions:moved-to-review",
+          "pass": false
+        },
+        {
+          "check": "mentions:cost",
+          "pass": false
+        },
+        {
+          "check": "absent:claims-failure",
+          "pass": true
+        },
+        {
+          "check": "length<=120w",
+          "pass": true,
+          "detail": "41 words"
+        }
+      ],
+      "rawOutput": " **Summary for Board Member:**\n\n**Task ID:** TASK-005  \n**Final Outcome:** The task was completed successfully.  \n**Key Events:** The agent read task and architectural documents, wrote new contract documentation, ran a markdown linter, and handed off the implementation.  \n**Human Intervention Needed:** None noted."
+    },
+    {
+      "job": "summarize",
+      "id": "summarize-endpoint-down",
+      "attempt": 1,
+      "latencyMs": 5421,
+      "usage": {
+        "completion_tokens": 43,
+        "prompt_tokens": 669,
+        "total_tokens": 712,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 669,
+        "prompt_ms": 3103.048,
+        "prompt_per_token_ms": 4.6383378176382655,
+        "prompt_per_second": 215.59447356276797,
+        "predicted_n": 43,
+        "predicted_ms": 2082.627,
+        "predicted_per_token_ms": 48.43318604651163,
+        "predicted_per_second": 20.647000158933885
+      },
+      "finishReason": "stop",
+      "score": 0.714,
+      "pass": false,
+      "checks": [
+        {
+          "check": "mentions:task-id",
+          "pass": true
+        },
+        {
+          "check": "mentions:unreachable",
+          "pass": true
+        },
+        {
+          "check": "mentions:endpoint",
+          "pass": false
+        },
+        {
+          "check": "mentions:three-attempts",
+          "pass": false
+        },
+        {
+          "check": "mentions:no-review-done",
+          "pass": true
+        },
+        {
+          "check": "absent:claims-review-passed",
+          "pass": true
+        },
+        {
+          "check": "length<=120w",
+          "pass": true,
+          "detail": "29 words"
+        }
+      ],
+      "rawOutput": " **Summary:**\nTASK-012 ended with a status of errored due to a provider being unreachable. No review was performed, and the task remains in the in_review state awaiting a reviewer."
+    },
+    {
+      "job": "summarize",
+      "id": "summarize-endpoint-down",
+      "attempt": 2,
+      "latencyMs": 5220,
+      "usage": {
+        "completion_tokens": 43,
+        "prompt_tokens": 669,
+        "total_tokens": 712,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 669,
+        "prompt_ms": 3110.547,
+        "prompt_per_token_ms": 4.649547085201794,
+        "prompt_per_second": 215.07471193973277,
+        "predicted_n": 43,
+        "predicted_ms": 2101.808,
+        "predicted_per_token_ms": 48.879255813953485,
+        "predicted_per_second": 20.458576615942082
+      },
+      "finishReason": "stop",
+      "score": 0.714,
+      "pass": false,
+      "checks": [
+        {
+          "check": "mentions:task-id",
+          "pass": true
+        },
+        {
+          "check": "mentions:unreachable",
+          "pass": true
+        },
+        {
+          "check": "mentions:endpoint",
+          "pass": false
+        },
+        {
+          "check": "mentions:three-attempts",
+          "pass": false
+        },
+        {
+          "check": "mentions:no-review-done",
+          "pass": true
+        },
+        {
+          "check": "absent:claims-review-passed",
+          "pass": true
+        },
+        {
+          "check": "length<=120w",
+          "pass": true,
+          "detail": "29 words"
+        }
+      ],
+      "rawOutput": " **Summary:**\nTASK-012 ended with a status of errored due to a provider being unreachable. No review was performed, and the task remains in the in_review state awaiting a reviewer."
+    },
+    {
+      "job": "categorize",
+      "id": "pause-missing-requirement-1",
+      "attempt": 1,
+      "latencyMs": 2303,
+      "usage": {
+        "completion_tokens": 3,
+        "prompt_tokens": 426,
+        "total_tokens": 429,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 426,
+        "prompt_ms": 2034.386,
+        "prompt_per_token_ms": 4.775553990610328,
+        "prompt_per_second": 209.39978942049348,
+        "predicted_n": 3,
+        "predicted_ms": 98.869,
+        "predicted_per_token_ms": 32.95633333333333,
+        "predicted_per_second": 30.343181381423904
+      },
+      "finishReason": "stop",
+      "score": 1,
+      "pass": true,
+      "checks": [
+        {
+          "check": "exact-category",
+          "pass": true,
+          "detail": "parsed=Missing requirement expected=Missing requirement"
+        }
+      ],
+      "rawOutput": " Missing requirement",
+      "parsed": "Missing requirement",
+      "lenientMatch": true
+    },
+    {
+      "job": "categorize",
+      "id": "pause-missing-requirement-1",
+      "attempt": 2,
+      "latencyMs": 2132,
+      "usage": {
+        "completion_tokens": 3,
+        "prompt_tokens": 426,
+        "total_tokens": 429,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 426,
+        "prompt_ms": 2021.896,
+        "prompt_per_token_ms": 4.746234741784037,
+        "prompt_per_second": 210.69332942940684,
+        "predicted_n": 3,
+        "predicted_ms": 102.183,
+        "predicted_per_token_ms": 34.061,
+        "predicted_per_second": 29.35909104254132
+      },
+      "finishReason": "stop",
+      "score": 1,
+      "pass": true,
+      "checks": [
+        {
+          "check": "exact-category",
+          "pass": true,
+          "detail": "parsed=Missing requirement expected=Missing requirement"
+        }
+      ],
+      "rawOutput": " Missing requirement",
+      "parsed": "Missing requirement",
+      "lenientMatch": true
+    },
+    {
+      "job": "categorize",
+      "id": "pause-missing-requirement-2",
+      "attempt": 1,
+      "latencyMs": 3456,
+      "usage": {
+        "completion_tokens": 3,
+        "prompt_tokens": 416,
+        "total_tokens": 419,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 416,
+        "prompt_ms": 3348.488,
+        "prompt_per_token_ms": 8.049249999999999,
+        "prompt_per_second": 124.23517719042147,
+        "predicted_n": 3,
+        "predicted_ms": 99.002,
+        "predicted_per_token_ms": 33.00066666666667,
+        "predicted_per_second": 30.302418132967013
+      },
+      "finishReason": "stop",
+      "score": 1,
+      "pass": true,
+      "checks": [
+        {
+          "check": "exact-category",
+          "pass": true,
+          "detail": "parsed=Missing requirement expected=Missing requirement"
+        }
+      ],
+      "rawOutput": " Missing requirement",
+      "parsed": "Missing requirement",
+      "lenientMatch": true
+    },
+    {
+      "job": "categorize",
+      "id": "pause-missing-requirement-2",
+      "attempt": 2,
+      "latencyMs": 2078,
+      "usage": {
+        "completion_tokens": 3,
+        "prompt_tokens": 416,
+        "total_tokens": 419,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 416,
+        "prompt_ms": 1973.338,
+        "prompt_per_token_ms": 4.743600961538461,
+        "prompt_per_second": 210.81031227291015,
+        "predicted_n": 3,
+        "predicted_ms": 95.642,
+        "predicted_per_token_ms": 31.880666666666666,
+        "predicted_per_second": 31.36697266891115
+      },
+      "finishReason": "stop",
+      "score": 1,
+      "pass": true,
+      "checks": [
+        {
+          "check": "exact-category",
+          "pass": true,
+          "detail": "parsed=Missing requirement expected=Missing requirement"
+        }
+      ],
+      "rawOutput": " Missing requirement",
+      "parsed": "Missing requirement",
+      "lenientMatch": true
+    },
+    {
+      "job": "categorize",
+      "id": "pause-ambiguous-contract-1",
+      "attempt": 1,
+      "latencyMs": 2183,
+      "usage": {
+        "completion_tokens": 4,
+        "prompt_tokens": 428,
+        "total_tokens": 432,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 428,
+        "prompt_ms": 2030.619,
+        "prompt_per_token_ms": 4.74443691588785,
+        "prompt_per_second": 210.77316818172193,
+        "predicted_n": 4,
+        "predicted_ms": 145.113,
+        "predicted_per_token_ms": 36.27825,
+        "predicted_per_second": 27.5647254208789
+      },
+      "finishReason": "stop",
+      "score": 1,
+      "pass": true,
+      "checks": [
+        {
+          "check": "exact-category",
+          "pass": true,
+          "detail": "parsed=Ambiguous contract expected=Ambiguous contract"
+        }
+      ],
+      "rawOutput": " Ambiguous contract",
+      "parsed": "Ambiguous contract",
+      "lenientMatch": true
+    },
+    {
+      "job": "categorize",
+      "id": "pause-ambiguous-contract-1",
+      "attempt": 2,
+      "latencyMs": 2170,
+      "usage": {
+        "completion_tokens": 4,
+        "prompt_tokens": 428,
+        "total_tokens": 432,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 428,
+        "prompt_ms": 2016.296,
+        "prompt_per_token_ms": 4.7109719626168225,
+        "prompt_per_second": 212.27042061284652,
+        "predicted_n": 4,
+        "predicted_ms": 145.512,
+        "predicted_per_token_ms": 36.378,
+        "predicted_per_second": 27.489141788993347
+      },
+      "finishReason": "stop",
+      "score": 1,
+      "pass": true,
+      "checks": [
+        {
+          "check": "exact-category",
+          "pass": true,
+          "detail": "parsed=Ambiguous contract expected=Ambiguous contract"
+        }
+      ],
+      "rawOutput": " Ambiguous contract",
+      "parsed": "Ambiguous contract",
+      "lenientMatch": true
+    },
+    {
+      "job": "categorize",
+      "id": "pause-ambiguous-contract-2",
+      "attempt": 1,
+      "latencyMs": 2637,
+      "usage": {
+        "completion_tokens": 4,
+        "prompt_tokens": 423,
+        "total_tokens": 427,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 423,
+        "prompt_ms": 2477.813,
+        "prompt_per_token_ms": 5.857713947990544,
+        "prompt_per_second": 170.71506203252625,
+        "predicted_n": 4,
+        "predicted_ms": 151.125,
+        "predicted_per_token_ms": 37.78125,
+        "predicted_per_second": 26.468155500413566
+      },
+      "finishReason": "stop",
+      "score": 1,
+      "pass": true,
+      "checks": [
+        {
+          "check": "exact-category",
+          "pass": true,
+          "detail": "parsed=Ambiguous contract expected=Ambiguous contract"
+        }
+      ],
+      "rawOutput": " Ambiguous contract",
+      "parsed": "Ambiguous contract",
+      "lenientMatch": true
+    },
+    {
+      "job": "categorize",
+      "id": "pause-ambiguous-contract-2",
+      "attempt": 2,
+      "latencyMs": 2163,
+      "usage": {
+        "completion_tokens": 4,
+        "prompt_tokens": 423,
+        "total_tokens": 427,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 423,
+        "prompt_ms": 2013.354,
+        "prompt_per_token_ms": 4.759702127659574,
+        "prompt_per_second": 210.09718112165072,
+        "predicted_n": 4,
+        "predicted_ms": 142.266,
+        "predicted_per_token_ms": 35.5665,
+        "predicted_per_second": 28.116345437420048
+      },
+      "finishReason": "stop",
+      "score": 1,
+      "pass": true,
+      "checks": [
+        {
+          "check": "exact-category",
+          "pass": true,
+          "detail": "parsed=Ambiguous contract expected=Ambiguous contract"
+        }
+      ],
+      "rawOutput": " Ambiguous contract",
+      "parsed": "Ambiguous contract",
+      "lenientMatch": true
+    },
+    {
+      "job": "categorize",
+      "id": "pause-environment-1",
+      "attempt": 1,
+      "latencyMs": 2170,
+      "usage": {
+        "completion_tokens": 4,
+        "prompt_tokens": 425,
+        "total_tokens": 429,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 425,
+        "prompt_ms": 2015.069,
+        "prompt_per_token_ms": 4.741338823529412,
+        "prompt_per_second": 210.9108918850918,
+        "predicted_n": 4,
+        "predicted_ms": 146.811,
+        "predicted_per_token_ms": 36.70275,
+        "predicted_per_second": 27.24591481564733
+      },
+      "finishReason": "stop",
+      "score": 1,
+      "pass": true,
+      "checks": [
+        {
+          "check": "exact-category",
+          "pass": true,
+          "detail": "parsed=Environment / access expected=Environment / access"
+        }
+      ],
+      "rawOutput": " Environment / access",
+      "parsed": "Environment / access",
+      "lenientMatch": true
+    },
+    {
+      "job": "categorize",
+      "id": "pause-environment-1",
+      "attempt": 2,
+      "latencyMs": 2173,
+      "usage": {
+        "completion_tokens": 4,
+        "prompt_tokens": 425,
+        "total_tokens": 429,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 425,
+        "prompt_ms": 2017.075,
+        "prompt_per_token_ms": 4.746058823529411,
+        "prompt_per_second": 210.70113902556918,
+        "predicted_n": 4,
+        "predicted_ms": 144.656,
+        "predicted_per_token_ms": 36.164,
+        "predicted_per_second": 27.65180842827121
+      },
+      "finishReason": "stop",
+      "score": 1,
+      "pass": true,
+      "checks": [
+        {
+          "check": "exact-category",
+          "pass": true,
+          "detail": "parsed=Environment / access expected=Environment / access"
+        }
+      ],
+      "rawOutput": " Environment / access",
+      "parsed": "Environment / access",
+      "lenientMatch": true
+    },
+    {
+      "job": "categorize",
+      "id": "pause-environment-2",
+      "attempt": 1,
+      "latencyMs": 2164,
+      "usage": {
+        "completion_tokens": 4,
+        "prompt_tokens": 426,
+        "total_tokens": 430,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 426,
+        "prompt_ms": 2011.049,
+        "prompt_per_token_ms": 4.720772300469483,
+        "prompt_per_second": 211.8297465651011,
+        "predicted_n": 4,
+        "predicted_ms": 143.152,
+        "predicted_per_token_ms": 35.788,
+        "predicted_per_second": 27.942327036995643
+      },
+      "finishReason": "stop",
+      "score": 1,
+      "pass": true,
+      "checks": [
+        {
+          "check": "exact-category",
+          "pass": true,
+          "detail": "parsed=Environment / access expected=Environment / access"
+        }
+      ],
+      "rawOutput": " Environment / access",
+      "parsed": "Environment / access",
+      "lenientMatch": true
+    },
+    {
+      "job": "categorize",
+      "id": "pause-environment-2",
+      "attempt": 2,
+      "latencyMs": 2169,
+      "usage": {
+        "completion_tokens": 4,
+        "prompt_tokens": 426,
+        "total_tokens": 430,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 426,
+        "prompt_ms": 2011.435,
+        "prompt_per_token_ms": 4.721678403755869,
+        "prompt_per_second": 211.789095844509,
+        "predicted_n": 4,
+        "predicted_ms": 146.251,
+        "predicted_per_token_ms": 36.56275,
+        "predicted_per_second": 27.35024034023699
+      },
+      "finishReason": "stop",
+      "score": 1,
+      "pass": true,
+      "checks": [
+        {
+          "check": "exact-category",
+          "pass": true,
+          "detail": "parsed=Environment / access expected=Environment / access"
+        }
+      ],
+      "rawOutput": " Environment / access",
+      "parsed": "Environment / access",
+      "lenientMatch": true
+    },
+    {
+      "job": "categorize",
+      "id": "pause-human-judgment-1",
+      "attempt": 1,
+      "latencyMs": 2212,
+      "usage": {
+        "completion_tokens": 5,
+        "prompt_tokens": 432,
+        "total_tokens": 437,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 432,
+        "prompt_ms": 2014.064,
+        "prompt_per_token_ms": 4.662185185185185,
+        "prompt_per_second": 214.49169440494444,
+        "predicted_n": 5,
+        "predicted_ms": 190.839,
+        "predicted_per_token_ms": 38.1678,
+        "predicted_per_second": 26.200095368347142
+      },
+      "finishReason": "stop",
+      "score": 1,
+      "pass": true,
+      "checks": [
+        {
+          "check": "exact-category",
+          "pass": true,
+          "detail": "parsed=Human-judgment decision expected=Human-judgment decision"
+        }
+      ],
+      "rawOutput": " Human-judgment decision",
+      "parsed": "Human-judgment decision",
+      "lenientMatch": true
+    },
+    {
+      "job": "categorize",
+      "id": "pause-human-judgment-1",
+      "attempt": 2,
+      "latencyMs": 2226,
+      "usage": {
+        "completion_tokens": 5,
+        "prompt_tokens": 432,
+        "total_tokens": 437,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 432,
+        "prompt_ms": 2025.779,
+        "prompt_per_token_ms": 4.689303240740741,
+        "prompt_per_second": 213.25129740213518,
+        "predicted_n": 5,
+        "predicted_ms": 193.146,
+        "predicted_per_token_ms": 38.6292,
+        "predicted_per_second": 25.887152723846214
+      },
+      "finishReason": "stop",
+      "score": 1,
+      "pass": true,
+      "checks": [
+        {
+          "check": "exact-category",
+          "pass": true,
+          "detail": "parsed=Human-judgment decision expected=Human-judgment decision"
+        }
+      ],
+      "rawOutput": " Human-judgment decision",
+      "parsed": "Human-judgment decision",
+      "lenientMatch": true
+    },
+    {
+      "job": "categorize",
+      "id": "pause-human-judgment-2",
+      "attempt": 1,
+      "latencyMs": 2150,
+      "usage": {
+        "completion_tokens": 5,
+        "prompt_tokens": 402,
+        "total_tokens": 407,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 402,
+        "prompt_ms": 1943.52,
+        "prompt_per_token_ms": 4.834626865671642,
+        "prompt_per_second": 206.84119535687825,
+        "predicted_n": 5,
+        "predicted_ms": 194.264,
+        "predicted_per_token_ms": 38.8528,
+        "predicted_per_second": 25.738170736729398
+      },
+      "finishReason": "stop",
+      "score": 1,
+      "pass": true,
+      "checks": [
+        {
+          "check": "exact-category",
+          "pass": true,
+          "detail": "parsed=Human-judgment decision expected=Human-judgment decision"
+        }
+      ],
+      "rawOutput": " Human-judgment decision",
+      "parsed": "Human-judgment decision",
+      "lenientMatch": true
+    },
+    {
+      "job": "categorize",
+      "id": "pause-human-judgment-2",
+      "attempt": 2,
+      "latencyMs": 2146,
+      "usage": {
+        "completion_tokens": 5,
+        "prompt_tokens": 402,
+        "total_tokens": 407,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 402,
+        "prompt_ms": 1938.009,
+        "prompt_per_token_ms": 4.820917910447761,
+        "prompt_per_second": 207.42937726295392,
+        "predicted_n": 5,
+        "predicted_ms": 200.568,
+        "predicted_per_token_ms": 40.113600000000005,
+        "predicted_per_second": 24.92920106896414
+      },
+      "finishReason": "stop",
+      "score": 1,
+      "pass": true,
+      "checks": [
+        {
+          "check": "exact-category",
+          "pass": true,
+          "detail": "parsed=Human-judgment decision expected=Human-judgment decision"
+        }
+      ],
+      "rawOutput": " Human-judgment decision",
+      "parsed": "Human-judgment decision",
+      "lenientMatch": true
+    },
+    {
+      "job": "categorize",
+      "id": "pause-scope-1",
+      "attempt": 1,
+      "latencyMs": 2121,
+      "usage": {
+        "completion_tokens": 3,
+        "prompt_tokens": 433,
+        "total_tokens": 436,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 433,
+        "prompt_ms": 2015.927,
+        "prompt_per_token_ms": 4.655720554272517,
+        "prompt_per_second": 214.78952362858377,
+        "predicted_n": 3,
+        "predicted_ms": 97.735,
+        "predicted_per_token_ms": 32.57833333333333,
+        "predicted_per_second": 30.695247352534913
+      },
+      "finishReason": "stop",
+      "score": 1,
+      "pass": true,
+      "checks": [
+        {
+          "check": "exact-category",
+          "pass": true,
+          "detail": "parsed=Scope question expected=Scope question"
+        }
+      ],
+      "rawOutput": " Scope question",
+      "parsed": "Scope question",
+      "lenientMatch": true
+    },
+    {
+      "job": "categorize",
+      "id": "pause-scope-1",
+      "attempt": 2,
+      "latencyMs": 2119,
+      "usage": {
+        "completion_tokens": 3,
+        "prompt_tokens": 433,
+        "total_tokens": 436,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 433,
+        "prompt_ms": 2014.454,
+        "prompt_per_token_ms": 4.65231870669746,
+        "prompt_per_second": 214.94658105868888,
+        "predicted_n": 3,
+        "predicted_ms": 98.187,
+        "predicted_per_token_ms": 32.729,
+        "predicted_per_second": 30.553942986342385
+      },
+      "finishReason": "stop",
+      "score": 1,
+      "pass": true,
+      "checks": [
+        {
+          "check": "exact-category",
+          "pass": true,
+          "detail": "parsed=Scope question expected=Scope question"
+        }
+      ],
+      "rawOutput": " Scope question",
+      "parsed": "Scope question",
+      "lenientMatch": true
+    },
+    {
+      "job": "categorize",
+      "id": "pause-scope-2",
+      "attempt": 1,
+      "latencyMs": 2116,
+      "usage": {
+        "completion_tokens": 3,
+        "prompt_tokens": 435,
+        "total_tokens": 438,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 435,
+        "prompt_ms": 2015.211,
+        "prompt_per_token_ms": 4.632668965517241,
+        "prompt_per_second": 215.85828977710025,
+        "predicted_n": 3,
+        "predicted_ms": 94.173,
+        "predicted_per_token_ms": 31.391000000000002,
+        "predicted_per_second": 31.856264534420692
+      },
+      "finishReason": "stop",
+      "score": 1,
+      "pass": true,
+      "checks": [
+        {
+          "check": "exact-category",
+          "pass": true,
+          "detail": "parsed=Scope question expected=Scope question"
+        }
+      ],
+      "rawOutput": " Scope question",
+      "parsed": "Scope question",
+      "lenientMatch": true
+    },
+    {
+      "job": "categorize",
+      "id": "pause-scope-2",
+      "attempt": 2,
+      "latencyMs": 2125,
+      "usage": {
+        "completion_tokens": 3,
+        "prompt_tokens": 435,
+        "total_tokens": 438,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 435,
+        "prompt_ms": 2020.026,
+        "prompt_per_token_ms": 4.643737931034483,
+        "prompt_per_second": 215.34376290206166,
+        "predicted_n": 3,
+        "predicted_ms": 97.667,
+        "predicted_per_token_ms": 32.55566666666667,
+        "predicted_per_second": 30.716618714611897
+      },
+      "finishReason": "stop",
+      "score": 1,
+      "pass": true,
+      "checks": [
+        {
+          "check": "exact-category",
+          "pass": true,
+          "detail": "parsed=Scope question expected=Scope question"
+        }
+      ],
+      "rawOutput": " Scope question",
+      "parsed": "Scope question",
+      "lenientMatch": true
+    },
+    {
+      "job": "handoff",
+      "id": "handoff-accept-guard",
+      "attempt": 1,
+      "latencyMs": 16284,
+      "usage": {
+        "completion_tokens": 246,
+        "prompt_tokens": 917,
+        "total_tokens": 1163,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 917,
+        "prompt_ms": 3391.835,
+        "prompt_per_token_ms": 3.6988386041439476,
+        "prompt_per_second": 270.3551322514214,
+        "predicted_n": 246,
+        "predicted_ms": 12706.827,
+        "predicted_per_token_ms": 51.653768292682926,
+        "predicted_per_second": 19.359671773291634
+      },
+      "finishReason": "stop",
+      "score": 0.889,
+      "pass": false,
+      "checks": [
+        {
+          "check": "section:Changes made",
+          "pass": true
+        },
+        {
+          "check": "section:Validation performed",
+          "pass": true
+        },
+        {
+          "check": "section:Assumptions and deviations",
+          "pass": true
+        },
+        {
+          "check": "section:Unresolved risks",
+          "pass": true
+        },
+        {
+          "check": "file:server/src/routes/tasks.ts",
+          "pass": true
+        },
+        {
+          "check": "file:server/src/routes/tasks.test.ts",
+          "pass": true
+        },
+        {
+          "check": "task-id:TASK-006",
+          "pass": false
+        },
+        {
+          "check": "mentions:human-only-accept",
+          "pass": true
+        },
+        {
+          "check": "mentions:state-check",
+          "pass": true
+        }
+      ],
+      "rawOutput": " ## Changes made\n\n- `server/src/routes/tasks.ts`:\n  - Added checks to ensure the actor is a human and the task is in the 'in_review' state before allowing the task to be accepted.\n  - Modified the response codes and messages for unauthorized actors and incorrect task states.\n\n- `server/src/routes/tasks.test.ts`:\n  - Added tests to verify the new validation checks for actor type and task state.\n\n## Validation performed\n\n- `pnpm --filter server lint`: 0 problems\n- `pnpm --filter server test`: 33 passed, 0 failed\n\n## Assumptions and deviations\n\n- Assumed that the `transition` function handles state transitions correctly and does not need additional validation within the route.\n- Deviated from the original implementation by adding explicit checks for actor type and task state before allowing an accept action.\n\n## Unresolved risks\n\n- There is a risk that the `transition` function might not handle edge cases correctly, which could lead to unexpected behavior.\n- The validation checks might not cover all possible scenarios, leading to potential bugs in the future."
+    },
+    {
+      "job": "handoff",
+      "id": "handoff-accept-guard",
+      "attempt": 2,
+      "latencyMs": 16862,
+      "usage": {
+        "completion_tokens": 246,
+        "prompt_tokens": 917,
+        "total_tokens": 1163,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 917,
+        "prompt_ms": 3541.119,
+        "prompt_per_token_ms": 3.8616346782988007,
+        "prompt_per_second": 258.9576910575442,
+        "predicted_n": 246,
+        "predicted_ms": 13310.817,
+        "predicted_per_token_ms": 54.10901219512195,
+        "predicted_per_second": 18.48120968081824
+      },
+      "finishReason": "stop",
+      "score": 0.889,
+      "pass": false,
+      "checks": [
+        {
+          "check": "section:Changes made",
+          "pass": true
+        },
+        {
+          "check": "section:Validation performed",
+          "pass": true
+        },
+        {
+          "check": "section:Assumptions and deviations",
+          "pass": true
+        },
+        {
+          "check": "section:Unresolved risks",
+          "pass": true
+        },
+        {
+          "check": "file:server/src/routes/tasks.ts",
+          "pass": true
+        },
+        {
+          "check": "file:server/src/routes/tasks.test.ts",
+          "pass": true
+        },
+        {
+          "check": "task-id:TASK-006",
+          "pass": false
+        },
+        {
+          "check": "mentions:human-only-accept",
+          "pass": true
+        },
+        {
+          "check": "mentions:state-check",
+          "pass": true
+        }
+      ],
+      "rawOutput": " ## Changes made\n\n- `server/src/routes/tasks.ts`:\n  - Added checks to ensure the actor is a human and the task is in the 'in_review' state before allowing the task to be accepted.\n  - Modified the response codes and messages for unauthorized actors and incorrect task states.\n\n- `server/src/routes/tasks.test.ts`:\n  - Added tests to verify the new validation checks for actor type and task state.\n\n## Validation performed\n\n- `pnpm --filter server lint`: 0 problems\n- `pnpm --filter server test`: 33 passed, 0 failed\n\n## Assumptions and deviations\n\n- Assumed that the `transition` function handles state transitions correctly and does not need additional validation within the route.\n- Deviated from the original implementation by adding explicit checks for actor type and task state before allowing an accept action.\n\n## Unresolved risks\n\n- There is a risk that the `transition` function might not handle edge cases correctly, which could lead to unexpected behavior.\n- The validation checks might not cover all possible scenarios, leading to potential bugs in the future."
+    },
+    {
+      "job": "handoff",
+      "id": "handoff-project-card",
+      "attempt": 1,
+      "latencyMs": 21521,
+      "usage": {
+        "completion_tokens": 318,
+        "prompt_tokens": 1019,
+        "total_tokens": 1337,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 1019,
+        "prompt_ms": 3733.124,
+        "prompt_per_token_ms": 3.6635171736997054,
+        "prompt_per_second": 272.96173392579516,
+        "predicted_n": 318,
+        "predicted_ms": 17445.261,
+        "predicted_per_token_ms": 54.85931132075471,
+        "predicted_per_second": 18.228446109232763
+      },
+      "finishReason": "stop",
+      "score": 0.8,
+      "pass": false,
+      "checks": [
+        {
+          "check": "section:Changes made",
+          "pass": true
+        },
+        {
+          "check": "section:Validation performed",
+          "pass": true
+        },
+        {
+          "check": "section:Assumptions and deviations",
+          "pass": true
+        },
+        {
+          "check": "section:Unresolved risks",
+          "pass": true
+        },
+        {
+          "check": "file:ui/src/components/ProjectCard.tsx",
+          "pass": true
+        },
+        {
+          "check": "file:ui/src/pages/dashboard/DashboardPage.tsx",
+          "pass": true
+        },
+        {
+          "check": "file:ui/src/styles/dashboard.css",
+          "pass": true
+        },
+        {
+          "check": "task-id:TASK-008",
+          "pass": false
+        },
+        {
+          "check": "mentions:missing-tests-risk",
+          "pass": true
+        },
+        {
+          "check": "mentions:pause-count-dependency",
+          "pass": false
+        }
+      ],
+      "rawOutput": " ## Changes made\n\n- Added new file: `ui/src/components/ProjectCard.tsx`\n  - Content: Added a new component `ProjectCard` for displaying project summaries on the dashboard.\n- Modified file: `ui/src/pages/dashboard/DashboardPage.tsx`\n  - Content: Replaced the previous static JSON output with a dynamic rendering of project cards using the `ProjectCard` component.\n- Modified file: `ui/src/styles/dashboard.css`\n  - Content: Added new CSS styles for the dashboard grid and project cards to improve the visual layout and appearance.\n\n## Validation performed\n\n- `pnpm --filter ui typecheck: ok`\n  - The TypeScript type checking passed without errors.\n- `pnpm --filter ui build: ok`\n  - The build process completed successfully without any issues.\n- No component tests exist for `ProjectCard` yet.\n\n## Assumptions and deviations\n\n- Assumed that the `ProjectSummary` type is correctly defined in the shared module.\n- Deviated from the original plan to include a detailed view for each project card, focusing instead on a simple card layout for the initial implementation.\n\n## Unresolved risks\n\n- There are no unresolved risks at this time, but the lack of component tests for `ProjectCard` poses a risk if unexpected behavior occurs in the future.\n- The visual design and responsiveness of the dashboard need further validation to ensure it meets the user experience expectations."
+    },
+    {
+      "job": "handoff",
+      "id": "handoff-project-card",
+      "attempt": 2,
+      "latencyMs": 21235,
+      "usage": {
+        "completion_tokens": 318,
+        "prompt_tokens": 1019,
+        "total_tokens": 1337,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 1019,
+        "prompt_ms": 3729.496,
+        "prompt_per_token_ms": 3.659956820412169,
+        "prompt_per_second": 273.2272671696122,
+        "predicted_n": 318,
+        "predicted_ms": 17496.433,
+        "predicted_per_token_ms": 55.02022955974843,
+        "predicted_per_second": 18.175133182860755
+      },
+      "finishReason": "stop",
+      "score": 0.8,
+      "pass": false,
+      "checks": [
+        {
+          "check": "section:Changes made",
+          "pass": true
+        },
+        {
+          "check": "section:Validation performed",
+          "pass": true
+        },
+        {
+          "check": "section:Assumptions and deviations",
+          "pass": true
+        },
+        {
+          "check": "section:Unresolved risks",
+          "pass": true
+        },
+        {
+          "check": "file:ui/src/components/ProjectCard.tsx",
+          "pass": true
+        },
+        {
+          "check": "file:ui/src/pages/dashboard/DashboardPage.tsx",
+          "pass": true
+        },
+        {
+          "check": "file:ui/src/styles/dashboard.css",
+          "pass": true
+        },
+        {
+          "check": "task-id:TASK-008",
+          "pass": false
+        },
+        {
+          "check": "mentions:missing-tests-risk",
+          "pass": true
+        },
+        {
+          "check": "mentions:pause-count-dependency",
+          "pass": false
+        }
+      ],
+      "rawOutput": " ## Changes made\n\n- Added new file: `ui/src/components/ProjectCard.tsx`\n  - Content: Added a new component `ProjectCard` for displaying project summaries on the dashboard.\n- Modified file: `ui/src/pages/dashboard/DashboardPage.tsx`\n  - Content: Replaced the previous static JSON output with a dynamic rendering of project cards using the `ProjectCard` component.\n- Modified file: `ui/src/styles/dashboard.css`\n  - Content: Added new CSS styles for the dashboard grid and project cards to improve the visual layout and appearance.\n\n## Validation performed\n\n- `pnpm --filter ui typecheck: ok`\n  - The TypeScript type checking passed without errors.\n- `pnpm --filter ui build: ok`\n  - The build process completed successfully without any issues.\n- No component tests exist for `ProjectCard` yet.\n\n## Assumptions and deviations\n\n- Assumed that the `ProjectSummary` type is correctly defined in the shared module.\n- Deviated from the original plan to include a detailed view for each project card, focusing instead on a simple card layout for the initial implementation.\n\n## Unresolved risks\n\n- There are no unresolved risks at this time, but the lack of component tests for `ProjectCard` poses a risk if unexpected behavior occurs in the future.\n- The visual design and responsiveness of the dashboard need further validation to ensure it meets the user experience expectations."
+    },
+    {
+      "job": "handoff",
+      "id": "handoff-run-branches",
+      "attempt": 1,
+      "latencyMs": 20068,
+      "usage": {
+        "completion_tokens": 319,
+        "prompt_tokens": 639,
+        "total_tokens": 958,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 639,
+        "prompt_ms": 3086.878,
+        "prompt_per_token_ms": 4.830794992175274,
+        "prompt_per_second": 207.00526551421856,
+        "predicted_n": 319,
+        "predicted_ms": 16600.358,
+        "predicted_per_token_ms": 52.03873981191223,
+        "predicted_per_second": 19.21645304275968
+      },
+      "finishReason": "stop",
+      "score": 0.778,
+      "pass": false,
+      "checks": [
+        {
+          "check": "section:Changes made",
+          "pass": true
+        },
+        {
+          "check": "section:Validation performed",
+          "pass": true
+        },
+        {
+          "check": "section:Assumptions and deviations",
+          "pass": true
+        },
+        {
+          "check": "section:Unresolved risks",
+          "pass": true
+        },
+        {
+          "check": "file:packages/db/migrations/0004_run_branches.sql",
+          "pass": true
+        },
+        {
+          "check": "file:packages/db/src/schema.ts",
+          "pass": true
+        },
+        {
+          "check": "task-id:TASK-010",
+          "pass": false
+        },
+        {
+          "check": "mentions:backfill-risk",
+          "pass": true
+        },
+        {
+          "check": "mentions:adr",
+          "pass": false
+        }
+      ],
+      "rawOutput": " ## Changes made\n\n- Added a new file: `packages/db/migrations/0004_run_branches.sql`\n  - Added new columns to the `runs` table: `branch_name`, `base_commit`, and `merged_commit`.\n  - Updated the `runs` table to set `branch_name` to a default value if not already set.\n  - Added a unique index to ensure `branch_name` is unique per project.\n- Modified the `packages/db/src/schema.ts` file:\n  - Added new columns to the `runs` table: `branchName`, `baseCommit`, and `mergedCommit`.\n\n## Validation performed\n\n- The migration `0001-0004` was applied on an empty database.\n- The migration was not run against a database with existing runs rows.\n\n## Assumptions and deviations\n\n- Assumed that the database is empty or has no existing runs rows when applying the migration.\n- Deviated from the original plan by adding new columns directly to the `runs` table without creating a new migration file.\n\n## Unresolved risks\n\n- There is a risk that the migration might fail if there are existing runs rows in the database, as the new columns are not nullable and might require default values or additional handling.\n- The unique index might cause conflicts if the `branch_name` is not unique across projects. This needs to be monitored and handled if conflicts occur."
+    },
+    {
+      "job": "handoff",
+      "id": "handoff-run-branches",
+      "attempt": 2,
+      "latencyMs": 19703,
+      "usage": {
+        "completion_tokens": 319,
+        "prompt_tokens": 639,
+        "total_tokens": 958,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 639,
+        "prompt_ms": 3091.31,
+        "prompt_per_token_ms": 4.83773082942097,
+        "prompt_per_second": 206.70848281149418,
+        "predicted_n": 319,
+        "predicted_ms": 16604.489,
+        "predicted_per_token_ms": 52.05168965517242,
+        "predicted_per_second": 19.211672217073346
+      },
+      "finishReason": "stop",
+      "score": 0.778,
+      "pass": false,
+      "checks": [
+        {
+          "check": "section:Changes made",
+          "pass": true
+        },
+        {
+          "check": "section:Validation performed",
+          "pass": true
+        },
+        {
+          "check": "section:Assumptions and deviations",
+          "pass": true
+        },
+        {
+          "check": "section:Unresolved risks",
+          "pass": true
+        },
+        {
+          "check": "file:packages/db/migrations/0004_run_branches.sql",
+          "pass": true
+        },
+        {
+          "check": "file:packages/db/src/schema.ts",
+          "pass": true
+        },
+        {
+          "check": "task-id:TASK-010",
+          "pass": false
+        },
+        {
+          "check": "mentions:backfill-risk",
+          "pass": true
+        },
+        {
+          "check": "mentions:adr",
+          "pass": false
+        }
+      ],
+      "rawOutput": " ## Changes made\n\n- Added a new file: `packages/db/migrations/0004_run_branches.sql`\n  - Added new columns to the `runs` table: `branch_name`, `base_commit`, and `merged_commit`.\n  - Updated the `runs` table to set `branch_name` to a default value if not already set.\n  - Added a unique index to ensure `branch_name` is unique per project.\n- Modified the `packages/db/src/schema.ts` file:\n  - Added new columns to the `runs` table: `branchName`, `baseCommit`, and `mergedCommit`.\n\n## Validation performed\n\n- The migration `0001-0004` was applied on an empty database.\n- The migration was not run against a database with existing runs rows.\n\n## Assumptions and deviations\n\n- Assumed that the database is empty or has no existing runs rows when applying the migration.\n- Deviated from the original plan by adding new columns directly to the `runs` table without creating a new migration file.\n\n## Unresolved risks\n\n- There is a risk that the migration might fail if there are existing runs rows in the database, as the new columns are not nullable and might require default values or additional handling.\n- The unique index might cause conflicts if the `branch_name` is not unique across projects. This needs to be monitored and handled if conflicts occur."
+    },
+    {
+      "job": "scope",
+      "id": "scope-all-in",
+      "attempt": 1,
+      "latencyMs": 4232,
+      "usage": {
+        "completion_tokens": 17,
+        "prompt_tokens": 673,
+        "total_tokens": 690,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 673,
+        "prompt_ms": 3133.226,
+        "prompt_per_token_ms": 4.655610698365527,
+        "prompt_per_second": 214.79459189985016,
+        "predicted_n": 17,
+        "predicted_ms": 808.23,
+        "predicted_per_token_ms": 47.54294117647059,
+        "predicted_per_second": 21.033616668522576
+      },
+      "finishReason": "stop",
+      "score": 1,
+      "pass": true,
+      "checks": [
+        {
+          "check": "valid-json",
+          "pass": true
+        },
+        {
+          "check": "in_scope",
+          "pass": true,
+          "detail": "got=true expected=true"
+        },
+        {
+          "check": "out_of_scope-set",
+          "pass": true,
+          "detail": "got=[] expected=[]"
+        }
+      ],
+      "rawOutput": " {\"in_scope\": true, \"out_of_scope\": []}",
+      "parsed": {
+        "in_scope": true,
+        "out_of_scope": []
+      }
+    },
+    {
+      "job": "scope",
+      "id": "scope-all-in",
+      "attempt": 2,
+      "latencyMs": 4009,
+      "usage": {
+        "completion_tokens": 17,
+        "prompt_tokens": 673,
+        "total_tokens": 690,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 673,
+        "prompt_ms": 3170.93,
+        "prompt_per_token_ms": 4.711634472511144,
+        "prompt_per_second": 212.24057295493753,
+        "predicted_n": 17,
+        "predicted_ms": 830.643,
+        "predicted_per_token_ms": 48.86135294117647,
+        "predicted_per_second": 20.466072669004614
+      },
+      "finishReason": "stop",
+      "score": 1,
+      "pass": true,
+      "checks": [
+        {
+          "check": "valid-json",
+          "pass": true
+        },
+        {
+          "check": "in_scope",
+          "pass": true,
+          "detail": "got=true expected=true"
+        },
+        {
+          "check": "out_of_scope-set",
+          "pass": true,
+          "detail": "got=[] expected=[]"
+        }
+      ],
+      "rawOutput": " {\"in_scope\": true, \"out_of_scope\": []}",
+      "parsed": {
+        "in_scope": true,
+        "out_of_scope": []
+      }
+    },
+    {
+      "job": "scope",
+      "id": "scope-one-out",
+      "attempt": 1,
+      "latencyMs": 4390,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 656,
+        "total_tokens": 678,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 656,
+        "prompt_ms": 3082.907,
+        "prompt_per_token_ms": 4.699553353658537,
+        "prompt_per_second": 212.78617875920355,
+        "predicted_n": 22,
+        "predicted_ms": 1063.514,
+        "predicted_per_token_ms": 48.34154545454545,
+        "predicted_per_second": 20.686140473938284
+      },
+      "finishReason": "stop",
+      "score": 0,
+      "pass": false,
+      "checks": [
+        {
+          "check": "valid-json",
+          "pass": true
+        },
+        {
+          "check": "in_scope",
+          "pass": false,
+          "detail": "got=true expected=false"
+        },
+        {
+          "check": "out_of_scope-set",
+          "pass": false,
+          "detail": "got=[] expected=[\"packages/shared/src/types.ts\"]"
+        }
+      ],
+      "rawOutput": " ```json\n{\"in_scope\": true, \"out_of_scope\": []}\n```",
+      "parsed": {
+        "in_scope": true,
+        "out_of_scope": []
+      }
+    },
+    {
+      "job": "scope",
+      "id": "scope-one-out",
+      "attempt": 2,
+      "latencyMs": 4189,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 656,
+        "total_tokens": 678,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 656,
+        "prompt_ms": 3096.095,
+        "prompt_per_token_ms": 4.719657012195122,
+        "prompt_per_second": 211.87980342980435,
+        "predicted_n": 22,
+        "predicted_ms": 1085.789,
+        "predicted_per_token_ms": 49.35404545454546,
+        "predicted_per_second": 20.261763565480955
+      },
+      "finishReason": "stop",
+      "score": 0,
+      "pass": false,
+      "checks": [
+        {
+          "check": "valid-json",
+          "pass": true
+        },
+        {
+          "check": "in_scope",
+          "pass": false,
+          "detail": "got=true expected=false"
+        },
+        {
+          "check": "out_of_scope-set",
+          "pass": false,
+          "detail": "got=[] expected=[\"packages/shared/src/types.ts\"]"
+        }
+      ],
+      "rawOutput": " ```json\n{\"in_scope\": true, \"out_of_scope\": []}\n```",
+      "parsed": {
+        "in_scope": true,
+        "out_of_scope": []
+      }
+    },
+    {
+      "job": "scope",
+      "id": "scope-prefix-trap",
+      "attempt": 1,
+      "latencyMs": 3565,
+      "usage": {
+        "completion_tokens": 17,
+        "prompt_tokens": 556,
+        "total_tokens": 573,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 556,
+        "prompt_ms": 2533.536,
+        "prompt_per_token_ms": 4.556719424460431,
+        "prompt_per_second": 219.4561277203087,
+        "predicted_n": 17,
+        "predicted_ms": 801.685,
+        "predicted_per_token_ms": 47.15794117647059,
+        "predicted_per_second": 21.20533626050132
+      },
+      "finishReason": "stop",
+      "score": 0,
+      "pass": false,
+      "checks": [
+        {
+          "check": "valid-json",
+          "pass": true
+        },
+        {
+          "check": "in_scope",
+          "pass": false,
+          "detail": "got=true expected=false"
+        },
+        {
+          "check": "out_of_scope-set",
+          "pass": false,
+          "detail": "got=[] expected=[\"docs/templates/task.md\",\"tools/model-eval-extras/notes.md\"]"
+        }
+      ],
+      "rawOutput": " {\"in_scope\": true, \"out_of_scope\": []}",
+      "parsed": {
+        "in_scope": true,
+        "out_of_scope": []
+      }
+    },
+    {
+      "job": "scope",
+      "id": "scope-prefix-trap",
+      "attempt": 2,
+      "latencyMs": 3323,
+      "usage": {
+        "completion_tokens": 17,
+        "prompt_tokens": 556,
+        "total_tokens": 573,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 556,
+        "prompt_ms": 2515.466,
+        "prompt_per_token_ms": 4.524219424460432,
+        "prompt_per_second": 221.03260389923776,
+        "predicted_n": 17,
+        "predicted_ms": 799.066,
+        "predicted_per_token_ms": 47.003882352941176,
+        "predicted_per_second": 21.274838373801412
+      },
+      "finishReason": "stop",
+      "score": 0,
+      "pass": false,
+      "checks": [
+        {
+          "check": "valid-json",
+          "pass": true
+        },
+        {
+          "check": "in_scope",
+          "pass": false,
+          "detail": "got=true expected=false"
+        },
+        {
+          "check": "out_of_scope-set",
+          "pass": false,
+          "detail": "got=[] expected=[\"docs/templates/task.md\",\"tools/model-eval-extras/notes.md\"]"
+        }
+      ],
+      "rawOutput": " {\"in_scope\": true, \"out_of_scope\": []}",
+      "parsed": {
+        "in_scope": true,
+        "out_of_scope": []
+      }
+    },
+    {
+      "job": "scope",
+      "id": "scope-rename-delete",
+      "attempt": 1,
+      "latencyMs": 3292,
+      "usage": {
+        "completion_tokens": 17,
+        "prompt_tokens": 548,
+        "total_tokens": 565,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 548,
+        "prompt_ms": 2282.146,
+        "prompt_per_token_ms": 4.1645,
+        "prompt_per_second": 240.12486492976345,
+        "predicted_n": 17,
+        "predicted_ms": 804.508,
+        "predicted_per_token_ms": 47.324000000000005,
+        "predicted_per_second": 21.130927225086634
+      },
+      "finishReason": "stop",
+      "score": 0,
+      "pass": false,
+      "checks": [
+        {
+          "check": "valid-json",
+          "pass": true
+        },
+        {
+          "check": "in_scope",
+          "pass": false,
+          "detail": "got=true expected=false"
+        },
+        {
+          "check": "out_of_scope-set",
+          "pass": false,
+          "detail": "got=[] expected=[\"docs/archive/lifecycle-diagram.svg\"]"
+        }
+      ],
+      "rawOutput": " {\"in_scope\": true, \"out_of_scope\": []}",
+      "parsed": {
+        "in_scope": true,
+        "out_of_scope": []
+      }
+    },
+    {
+      "job": "scope",
+      "id": "scope-rename-delete",
+      "attempt": 2,
+      "latencyMs": 3096,
+      "usage": {
+        "completion_tokens": 17,
+        "prompt_tokens": 548,
+        "total_tokens": 565,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 548,
+        "prompt_ms": 2289.116,
+        "prompt_per_token_ms": 4.177218978102189,
+        "prompt_per_second": 239.39372229279775,
+        "predicted_n": 17,
+        "predicted_ms": 798.297,
+        "predicted_per_token_ms": 46.95864705882353,
+        "predicted_per_second": 21.295332438929368
+      },
+      "finishReason": "stop",
+      "score": 0,
+      "pass": false,
+      "checks": [
+        {
+          "check": "valid-json",
+          "pass": true
+        },
+        {
+          "check": "in_scope",
+          "pass": false,
+          "detail": "got=true expected=false"
+        },
+        {
+          "check": "out_of_scope-set",
+          "pass": false,
+          "detail": "got=[] expected=[\"docs/archive/lifecycle-diagram.svg\"]"
+        }
+      ],
+      "rawOutput": " {\"in_scope\": true, \"out_of_scope\": []}",
+      "parsed": {
+        "in_scope": true,
+        "out_of_scope": []
+      }
+    },
+    {
+      "job": "scope",
+      "id": "scope-root-files",
+      "attempt": 1,
+      "latencyMs": 4230,
+      "usage": {
+        "completion_tokens": 17,
+        "prompt_tokens": 691,
+        "total_tokens": 708,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 691,
+        "prompt_ms": 3191.716,
+        "prompt_per_token_ms": 4.6189811866859625,
+        "prompt_per_second": 216.49795909159837,
+        "predicted_n": 17,
+        "predicted_ms": 837.238,
+        "predicted_per_token_ms": 49.24929411764706,
+        "predicted_per_second": 20.304859550092086
+      },
+      "finishReason": "stop",
+      "score": 0,
+      "pass": false,
+      "checks": [
+        {
+          "check": "valid-json",
+          "pass": true
+        },
+        {
+          "check": "in_scope",
+          "pass": false,
+          "detail": "got=true expected=false"
+        },
+        {
+          "check": "out_of_scope-set",
+          "pass": false,
+          "detail": "got=[] expected=[\"package.json\",\"pnpm-lock.yaml\"]"
+        }
+      ],
+      "rawOutput": " {\"in_scope\": true, \"out_of_scope\": []}",
+      "parsed": {
+        "in_scope": true,
+        "out_of_scope": []
+      }
+    },
+    {
+      "job": "scope",
+      "id": "scope-root-files",
+      "attempt": 2,
+      "latencyMs": 4240,
+      "usage": {
+        "completion_tokens": 17,
+        "prompt_tokens": 691,
+        "total_tokens": 708,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 691,
+        "prompt_ms": 3368.687,
+        "prompt_per_token_ms": 4.8750897250361795,
+        "prompt_per_second": 205.12442978525462,
+        "predicted_n": 17,
+        "predicted_ms": 862.081,
+        "predicted_per_token_ms": 50.71064705882353,
+        "predicted_per_second": 19.71972471264301
+      },
+      "finishReason": "stop",
+      "score": 0,
+      "pass": false,
+      "checks": [
+        {
+          "check": "valid-json",
+          "pass": true
+        },
+        {
+          "check": "in_scope",
+          "pass": false,
+          "detail": "got=true expected=false"
+        },
+        {
+          "check": "out_of_scope-set",
+          "pass": false,
+          "detail": "got=[] expected=[\"package.json\",\"pnpm-lock.yaml\"]"
+        }
+      ],
+      "rawOutput": " {\"in_scope\": true, \"out_of_scope\": []}",
+      "parsed": {
+        "in_scope": true,
+        "out_of_scope": []
+      }
+    }
+  ]
+}

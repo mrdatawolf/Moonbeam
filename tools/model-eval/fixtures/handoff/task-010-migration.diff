@@ -1,0 +1,27 @@
+diff --git a/packages/db/migrations/0004_run_branches.sql b/packages/db/migrations/0004_run_branches.sql
+new file mode 100644
+index 0000000..e3b1c77
+--- /dev/null
++++ b/packages/db/migrations/0004_run_branches.sql
+@@ -0,0 +1,12 @@
++-- Each run works on its own branch (ADR-005).
++ALTER TABLE runs ADD COLUMN branch_name text;
++ALTER TABLE runs ADD COLUMN base_commit char(40);
++ALTER TABLE runs ADD COLUMN merged_commit char(40);
++
++UPDATE runs SET branch_name = 'run/' || task_id || '-' || id WHERE branch_name IS NULL;
++ALTER TABLE runs ALTER COLUMN branch_name SET NOT NULL;
++
++CREATE UNIQUE INDEX runs_branch_name_key ON runs (project_id, branch_name);
+diff --git a/packages/db/src/schema.ts b/packages/db/src/schema.ts
+index 7aa21d0..0c9f6b4 100644
+--- a/packages/db/src/schema.ts
++++ b/packages/db/src/schema.ts
+@@ -41,6 +41,9 @@ export const runs = pgTable('runs', {
+   model: text('model').notNull(),
+   status: text('status').notNull(),
+   startedAt: timestamp('started_at').notNull().defaultNow(),
++  branchName: text('branch_name').notNull(),
++  baseCommit: char('base_commit', { length: 40 }),
++  mergedCommit: char('merged_commit', { length: 40 }),
+ });

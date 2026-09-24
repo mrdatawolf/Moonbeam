@@ -1,0 +1,66 @@
+diff --git a/ui/src/components/ProjectCard.tsx b/ui/src/components/ProjectCard.tsx
+new file mode 100644
+index 0000000..a41b9e2
+--- /dev/null
++++ b/ui/src/components/ProjectCard.tsx
+@@ -0,0 +1,34 @@
++import type { ProjectSummary } from '@moonbeam/shared';
++import { StatusDot } from './StatusDot';
++
++export function ProjectCard({ project }: { project: ProjectSummary }) {
++  const needsHuman = project.openPauseCount + project.inReviewCount;
++  return (
++    <article className="project-card" aria-labelledby={`p-${project.id}`}>
++      <header>
++        <h2 id={`p-${project.id}`}>{project.name}</h2>
++        <StatusDot state={project.activeRuns > 0 ? 'running' : 'idle'} />
++      </header>
++      <dl>
++        <dt>Active runs</dt>
++        <dd>{project.activeRuns}</dd>
++        <dt>Waiting on the board</dt>
++        <dd>{needsHuman}</dd>
++      </dl>
++    </article>
++  );
++}
+diff --git a/ui/src/pages/dashboard/DashboardPage.tsx b/ui/src/pages/dashboard/DashboardPage.tsx
+index 0b8e1f3..6d2c7a0 100644
+--- a/ui/src/pages/dashboard/DashboardPage.tsx
++++ b/ui/src/pages/dashboard/DashboardPage.tsx
+@@ -1,14 +1,22 @@
+ import { useQuery } from '@tanstack/react-query';
+ import { fetchProjects } from '../../api/projects';
++import { ProjectCard } from '../../components/ProjectCard';
+ 
+ export function DashboardPage() {
+   const { data, isLoading, error } = useQuery({ queryKey: ['projects'], queryFn: fetchProjects });
+   if (isLoading) return <p>Loading projects...</p>;
+   if (error) return <p role="alert">Could not load projects.</p>;
+-  return <pre>{JSON.stringify(data, null, 2)}</pre>;
++  return (
++    <section className="dashboard-grid">
++      {data!.map((p) => (
++        <ProjectCard key={p.id} project={p} />
++      ))}
++    </section>
++  );
+ }
+diff --git a/ui/src/styles/dashboard.css b/ui/src/styles/dashboard.css
+index 2f0c3d1..9ab4e57 100644
+--- a/ui/src/styles/dashboard.css
++++ b/ui/src/styles/dashboard.css
+@@ -1,3 +1,14 @@
+ .dashboard { padding: 1rem; }
++
++.dashboard-grid {
++  display: grid;
++  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
++  gap: 1rem;
++}
++
++.project-card {
++  border: 1px solid var(--border);
++  border-radius: 0.5rem;
++  padding: 0.75rem 1rem;
++}

@@ -1,0 +1,49 @@
+{
+  "job": "handoff",
+  "description": "Draft an implementation handoff (docs/templates/implementation-report.md sections) from a diff and validation notes. Rubric-scored.",
+  "maxTokens": 900,
+  "cases": [
+    {
+      "id": "handoff-accept-guard",
+      "taskId": "TASK-006",
+      "taskTitle": "Lifecycle data and API",
+      "diff": "task-006-accept-guard.diff",
+      "validation": "pnpm --filter server lint: 0 problems\npnpm --filter server test: 33 passed, 0 failed",
+      "rubric": {
+        "files": ["server/src/routes/tasks.ts", "server/src/routes/tasks.test.ts"],
+        "facts": [
+          { "id": "human-only-accept", "any": ["403", "human", "agent actor", "agents cannot accept", "only a human"] },
+          { "id": "state-check", "any": ["409", "in_review", "in review"] }
+        ]
+      }
+    },
+    {
+      "id": "handoff-project-card",
+      "taskId": "TASK-008",
+      "taskTitle": "Dashboard",
+      "diff": "task-008-project-card.diff",
+      "validation": "pnpm --filter ui typecheck: ok\npnpm --filter ui build: ok\nNo component tests exist for ProjectCard yet.",
+      "rubric": {
+        "files": ["ui/src/components/ProjectCard.tsx", "ui/src/pages/dashboard/DashboardPage.tsx", "ui/src/styles/dashboard.css"],
+        "facts": [
+          { "id": "missing-tests-risk", "any": ["no component test", "no tests", "not tested", "untested", "without tests", "tests do not exist", "no test coverage", "lack of test"] },
+          { "id": "pause-count-dependency", "any": ["openPauseCount"] }
+        ]
+      }
+    },
+    {
+      "id": "handoff-run-branches",
+      "taskId": "TASK-010",
+      "taskTitle": "Run branches schema",
+      "diff": "task-010-migration.diff",
+      "validation": "pnpm --filter @moonbeam/db migrate:test: applied 0001-0004 on an empty database\nNot run against a database with existing runs rows.",
+      "rubric": {
+        "files": ["packages/db/migrations/0004_run_branches.sql", "packages/db/src/schema.ts"],
+        "facts": [
+          { "id": "backfill-risk", "any": ["existing rows", "existing runs", "backfill", "existing data", "not run against"] },
+          { "id": "adr", "any": ["ADR-005"] }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+diff --git a/docs/contracts/CONTRACT-001-task-lifecycle.md b/docs/contracts/CONTRACT-001-task-lifecycle.md
+index aaaaaaa..bbbbbbb 100644
+--- a/docs/contracts/CONTRACT-001-task-lifecycle.md
++++ b/docs/contracts/CONTRACT-001-task-lifecycle.md
+@@ -40,3 +40,3 @@
+-A released claim returns the task to the pool.
++A released claim leaves the task in_progress with no claimant.
+diff --git a/docs/contracts/lifecycle-diagram.svg b/docs/archive/lifecycle-diagram.svg
+similarity index 100%
+rename from docs/contracts/lifecycle-diagram.svg
+rename to docs/archive/lifecycle-diagram.svg
+diff --git a/docs/contracts/old-notes.md b/docs/contracts/old-notes.md
+deleted file mode 100644
+index ccccccc..0000000
+--- a/docs/contracts/old-notes.md
++++ /dev/null
+@@ -1,2 +0,0 @@
+-Draft notes superseded by CONTRACT-001.
+-Delete when the contract is approved.

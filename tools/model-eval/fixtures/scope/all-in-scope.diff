@@ -1,0 +1,26 @@
+diff --git a/ui/src/pages/runs/RunView.tsx b/ui/src/pages/runs/RunView.tsx
+index 1a2b3c4..5d6e7f8 100644
+--- a/ui/src/pages/runs/RunView.tsx
++++ b/ui/src/pages/runs/RunView.tsx
+@@ -12,7 +12,9 @@ export function RunView({ runId }: { runId: string }) {
+-  return <RunSummary run={run} />;
++  return (
++    <RunSummary run={run} onExpand={() => setShowLog(true)} />
++  );
+diff --git a/ui/src/pages/runs/RunLog.tsx b/ui/src/pages/runs/RunLog.tsx
+new file mode 100644
+index 0000000..9f8e7d6
+--- /dev/null
++++ b/ui/src/pages/runs/RunLog.tsx
+@@ -0,0 +1,6 @@
++export function RunLog({ lines }: { lines: string[] }) {
++  return <pre className="run-log">{lines.join('\n')}</pre>;
++}
+diff --git a/ui/src/components/StatusDot.tsx b/ui/src/components/StatusDot.tsx
+index 4c3d2e1..7b8a9c0 100644
+--- a/ui/src/components/StatusDot.tsx
++++ b/ui/src/components/StatusDot.tsx
+@@ -3,3 +3,4 @@ const COLORS = {
+   idle: 'var(--muted)',
++  paused: 'var(--warning)',
+ };

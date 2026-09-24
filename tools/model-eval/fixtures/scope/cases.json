@@ -1,0 +1,42 @@
+{
+  "job": "scope",
+  "description": "Check a diff against a task's scope envelope paths. Exact match on in_scope and the set of out-of-scope files.",
+  "maxTokens": 300,
+  "cases": [
+    {
+      "id": "scope-all-in",
+      "taskId": "TASK-009",
+      "envelope": ["ui/src/pages/runs/", "ui/src/components/"],
+      "diff": "all-in-scope.diff",
+      "expected": { "in_scope": true, "out_of_scope": [] }
+    },
+    {
+      "id": "scope-one-out",
+      "taskId": "TASK-006",
+      "envelope": ["server/src/routes/", "server/src/lifecycle/", "packages/db/"],
+      "diff": "one-out-of-scope.diff",
+      "expected": { "in_scope": false, "out_of_scope": ["packages/shared/src/types.ts"] }
+    },
+    {
+      "id": "scope-prefix-trap",
+      "taskId": "TASK-011",
+      "envelope": ["tools/model-eval/"],
+      "diff": "prefix-trap.diff",
+      "expected": { "in_scope": false, "out_of_scope": ["docs/templates/task.md", "tools/model-eval-extras/notes.md"] }
+    },
+    {
+      "id": "scope-rename-delete",
+      "taskId": "TASK-004",
+      "envelope": ["docs/contracts/"],
+      "diff": "rename-and-delete.diff",
+      "expected": { "in_scope": false, "out_of_scope": ["docs/archive/lifecycle-diagram.svg"] }
+    },
+    {
+      "id": "scope-root-files",
+      "taskId": "TASK-010",
+      "envelope": ["packages/db/migrations/", "packages/db/src/schema.ts"],
+      "diff": "root-files.diff",
+      "expected": { "in_scope": false, "out_of_scope": ["package.json", "pnpm-lock.yaml"] }
+    }
+  ]
+}

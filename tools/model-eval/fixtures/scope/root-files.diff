@@ -1,0 +1,28 @@
+diff --git a/packages/db/migrations/0004_run_branches.sql b/packages/db/migrations/0004_run_branches.sql
+new file mode 100644
+index 0000000..e3b1c77
+--- /dev/null
++++ b/packages/db/migrations/0004_run_branches.sql
+@@ -0,0 +1,2 @@
++ALTER TABLE runs ADD COLUMN branch_name text;
++ALTER TABLE runs ADD COLUMN base_commit char(40);
+diff --git a/packages/db/src/schema.ts b/packages/db/src/schema.ts
+index 7aa21d0..0c9f6b4 100644
+--- a/packages/db/src/schema.ts
++++ b/packages/db/src/schema.ts
+@@ -41,2 +41,3 @@ export const runs = pgTable('runs', {
++  branchName: text('branch_name').notNull(),
+diff --git a/package.json b/package.json
+index 9990001..9990002 100644
+--- a/package.json
++++ b/package.json
+@@ -8,2 +8,3 @@
+     "lint": "eslint .",
++    "db:migrate": "pnpm --filter @moonbeam/db migrate",
+diff --git a/pnpm-lock.yaml b/pnpm-lock.yaml
+index 7770001..7770002 100644
+--- a/pnpm-lock.yaml
++++ b/pnpm-lock.yaml
+@@ -1,2 +1,2 @@
+-lockfileVersion: '9.0'
++lockfileVersion: '9.0'
