@@ -1,6 +1,6 @@
 # ADR-005: Branch per run, review in Moonbeam, merge on acceptance
 
-Status: Proposed
+Status: Approved
 Date: 2026-09-24
 Decision owners: Board (direction chosen by Patrick, 2026-09-24)
 Related tasks and contracts: CONTRACT-001, ADR-001
