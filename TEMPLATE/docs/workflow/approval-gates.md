@@ -1,8 +1,9 @@
 # Approval Gates
 
 Moonbeam enforces the gates and records the actor and time of every approval,
-return, and acceptance. Agents never pass an approval or acceptance gate: Moonbeam
-rejects those actions from agents.
+return, acceptance, and merge. Agents never pass an approval or acceptance gate,
+and never merge into the main branch or push: Moonbeam rejects those actions
+from agents.
 
 ## Design approval
 
@@ -43,6 +44,13 @@ Only a board member accepts work. Acceptance happens once, on the parent task;
 subtasks are not accepted individually. Accepting changes to files outside the
 task's paths requires a written reason.
 
-Accepting merges the task's branch into the main branch, together with the task
-record, written to `tasks/TASK-NNN-short-description.md`. If the merge fails,
-the acceptance is refused and the task stays in review.
+Accepting does not change the repository. Merging the accepted task's branch
+into the main branch is a separate step that only a board member takes, by
+asking Moonbeam or by hand. When Moonbeam merges, the task record, written to
+`tasks/TASK-NNN-short-description.md`, is part of the same merge commit. If
+Moonbeam cannot merge safely (a conflict, or uncommitted changes in the folder
+where the main branch is checked out), it refuses, changes nothing, and says
+what to fix.
+
+Pushing the main branch to a remote is a further step that only a board member
+takes. Moonbeam never pushes on its own and never force-pushes.

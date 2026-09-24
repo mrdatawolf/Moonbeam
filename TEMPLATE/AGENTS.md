@@ -30,8 +30,9 @@ you can read your assignment. That file is a snapshot. It may be out of date the
 moment it is written, and changing it changes nothing in Moonbeam. Do not edit
 it to record progress, blockers, handoffs, or status. Report those to Moonbeam.
 
-When a board member accepts a task, Moonbeam writes the task file, with its
-handoff, review, and acceptance, into the repository as the permanent record.
+When a board member has Moonbeam merge an accepted task into the main branch,
+Moonbeam writes the task file, with its handoff, review, and acceptance, into
+the repository as the permanent record, in the same merge commit as the work.
 
 ## Before working
 
@@ -64,19 +65,28 @@ Use the templates in `docs/templates/`. A handoff must state what changed, what
 was validated, any deviations or assumptions, and any unresolved risks. Submit
 the handoff to Moonbeam for the task; do not rely on editing the task snapshot.
 
-## Run branches and review
+## Task branches and review
 
-Each run works on its own branch, which Moonbeam names and creates. The branch is
-the run's work product; the board sees it through Moonbeam's review surface
-(rendered documents, the diff, test results, previews), not by checking it out.
+Each task has one branch, `moonbeam/TASK-NNN`, which Moonbeam names and
+creates. Every run on the task uses it in turn, and a returned task continues on
+it. Moonbeam gives your run a git worktree of the project repository on that
+branch, in Moonbeam's own data directory. The project folder where people keep
+the project is not your checkout. The board sees your work through Moonbeam's
+review surface (rendered documents, the diff, test results, previews), not by
+checking it out.
 
-- Commit your work to the run branch. Never merge into, rebase onto, or push to
-  the project's main branch yourself.
+- Commit your work to the task branch. Work you leave uncommitted when your run
+  ends is not published.
+- Never merge into, rebase onto, or push to the project's main branch. Never
+  push any branch. Never change the project folder or any branch other than
+  your task branch.
 - Stay within the paths in your task's scope envelope. Moonbeam compares the
   branch's changes against them, and the reviewer checks them.
 - Your handoff names every changed file by its path in the repository.
-- Moonbeam merges the branch only when a board member accepts the task. Merging
-  is acceptance. A returned task continues on its branch.
+- Accepting a task is a board member's decision and changes nothing in the
+  repository. Merging the accepted work into the main branch, and pushing the
+  main branch to a remote, are separate steps that only a board member takes.
+  Moonbeam never pushes on its own.
 
 ## Dispatching isolated (worktree) subagents
 

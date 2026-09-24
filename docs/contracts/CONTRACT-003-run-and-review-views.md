@@ -3,14 +3,44 @@
 Status: Accepted
 Approved by: Patrick
 Approved date: 2026-09-24
-Revised: 2026-09-24 (TASK-012), see "Revision history"
-Related tasks: TASK-009, TASK-012
-Related ADRs: ADR-005 (as amended), ADR-003, ADR-002 (context: ADR-001)
+Revised: 2026-09-24 (TASK-012; TASK-013), see "Revision history"
+Related tasks: TASK-009, TASK-012, TASK-013
+Related ADRs: ADR-005 (as amended), ADR-006, ADR-003, ADR-002 (context:
+ADR-001)
 Related contracts: CONTRACT-001 (task lifecycle), CONTRACT-002 (identity),
-CONTRACT-004 (task branches and merge on acceptance), future runs contract,
-future pauses contract
+CONTRACT-004 (task branches, worktrees, and integration into main), future
+runs contract, future pauses contract
 
 ## Revision history
+
+### 2026-09-24 — TASK-013: accept without merging; integration panel; push
+
+The board amended ADR-005 (acceptance and merge are separate human steps) and
+approved ADR-006 (projects root, no push unless a human asks, single host).
+This revision applies them. It does not change the approval.
+
+- **Accept (A-1):** renamed from "Accept and merge". The dialog says that
+  accepting does not change the repository. A merge conflict with main no
+  longer disables Accept; it is a warning in the confirmation (interim
+  reading, CONTRACT-001 Q25). The Board A4 failure path "a failed merge rejects
+  the accept" is removed from A-1 and re-expressed in A-8: a refused merge
+  leaves the task Completed with "Merge refused".
+- **New RS-15 Integration panel** on completed top-level tasks: merge status,
+  record status, push status, how far main is ahead of its remote, and the
+  actions Merge into main (A-8) and Push main (A-9). It carries the refusal
+  messages for an unsafe project folder, a conflict, an unavailable
+  repository, and a rejected or failed push.
+- **Status vocabulary:** review sub-status "Merging" becomes "Accepting". The
+  branch value "Merged" is replaced by an Integration family and a Push
+  family. SV-4 adds Merge refused.
+- **Wording:** "Waiting on this task" now waits for the work to reach main. No
+  text refers to a Moonbeam-held repository; branches are found in the project
+  repository.
+- Failure behavior, Interfaces, UX-6, validation items 2 and 3, and the state
+  coverage table are updated.
+- **Open questions:** this contract's display depends on CONTRACT-001 Q24 and
+  Q25 and CONTRACT-004 Q19–Q23. They are listed under "Open questions" with
+  the interim display used here.
 
 ### 2026-09-24 — TASK-012: board answers, round 1 sheet
 
@@ -61,7 +91,9 @@ work becomes visible:
 - the **run view**, where a board member watches one run live or reads it
   afterwards, and answers its pauses
 - the **review surface**, where a board member sees a task's actual result
-  (ADR-005) and accepts it, returns it, or cancels it
+  (ADR-005) and accepts it, returns it, or cancels it, and where, once the task
+  is completed, a board member merges it into main and pushes main (ADR-005 as
+  amended, ADR-006)
 
 It also defines the **status vocabulary** that these screens share with every
 other Moonbeam screen, so a board member learns it once.
@@ -105,8 +137,10 @@ do about it** (Paperclip `DESIGN.md`, "Product stance").
   the pause history, declared paths compared with actually changed files, and
   the same-model reviewer warning.
 - The review surface for a split parent with its subtasks.
-- The human actions on these screens: accept (merge), accept without review
-  (waiver), return with notes, cancel, answer a pause, and stop a run.
+- The human actions on these screens: accept (which does not merge), accept
+  without review (waiver), return with notes, cancel, merge into main, push
+  main, answer a pause, and stop a run.
+- The integration panel of a completed task (ADR-005 amendment, ADR-006).
 - Every run and review state these screens can show, including loading, empty,
   error, and read-only history.
 - Accessibility and responsive requirements.
@@ -200,10 +234,10 @@ everywhere (badge, row, list, chart, transcript marker):
 |---|---|---|
 | `neutral` | Not active, or ended without needing anyone. | Proposed, Approved, Cancelled, Stopped, Not reviewed |
 | `live` | Work is happening now. | In progress, Running, Starting, Check running |
-| `attention` | A human needs to look or answer. | Paused, Changes required, Same-model review, Behind main |
+| `attention` | A human needs to look or answer. | Paused, Changes required, Same-model review, Behind main, Not merged |
 | `review` | Waiting in review. | In review |
-| `success` | Done or passing. | Completed, Handed off, Pass, Check passed, Merged |
-| `danger` | Something failed, is blocked, or is out of bounds. | Failed, Blocked, Check failed, Outside declared paths, Merge conflict |
+| `success` | Done or passing. | Completed, Handed off, Pass, Check passed, Merged by Moonbeam, Pushed |
+| `danger` | Something failed, is blocked, or is out of bounds. | Failed, Blocked, Check failed, Outside declared paths, Merge conflict, Merge refused, Push rejected |
 
 **SV-2 Never by color alone.** Every status is shown with a text label and a
 glyph whose *shape* differs between statuses in the same family. Tones meet
@@ -228,7 +262,7 @@ screen. "Task" is always "task" (never issue or ticket). "Run" is always "run"
 | Review sub-status (shown only with In review) | no review on latest attempt, none running | Awaiting agent review | review |
 | | reviewer run live | Agent review running | live |
 | | review recorded, or split parent ready | Awaiting decision | review |
-| | accept in progress | Merging | live |
+| | accept in progress | Accepting | live |
 | Run status (canonical names, Board C5) | `starting` | Starting | live |
 | | `running` | Running | live |
 | | `running` with an open pause | Paused | attention |
@@ -261,10 +295,21 @@ screen. "Task" is always "task" (never issue or ticket). "Run" is always "run"
 | Branch (CONTRACT-004) | up to date with main | Up to date | neutral |
 | | main moved since the branch started or since review | Behind main | attention |
 | | cannot merge cleanly | Merge conflict | danger |
-| | merged at acceptance | Merged | success |
 | | completed subtask whose work could not be integrated into the parent's branch | Not integrated | danger |
+| Integration (completed top-level task, CONTRACT-004 B17) | work not on main | Not merged | attention |
+| | merge in progress | Merging | live |
+| | merged by Moonbeam on request | Merged by Moonbeam | success |
+| | merge done by hand, detected (CONTRACT-001 M2) | Merged by hand | success |
+| | latest merge request refused; still not merged | Merge refused | danger |
+| | merged by hand, task record not in the repository (interim, CONTRACT-004 Q20) | Record not written | attention |
+| Push (task: whether its merge is on the remote; project: last push) | remote's main contains the task's merge | Pushed | success |
+| | not yet on the remote | Not pushed | neutral |
+| | push in progress | Pushing | live |
+| | the remote refused the push (for example, it diverged) | Push rejected | danger |
+| | the remote could not be reached, or authentication failed | Push failed | danger |
+| Project remote state | main has commits the remote lacks | Main is N ahead of <remote> | neutral |
 | Warning | same-model review | Same model as implementer | attention |
-| | main has commits that did not come from an acceptance (Board C3) | Commits on main outside Moonbeam | attention |
+| | main has commits that did not come from a Moonbeam merge (Board C3; ADR-006 "main changed outside Moonbeam") | Commits on main outside Moonbeam | attention |
 
 A task with no declared paths was approved to change no files (CONTRACT-001,
 Board A1). If it changed any file, its scope check shows "N outside declared
@@ -285,7 +330,7 @@ this order:
 1. Paused (a question is waiting)
 2. Blocked or Blocked by parent
 3. Failed or Not responding (latest run)
-4. Merge conflict (task in review)
+4. Merge conflict (task in review), or Merge refused (completed task)
 5. In review, with its sub-status
 6. Running or Starting
 7. The lifecycle state
@@ -546,15 +591,17 @@ section:
 - **Scope** — "Within declared paths" or "N outside declared paths".
 - **Pauses** — "N pauses during this attempt" (neutral), or "No pauses".
 - **Branch** — Up to date, Behind main (with the number of new main commits),
-  or Merge conflict (with the files). Accepting while Behind main is allowed
-  when the merge is clean, with a warning (Board C4). When any of the new main
-  commits did not come from an acceptance, the line adds "Commits on main
-  outside Moonbeam" (Board C3).
+  or Merge conflict (with the files). Accepting never merges (ADR-005
+  amendment), so neither status prevents accepting. Both are warnings in the
+  accept confirmation (Board C4; for a conflict, the interim reading of
+  CONTRACT-001 Q25). When any of the new main commits did not come from a
+  Moonbeam merge, the line adds "Commits on main outside Moonbeam" (Board C3).
 - **Blocked** — present only when the task is blocked, with the blockers.
 - **Waiting on this task** — present only when other tasks have a path
   dependency on this one (CONTRACT-001 "Path dependencies"): "N tasks are
-  waiting for this to merge", each linked. Informational: it tells the board
-  that accepting unlocks them and returning delays them.
+  waiting for this work to reach main", each linked. Informational: it tells
+  the board that accepting and then merging unlocks them, and that returning
+  delays them. Accepting alone does not unlock them (ADR-005 amendment).
 - **Split parent** — "N subtasks: N completed, N cancelled", and "N findings
   from subtask reviews" when any exist.
 
@@ -697,15 +744,23 @@ sticky action bar at the bottom on narrow screens:
 
 | Action | Shown when | Disabled when (reason shown next to it) |
 |---|---|---|
-| **Accept and merge** (A-1) | Top-level task in `in_review` | Blocked ("Accept is unavailable while the task is blocked"); a subtask is not done; merge conflict (CONTRACT-004); an accept is already in progress |
-| **Accept without review** (A-2) | Top-level task in `in_review` that entered review by handoff (CONTRACT-001 T9), with no review on the latest attempt. Replaces Accept and merge in that case. | Same as Accept and merge |
+| **Accept** (A-1) | Top-level task in `in_review` | Blocked ("Accept is unavailable while the task is blocked"); a subtask is not done; an accept is already in progress |
+| **Accept without review** (A-2) | Top-level task in `in_review` that entered review by handoff (CONTRACT-001 T9), with no review on the latest attempt. Replaces Accept in that case. | Same as Accept |
 | **Return** (A-3) | Top-level task in `in_review` | Never disabled while shown, except while another action is in progress |
 | **Start agent review** (A-7) | Task in `in_review` that entered review by handoff, with no reviewer run live | While a reviewer run is live |
 | **Cancel task** (A-5) | Any non-terminal task, in a secondary menu | Never disabled while shown |
 
 Handoffs are accepted only when the branch merges cleanly into its target
-(CONTRACT-001 T6, Board A4). A merge conflict at acceptance therefore means main
-moved after the handoff. The disabled Accept then says so and points to Return.
+(CONTRACT-001 T6, Board A4). A merge conflict shown at review therefore means
+main moved after the handoff. Accepting does not merge (ADR-005 amendment), so
+a conflict no longer disables Accept. It is listed as a warning in the accept
+confirmation, which says that a merge requested after acceptance would be
+refused until the conflict is resolved, and that Return resolves it on the
+branch now (interim reading, CONTRACT-001 Q25). Until the TASK-013 revision, a
+conflict disabled Accept.
+
+Merge into main and Push main are not review decisions. They appear in the
+integration panel of a completed task (RS-15).
 
 Rules:
 
@@ -749,8 +804,9 @@ The Return dialog lets the board member add new subtasks (A-3).
 **RS-14 After the decision.** The review surface remains available for every
 attempt as a read-only record:
 
-- **Completed:** the header shows "Accepted by <person> at <time>" and "Merged
-  into main at <commit>", or the review waiver and its reason. No actions.
+- **Completed:** the header shows "Accepted by <person> at <time>", with the
+  review waiver and its reason if any, and the integration panel (RS-15). No
+  review decision actions.
 - **Returned attempt:** shown when browsing earlier attempts: "Returned by
   <person> at <time>" with the return notes. The task's current state is linked.
 - **Cancelled:** "Cancelled by <person>: <reason>". States that the branch was
@@ -758,6 +814,41 @@ attempt as a read-only record:
 - A task that is not in review and has no attempt yet shows: "This task hasn't
   been handed off yet." with its current state and a link to its live run, if
   any.
+
+**RS-15 Integration panel** (ADR-005 amendment, ADR-006; CONTRACT-001 M1, M2;
+CONTRACT-004 B7, B15–B17). Shown on the Completed form of a top-level task's
+review surface and in the task detail. Subtasks have none; their surface says
+"Subtasks integrate into the parent's branch." It shows:
+
+- **Merge status** (SV-3 Integration family), with details:
+  - Merged by Moonbeam: merge commit, who requested it, when, and the task
+    record's path.
+  - Merged by hand: "Merged by hand. Detected at <time> in main at <commit>."
+    Until CONTRACT-004 Q20 is decided, it adds "Record not written: the task
+    record is not in the repository."
+  - Merge refused: the latest refusal's message (A-8), who requested it, and
+    when. The task is still not merged.
+- **While not merged:** mergeability with current main (with conflicting
+  files), how many commits main has moved since acceptance, and "Commits on
+  main outside Moonbeam" when any of them are hand commits.
+- **Where the merge would change files:** the main checkout folder, or "Main
+  is not checked out; only the branch changes", and whether the folder would
+  pass the safety check now (CONTRACT-004 B15). This is re-checked when the
+  panel opens, when the user chooses "Check again", and right before the merge
+  confirmation. The server re-checks at the merge itself.
+- **Push status** for this task, and for the project "Main is N ahead of
+  <remote>", as of the time the remote state was last updated (CONTRACT-004
+  B16, Q23). The latest push outcome for the project is shown when it was a
+  rejection or failure.
+- **Actions:**
+
+| Action | Shown when | Disabled when (reason shown next to it) |
+|---|---|---|
+| **Merge into main** (A-8) | Completed top-level task whose work is not on main | A merge is in progress; the server currently reports a reason the merge would be refused (unsafe folder, conflict, or repository unavailable), with its message and fix |
+| **Push main** (A-9) | Main has commits the remote lacks, or main has no remote | Main has no remote ("Main has no remote to push to. Set one in <folder>."); a push is in progress |
+
+The panel is where the decision queue's "accepted, not merged" entries lead,
+if the board adds them (CONTRACT-001 Q24).
 
 ### A — Actions
 
@@ -774,14 +865,19 @@ Every action below:
 - moves keyboard focus predictably: into a dialog on open, back to the
   triggering control on close, and to the result message on completion
 
-**A-1 Accept and merge** (CONTRACT-001 T9, merge per CONTRACT-004).
+**A-1 Accept** (CONTRACT-001 T9). Acceptance is a decision. It does not change
+the project repository (ADR-005 amendment).
 
-1. The user chooses Accept and merge.
-2. A confirmation dialog states what will happen: "Accept <task> and merge
-   branch <branch> into <main branch> of <project>." It lists any open warnings
-   from the readiness summary: review verdict other than Pass, same-model
-   review, failed or missing validation, out-of-scope files, handoff deviations
-   or risks, branch behind main, commits on main outside Moonbeam. Warnings
+1. The user chooses Accept.
+2. A confirmation dialog states what will happen: "Accept <task>. This records
+   your decision. It does not merge: merging into <main branch> is a separate
+   step on the completed task." It lists any open warnings from the readiness
+   summary: review verdict other than Pass, same-model review, failed or
+   missing validation, out-of-scope files, handoff deviations or risks, branch
+   behind main, merge conflict with main (with the files, and "A merge
+   requested after acceptance would be refused until this is resolved. Return
+   resolves it on the branch now."; interim reading, CONTRACT-001 Q25), and
+   commits on main outside Moonbeam. Warnings
    never block accepting (Board C4). If warnings are present, the user confirms
    once that they have reviewed them ("I've reviewed these") before the final
    button is enabled. The confirmation is recorded with the acceptance
@@ -789,16 +885,16 @@ Every action below:
    If any changed file is outside declared paths, the dialog also requires a
    written **reason for accepting out-of-scope files** (non-empty after
    trimming whitespace), recorded with the acceptance (Board C4).
-3. The final button reads "Accept and merge".
-4. While the merge runs, the header shows "Merging" (live tone), and all
-   decision actions are disabled.
-5. Success: the surface switches to its Completed form (RS-14).
-6. Failure (Board A4): the accept is rejected and the task stays In review.
-   Main is unchanged, and so is the task. The surface shows the
-   CONTRACT-004 category (`merge_conflict` with the conflicting files, or
-   `repository_unavailable`), states "Main was not changed", and offers Return
-   as the next step for a conflict. The UI does not attempt recovery on its
-   own.
+3. The final button reads "Accept".
+4. While the accept is applied, the header shows "Accepting" (live tone), and
+   all decision actions are disabled.
+5. Success: the surface switches to its Completed form (RS-14), with the
+   integration panel (RS-15) showing Not merged.
+6. Rejection: the CONTRACT-001 category and reason (for example `blocked`,
+   `validation`, `conflict`, or `repository_unavailable` when the changed files
+   cannot be determined). The task stays In review and nothing changes. Until
+   the TASK-013 revision, a failed merge rejected the accept (Board A4); that
+   failure now belongs to A-8.
 
 **A-2 Accept without review** (CONTRACT-001 T9 review waiver, A5).
 
@@ -857,6 +953,64 @@ implemented the work. A different model is recommended." The user may proceed
 (A11: recommended, not required). The start-run interaction itself belongs to
 the runs contract and the runs UI.
 
+**A-8 Merge into main** (CONTRACT-001 M1; CONTRACT-004 B7, B15).
+
+1. Offered in the integration panel (RS-15) of a completed top-level task
+   whose work is not on main.
+2. A confirmation dialog states: "Merge <task> (branch <branch>, accepted
+   commit <commit>) into <main branch> of <project>, with its task record." It
+   says where files change: "Main is checked out in <folder>. Its files will be
+   updated to the merged result, as a pull would." or "Main is not checked out.
+   Only the main branch changes; no files in <folder> change." It lists
+   warnings: main moved since review or acceptance (with the count) and commits
+   on main outside Moonbeam. It states "Nothing is pushed. Pushing is a
+   separate step." and "Merging as <selected user>". The final button reads
+   "Merge into main".
+3. While the merge runs, the panel shows "Merging" (live tone), and Merge and
+   Push are disabled.
+4. Success: the panel shows Merged by Moonbeam with the merge commit, who, when,
+   and the record path, and offers Push main.
+5. Refusal: the panel shows Merge refused, the category, and a message that
+   says exactly what to fix, always ending "Main was not changed. Nothing in
+   <folder> was touched.":
+   - `working_folder_unsafe`, uncommitted changes: "<folder> has uncommitted
+     changes to N files: <paths>. Commit or stash them, then merge again."
+   - `working_folder_unsafe`, operation in progress: "A <merge, rebase,
+     cherry-pick, or revert> is in progress in <folder>. Finish or abort it,
+     then merge again."
+   - `working_folder_unsafe`, untracked files in the way: "Untracked files in
+     <folder> would be overwritten by the merge: <paths>. Move or remove them,
+     then merge again."
+   - `merge_conflict`: "Main has changed since this work was handed off, and N
+     files conflict: <paths>." Until CONTRACT-004 Q19 is decided, the next step
+     shown is: "You can merge the branch by hand in <folder> and resolve the
+     conflicts there. Moonbeam will detect the merge."
+   - `repository_unavailable`: "Moonbeam can't read or write the project
+     repository at <path>." When the folder is missing: "The project folder
+     was moved or renamed. Relink the project."
+
+   The UI does not retry on its own.
+
+**A-9 Push main** (CONTRACT-004 B16).
+
+1. Offered in the integration panel and wherever the project's remote state is
+   shown.
+2. A confirmation dialog states: "Push main of <project> to <remote>
+   (<address>)." It lists the N commits to be pushed, grouped as task merges
+   (with task IDs) and commits outside Moonbeam, and states "Moonbeam never
+   force-pushes." The final button reads "Push main".
+3. While pushing, the panel shows "Pushing" (live tone).
+4. Success: "Pushed N commits to <remote> at <time>." Task push statuses
+   update.
+5. `push_rejected`: "Push rejected by <remote>: <remote's reason>. <remote>'s
+   main has commits that this main does not. Nothing was changed here or on
+   <remote>. Bring those commits into main by hand (for example, pull in
+   <folder>), then push again."
+   `remote_unavailable`: "Couldn't push to <remote>: <reason>. Nothing was
+   changed."
+   Neither is retried automatically. The outcome stays on the project until a
+   later push succeeds.
+
 ## Postconditions and invariants
 
 These hold on every render of these screens.
@@ -866,7 +1020,12 @@ These hold on every render of these screens.
   that the server would reject for the task's state or kind.
 - **UI-I2 Human gates visible.** Accept, accept without review, and return are
   only ever offered for a top-level task in `in_review`, and never for a
-  subtask.
+  subtask. Merge into main is only offered for a completed top-level task
+  whose work is not on main. Push main is only offered to a board member, never
+  in an agent context, and never as a side effect of another action.
+- **UI-I11 Refusals say what to fix.** A refused merge or a rejected or failed
+  push always shows its category, what to do next, and that nothing was
+  changed.
 - **UI-I3 Attribution.** Every action and every answered pause shows who
   performed it. Every run shows who started it and which model and endpoint it
   used.
@@ -903,7 +1062,9 @@ These hold on every render of these screens.
 | Diff too large | The file list still shows. Individual diffs load on request. A file too large to show says so and offers the raw file. |
 | Document fails to render | Source text fallback with a notice (RS-5). |
 | Action rejected | The CONTRACT-001 category and reason, next to the action, with the user's input kept. `conflict` refreshes the view. |
-| Merge failure at acceptance | The accept is rejected (Board A4). The task stays In review. The header and readiness summary show `merge_conflict` with the files (or `repository_unavailable`), "Main was not changed", and Return as the next step. |
+| Merge refused (completed task) | The task stays Completed. The integration panel shows Merge refused with the A-8 message for its category (`working_folder_unsafe`, `merge_conflict`, or `repository_unavailable`), "Main was not changed. Nothing in <folder> was touched." (Board A4, re-expressed at merge time.) |
+| Push rejected or failed | The project and the integration panel show Push rejected or Push failed with the A-9 message. Nothing was changed; nothing is retried. |
+| Project folder missing | "The project folder was moved or renamed." Actions that need the repository are disabled with that reason, and a board member is offered to relink the project (CONTRACT-004 B13). |
 | No user selected | Actions are disabled with the reason "Choose who you are to take this action", linking to the user select. |
 
 Empty states say what is missing and what to do first, and are specific to the
@@ -991,7 +1152,19 @@ artifacts says "This run produced no files, documents, or results."
 - Which decision actions the server allows for the selected user now, with
   reasons for those it does not.
 - After a decision: acceptor or returner, time, notes or waiver reason,
-  out-of-scope reason, whether warnings were confirmed, merge commit.
+  out-of-scope reason, whether warnings were confirmed, and the accepted
+  commit.
+- For a completed task, the integration status (CONTRACT-004 B17): merge
+  status with merge commit, requester, and time, or detection time and main
+  commit; the latest refusal with category and details; record status and
+  path; push status. The main checkout folder (or none) and whether it would
+  pass the safety check now, with the details. Mergeability with current main
+  and main's movement since acceptance.
+- For the project: the remote's name and address (or none), how far main is
+  ahead of it and as of when, and the latest push outcome.
+
+**Integration panel** (RS-15) is a shared piece: the task detail and, if the
+board adds it, the decision queue (CONTRACT-001 Q24) reuse it.
 
 ## UX expectations
 
@@ -1042,8 +1215,8 @@ a polite live region, once each. Routine progress is not announced.
 **UX-5 Motion.** The live indicator may pulse. With reduced motion requested,
 it is static. No motion carries meaning on its own.
 
-**UX-6 Words.** Buttons name the action ("Accept and merge", "Return task",
-"Send answer", "Stop run", "Cancel task", "Keep task"). Errors say what
+**UX-6 Words.** Buttons name the action ("Accept", "Merge into main", "Push
+main", "Return task", "Send answer", "Stop run", "Cancel task", "Keep task"). Errors say what
 happened and what to do. Empty states say what is missing and what to do first.
 The agent's recommendation is always labelled as a recommendation.
 
@@ -1059,16 +1232,20 @@ The implementation is accepted against this contract when:
    table below renders with the specified status, sections, actions, and empty
    or error text. Screenshots at wide and narrow widths are attached to the
    handoff.
-2. **Actions.** Accept and merge (warnings confirmation when warnings exist;
-   reason when files are outside declared paths), accept without review
-   (reason required), return (notes required; split parent with new subtasks),
-   cancel (reason required), answer pause (with and without a category
-   correction), and stop run each work end to end against the server, show
-   their result in place, and show rejections with the CONTRACT-001 category.
-   A `conflict` refreshes the view. A merge failure at acceptance leaves the
-   task In review with the conflict shown.
+2. **Actions.** Accept (warnings confirmation when warnings exist, including a
+   merge conflict; reason when files are outside declared paths; the
+   repository is unchanged afterwards), accept without review (reason
+   required), return (notes required; split parent with new subtasks), cancel
+   (reason required), merge into main (the confirmation says where files
+   change; each refusal category shows its A-8 message and leaves the task
+   Completed), push main (confirmation; a rejected or failed push shows its A-9
+   message), answer pause (with and without a category correction), and stop
+   run each work end to end against the server, show their result in place,
+   and show rejections with their category. A `conflict` refreshes the view.
 3. **Gates.** No human decision action is offered on a subtask or on a task not
-   in `in_review` (automated UI test).
+   in `in_review`. Merge into main is offered only on a completed top-level
+   task not on main, and no merge or push is offered in an agent context
+   (automated UI test).
 4. **Flags.** Out-of-scope files and same-model reviews are flagged in every
    place UI-I5 and UI-I6 require (automated UI test with fixtures).
 5. **Live.** A live run's status, pauses, and summary update within 5 seconds
@@ -1096,25 +1273,34 @@ The implementation is accepted against this contract when:
 | Run view | Ended without handoff | Outcome sentence, task back in Approved |
 | Run view | Failed | Failure reason, failing step linked, error excerpt, task back in Approved |
 | Run view | Stopped (by user, release, break, or cancel) | Who, why, when |
-| Review | In review, awaiting agent review | Not reviewed, Start agent review, Accept without review in place of Accept and merge |
+| Review | In review, awaiting agent review | Not reviewed, Start agent review, Accept without review in place of Accept |
 | Review | In review, agent review running | Agent review running, link to that run |
-| Review | In review, awaiting decision, verdict Pass | Readiness summary, all sections, Accept and merge enabled |
+| Review | In review, awaiting decision, verdict Pass | Readiness summary, all sections, Accept enabled |
 | Review | Verdict Changes required or Human decision required | Attention tone, findings, warnings listed in the accept confirmation |
 | Review | Same-model review | Warning in readiness, Agent review, and accept confirmation |
 | Review | Out-of-scope changes | Danger count in readiness, flagged rows, listed in accept confirmation with a required reason |
 | Review | No paths declared | "Approved to change no files" notice; any changed file listed as outside declared paths; out-of-scope reason required at accept |
 | Review | No validation reported | Attention empty state |
 | Review | Blocked while in review | Blocked in readiness, Accept disabled with reason, Return enabled |
-| Review | Behind main / merge conflict | Branch status with new main commit count; Behind main allows accept with a warning; conflict disables Accept and points to Return |
+| Review | Behind main / merge conflict | Branch status with new main commit count; both allow Accept and appear as warnings in the accept confirmation; the conflict warning points to Return |
 | Review | Commits on main outside Moonbeam | Warning on the Branch line and in the accept confirmation |
-| Review | Accept rejected by merge failure | Still In review, `merge_conflict` with files, "Main was not changed", Return offered |
-| Review | Merging | Merging, actions disabled |
+| Review | Accepting | Accepting, actions disabled |
+| Review | Completed, not merged | Integration panel: Not merged, mergeability, where files would change, Merge into main enabled, push state |
+| Review | Completed, merging | Merging, Merge and Push disabled |
+| Review | Completed, merge refused (unsafe folder: changes, operation in progress, untracked files in the way) | Merge refused, the folder, the files or operation, the fix, "Main was not changed. Nothing in <folder> was touched." |
+| Review | Completed, merge refused (conflict) | Merge refused, conflicting files, the hand-merge next step |
+| Review | Completed, merged by Moonbeam | Merged by Moonbeam, commit, requester, record path, Push main |
+| Review | Completed, merged by hand | Merged by hand, detection time and commit, Record not written |
+| Review | Completed, pushed | Pushed; project shows main not ahead |
+| Any | Push rejected or failed | Push rejected or Push failed with the remote's reason, the fix, "Nothing was changed" |
+| Any | Main has no remote | Push main disabled with its reason |
+| Any | Project folder missing | Actions disabled with the reason, relink offered |
 | Review | Split parent in review | Subtasks section, collected findings, combined result (parent branch compared with main), Return with Add subtasks |
 | Review | Split parent with a subtask not integrated | "Not integrated" on the subtask row, system integration blocker in readiness, Accept disabled with reason |
 | Run view | Several open pauses | One card per pause, count still open, run stays Paused until all are answered |
 | Any | Open pause anywhere | Tab title shows the paused count (SV-6) |
 | Review | Subtask (any state) | Read-only, "Subtasks aren't accepted individually", link to parent |
-| Review | Completed | Accepted by, merge commit or waiver reason, no actions |
+| Review | Completed | Accepted by, waiver reason if any, integration panel, no review decision actions |
 | Review | Earlier returned attempt | Returned by, notes, link to current state |
 | Review | Cancelled | Cancelled by, reason, branch not merged |
 | Review | Not yet handed off | "This task hasn't been handed off yet." |
@@ -1124,10 +1310,29 @@ Board review of this contract is the validation for TASK-009 itself.
 
 ## Open questions
 
-None. Every question from the first draft was answered by the board on
-2026-09-24 (see "Resolved questions"). Whether a run may keep working while a
-pause is open remains open in the pauses workflow document and belongs to the
-pauses contract.
+Every question from the first draft was answered by the board on 2026-09-24
+(see "Resolved questions"). Whether a run may keep working while a pause is
+open remains open in the pauses workflow document and belongs to the pauses
+contract.
+
+The TASK-013 revision depends on questions owned by other contracts. They are
+**not decided**. This contract uses the interim display below until they are:
+
+- **CONTRACT-001 Q24 — Accepted but unmerged tasks in the decision queue
+  (ADR-005 amendment, open point 3).** Interim: they appear only in the task
+  detail and the integration panel (RS-15), not in the decision queue.
+- **CONTRACT-001 Q25 — A known conflict at acceptance.** Interim: a warning in
+  the accept confirmation (A-1, RS-4, RS-12). Accept is not disabled.
+- **CONTRACT-004 Q19 — A merge that conflicts after acceptance (open point
+  1).** Interim: the refusal message offers a hand merge in the project folder
+  (A-8).
+- **CONTRACT-004 Q20 — The task record after a hand merge (open point 2).**
+  Interim: "Record not written" (SV-3, RS-15). No action to write it.
+- **CONTRACT-004 Q21 — What counts as a safe project folder.** Interim: the
+  three refusal messages in A-8.
+- **CONTRACT-004 Q23 — Fetching from the remote.** Interim: "Main is N ahead
+  of <remote>" is shown with the time the remote state was last updated. There
+  is no "Check remote" action.
 
 ## Resolved questions
 

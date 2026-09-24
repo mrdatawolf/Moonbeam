@@ -68,3 +68,24 @@ remains valuable: projects should stay understandable without Moonbeam.
 
 - A contract for the task lifecycle and its transition authority.
 - A contract for repository write-back.
+
+## Amendment — 2026-09-24: write-back failure handling settled (TASK-013)
+
+Recorded by TASK-013. The decision text above is left as approved; this
+amendment records how its open consequence was settled.
+
+- **Write failures and commit policy are settled by CONTRACT-004.** The
+  permanent task record is written as part of the merge commit that brings the
+  task's work into main (CONTRACT-004 B7, B9, R8). The work and its record
+  reach main together or not at all. A merge that cannot be made, including
+  one whose record cannot be written, is refused and leaves main unchanged.
+  The branch, author, and message policy is CONTRACT-004 B8.
+- **When the record is written.** Under ADR-005 as amended on 2026-09-24,
+  acceptance does not merge. The merge is a separate human step on a completed
+  task. So decision 3's second bullet ("when a board member accepts the
+  task") now reads: when a board member has Moonbeam merge the accepted task
+  into main.
+- **Still open:** how the record reaches the repository when a person merges
+  the task by hand (CONTRACT-004 Q20).
+- The first follow-up is CONTRACT-001. The second ("a contract for repository
+  write-back") is covered by CONTRACT-004.

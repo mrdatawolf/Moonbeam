@@ -22,9 +22,9 @@ A task is complete (`completed`) only when:
 
 - Independent review findings have been resolved or explicitly accepted by the
   board.
-- A board member accepts the result in Moonbeam, and Moonbeam merges it into
-  the main branch.
+- A board member accepts the result in Moonbeam.
 
-The merge includes the task record, written to
-`tasks/TASK-NNN-short-description.md`. Editing a task file never completes a
-task.
+Accepting does not merge. The accepted work reaches the main branch when a
+board member has Moonbeam merge it, or merges it by hand. A Moonbeam merge
+includes the task record, written to `tasks/TASK-NNN-short-description.md`.
+Editing a task file never completes a task.

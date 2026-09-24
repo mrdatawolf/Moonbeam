@@ -36,8 +36,18 @@ parent.
 
 ### Paths
 
-Files and directories this task may create or change. Moonbeam uses these to
-check a run's changes against its scope, and the reviewer verifies them.
+Files and directories this task may create or change, one per line, relative
+to the repository root. Use plain file or directory paths only: no globs, no
+absolute paths, and nothing outside the repository. A directory covers
+everything inside it.
+
+A task with no paths changes no files. It is approved as a task that changes no
+files, and any file it does change is flagged at review and needs a written
+reason from the board member who accepts it.
+
+Moonbeam uses these paths to check a run's changes against its scope and to
+make tasks with overlapping paths run one at a time. The reviewer verifies
+them.
 
 ### Constraints
 

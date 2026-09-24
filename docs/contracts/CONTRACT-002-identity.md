@@ -3,13 +3,30 @@
 Status: Accepted
 Approved by: Patrick
 Approved date: 2026-09-24
-Revised: 2026-09-24 (TASK-012), see "Revision history"
-Related tasks: TASK-005, TASK-012
-Related ADRs: ADR-003 (context: ADR-001, ADR-005)
+Revised: 2026-09-24 (TASK-012; TASK-013), see "Revision history"
+Related tasks: TASK-005, TASK-012, TASK-013
+Related ADRs: ADR-003 (context: ADR-001, ADR-005 as amended, ADR-006)
 Related contracts: CONTRACT-001 (consumes this contract; see its Q13),
-CONTRACT-004 (uses each user's name and e-mail address for merge authorship)
+CONTRACT-004 (uses each user's name and e-mail address for the authorship of
+merges they request)
 
 ## Revision history
+
+### 2026-09-24 — TASK-013: merge and push are human-only
+
+The board amended ADR-005 (acceptance and merge are separate human steps) and
+approved ADR-006 (Moonbeam never pushes unless a human asks). This revision
+applies them. It does not change the approval.
+
+- **Human-only actions:** "Merge a completed task into main" (CONTRACT-001 M1)
+  and "Push main to its remote" (CONTRACT-004 B16) are added. The accept row no
+  longer includes the merge and permanent record; they belong to the merge.
+- **User registry and first-run setup:** a user's name and e-mail address are
+  the git author of the merges that user requests (CONTRACT-004 B8, interim
+  reading pending CONTRACT-004 Q22), rather than of the merges they accept.
+- **System actor:** the examples include hand-merge detection (CONTRACT-001
+  M2).
+- New open question Q9, a cross-reference to CONTRACT-004 Q24(c).
 
 ### 2026-09-24 — TASK-012: board answers, round 1 sheet
 
@@ -154,7 +171,8 @@ CONTRACT-001).
 
 - The registry lists the human users. Each user has a stable user id, a display
   name, and an **e-mail address** (Board C3). The name and e-mail address are
-  used as the git author of acceptance merges (CONTRACT-004 B8).
+  used as the git author of the merges into main that the user requests
+  (CONTRACT-004 B8).
 - Display names are unique among active users, ignoring case and surrounding
   whitespace. The e-mail address is required and must be a syntactically valid
   address.
@@ -237,8 +255,8 @@ CONTRACT-001).
 ### System actor
 
 - The system actor exists only inside Moonbeam, for the automatic actions that
-  other contracts name (for example CONTRACT-001 T5, T8, T12, T14, T16, and the
-  integration blocker in C1).
+  other contracts name (for example CONTRACT-001 T5, T8, T12, T14, T16, the
+  integration blocker in C1, and hand-merge detection in M2).
 - No credential, header, selection, or other client input can produce a system
   actor. System actions are not requestable by any client.
 
@@ -274,12 +292,15 @@ the same order in its "Failure behavior".
 
 The following actions are human-only. This list is fixed. No configuration,
 identity mode, or future roles model may grant any of them to an agent. It
-matches CONTRACT-001 as revised on 2026-09-24 (TASK-012).
+matches CONTRACT-001 and CONTRACT-004 as revised on 2026-09-24 (TASK-012,
+TASK-013).
 
 | Action | Source |
 |---|---|
 | Approve a task | ADR-003; CONTRACT-001 T2 |
-| Accept a task, including the merge and permanent record that acceptance performs | ADR-003; CONTRACT-001 T9; ADR-005; CONTRACT-004 B7, B9 |
+| Accept a task. Accepting does not merge (ADR-005 amendment). | ADR-003; CONTRACT-001 T9 |
+| Merge a completed task into main, including the permanent record written with the merge | ADR-005 amendment; ADR-006; CONTRACT-001 M1; CONTRACT-004 B7, B9 |
+| Push main to its remote | ADR-006; CONTRACT-004 B16 |
 | Waive the agent review when accepting | CONTRACT-001 T9 (A5) |
 | Return a task, including adding subtasks as part of the return | CONTRACT-001 T10 |
 | Move a task in the project queue | CONTRACT-001 D1 (Board A3) |
@@ -393,7 +414,7 @@ are implementation choices.
   addresses.
 - First-run setup explains that the users entered become the board members who
   approve and accept work, and that each e-mail address is used as the git
-  author of the merges that person accepts.
+  author of the merges into main that person requests.
 - The run view shows which agent, role, and model a run acts as, never the
   credential value.
 
@@ -453,8 +474,16 @@ design for security.
 
 ## Open questions
 
-None. All questions from the first draft were answered by the board on
-2026-09-24 (see "Resolved questions").
+All questions from the first draft were answered by the board on 2026-09-24
+(see "Resolved questions"). One question was raised by the TASK-013 revision
+and is **not decided**:
+
+- **Q9 — Project administration actions.** Should setting the projects root,
+  registering a project, and relinking a moved project be added to the
+  human-only list? This is CONTRACT-004 Q24(c). Agents are already confined to
+  their run's project (`not_permitted`), but listing these actions would make an
+  agent attempt an audited `authority_violation`. **Proposed default:** yes.
+  Until decided, the list above is unchanged.
 
 ## Resolved questions
 

@@ -55,15 +55,17 @@ decides; agents propose, implement, review, and report.
   run) at a time.
 - Splitting: agents may split a task into subtasks bounded by the parent's
   scope envelope. Splits of an approved task are approved automatically.
-- Runners that launch Claude Code or Codex on a dev box, and that call local
-  models over llama.cpp's OpenAI-compatible API.
+- Runners that launch Claude Code or Codex on the Moonbeam host, and that call
+  local models over llama.cpp's OpenAI-compatible API.
 - A pause log with categories, resolutions, and a periodic pause review surface.
 - Track records per model and role, derived from review and acceptance outcomes.
 - UI focused first on the **dashboard** and the **run view**, following
   Paperclip's layered disclosure (summary → artifacts → raw logs).
 - A review surface where the board sees each task's actual result (rendered
-  documents, diff, validation, previews). Each run works on its own branch, and
-  accepting a task merges it (ADR-005).
+  documents, diff, validation, previews). Each task works on its own branch.
+  Accepting a task is a decision and does not merge it. Merging accepted work
+  into main, and pushing main to a remote, are separate steps that only a board
+  member takes (ADR-005 as amended, ADR-006).
 - Simple user select to set who is acting. No login in V1 (ADR-003).
 - Cost visibility per run, task, project, and model. There are no budgets and
   no enforcement in V1.
@@ -79,6 +81,8 @@ decides; agents propose, implement, review, and report.
 - Authentication, RBAC, and roles. A global login system will be integrated
   through an API later.
 - Access from outside the LAN, mobile-specific UI, and multi-tenant isolation.
+- Runners and project repositories on machines other than the Moonbeam host
+  (V2, ADR-006).
 - Hiring, org charts, and agent-to-agent delegation hierarchies.
 - Cost budgets and spend enforcement.
 - Replacing git hosting, pull-request review, or CI.
@@ -90,14 +94,30 @@ decides; agents propose, implement, review, and report.
   DeepSeek-Coder-V2-Lite Q4 on port 8080).
 - Stack follows Paperclip's (ADR-002) so its UI patterns and components can be
   borrowed under its MIT license. PGlite is explicitly not used.
-- Frontier-model agents (Claude Code, Codex) run on a dev box.
+- **Single host in V1 (ADR-006).** Moonbeam, its runners (including the
+  frontier-model agents Claude Code and Codex), and every project repository
+  are on one machine, currently `192.168.203.117`. That host does all file and
+  git work. The team uses Moonbeam's web interface from their own machines over
+  the LAN. Local-model endpoints on other LAN machines are still called over
+  HTTP. Runners and repositories on other machines are deferred to V2.
+- **Projects root (ADR-006).** At first run, Moonbeam asks for the directory
+  where projects live. It must be outside Moonbeam's install directory and its
+  data directory (`MOONBEAM_HOME`, default `~/.moonbeam`). Moonbeam never holds
+  project repositories: it registers existing git repositories found under the
+  root, and works task branches in git worktrees in its data directory, so
+  people's folders are unchanged until a board member merges accepted work.
+- **No push without a human (ADR-006).** Moonbeam pushes to a remote only when
+  a board member asks, and never force-pushes.
 - Managed projects must stay workable by hand (plain markdown DbC docs) if
   Moonbeam is unavailable.
 
 ## Domain language
 
 - **Board** — the humans who govern work. In V1, every user is a board member.
-- **Project** — a governed repository registered in Moonbeam.
+- **Projects root** — the directory, chosen at first-run setup, where the
+  team's project repositories live (ADR-006).
+- **Project** — a governed git repository under the projects root, registered
+  in Moonbeam. That repository is canonical; Moonbeam holds no copy of it.
 - **Task** — a unit of work with a desired outcome, scope, and acceptance
   criteria. Its lifecycle state lives in Moonbeam's database (ADR-001).
 - **Scope envelope** — a task's inclusions, exclusions, paths (the files it may
@@ -109,8 +129,9 @@ decides; agents propose, implement, review, and report.
   task.
 - **Run** — one execution of an agent against a task, with its transcript,
   artifacts, cost, and outcome.
-- **Runner** — the process that starts and observes runs on a machine (a dev
-  box for frontier agents, or a caller to a llama.cpp endpoint).
+- **Runner** — the process that starts and observes runs (for frontier agents,
+  or as a caller to a llama.cpp endpoint). In V1 every runner is on the
+  Moonbeam host (ADR-006).
 - **Model endpoint** — a configured model an agent can use, for example a
   frontier CLI or a llama.cpp server on the LAN.
 - **Pause** — a run stopping to ask a human a question. It is logged with a
@@ -121,7 +142,11 @@ decides; agents propose, implement, review, and report.
   deviations, and risks.
 - **Review** — the independent specialist assessment of a handoff. Findings
   always go to a human.
-- **Acceptance** — a board member's decision that the work is complete.
+- **Acceptance** — a board member's decision that the work is complete. It does
+  not change the repository.
+- **Merge** — bringing an accepted task's branch into the main branch, a
+  separate step that only a board member takes, through Moonbeam or by hand
+  (ADR-005 as amended). Pushing main to a remote is a further human step.
 - **Track record** — outcome statistics per model and specialist role.
 - **Contract / ADR** — as defined by DbC; they live in the project repository.
 

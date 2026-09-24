@@ -58,7 +58,8 @@ the board cancels the task and approves a new one.
    subtask on its own.
 7. **Subtasks wait like tasks.** A subtask waits for whatever its parent waits
    for, and for any earlier sibling whose paths overlap its own. Overlapping
-   siblings run in the order they were created.
+   siblings run in the order they were created, unless a board member changes
+   that order.
 8. **The parent enters review when all its subtasks are done.** The parent's
    review covers the combined result: the parent's branch compared with main.
 9. **A board member accepts the parent or returns it.** Completed subtasks are
@@ -84,5 +85,3 @@ an answer; pause and ask if one matters to your work.
 
 - Whether dispatching helper agents inside a single run must be recorded as a
   split.
-- Whether a board member may change the order of overlapping sibling
-  subtasks. Until decided, they run in creation order.
