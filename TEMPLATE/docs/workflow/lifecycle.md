@@ -6,7 +6,7 @@ authoritative; nothing in this repository is.
 ```text
 proposed --board approval--> approved --claim--> in_progress
 in_progress --implementation handoff--> in_review
-in_review --board acceptance--> completed
+in_review --board acceptance (merges the work)--> completed
 in_review --board returns it--> approved
                                 (a split parent given new subtasks goes to in_progress)
 (any state before completed) --cancellation--> cancelled
@@ -20,11 +20,13 @@ what agents need to know to work correctly.
 ## States
 
 - `proposed`: A plan exists, but work is not authorized.
-- `approved`: A board member approved the task. It is ready to be claimed.
+- `approved`: A board member approved the task. It is ready to be claimed once
+  no task it waits for is unfinished (see "Paths and waiting").
 - `in_progress`: One claimant (a person or an agent run) is working on it.
 - `in_review`: Implementation and its handoff are ready for independent review
   and human acceptance.
-- `completed`: A board member accepted the work.
+- `completed`: A board member accepted the work, and Moonbeam merged it into
+  the main branch.
 - `cancelled`: The task will not be completed.
 
 ## Conditions
@@ -32,11 +34,29 @@ what agents need to know to work correctly.
 Conditions describe a task's circumstances without changing its state.
 
 - `blocked`: The task cannot proceed until something outside it is resolved,
-  such as an unfinished dependency or an external decision. Raise the blocker in
-  Moonbeam with what is needed, who can resolve it, and its effect. Do not
-  continue beyond the approved scope to get around a blocker.
+  such as an external decision. Raise the blocker in Moonbeam with what is
+  needed, who can resolve it, and its effect. Do not continue beyond the
+  approved scope to get around a blocker. Moonbeam itself raises a blocker on a
+  split parent when a finished subtask's work cannot be merged into the
+  parent's branch; a board member resolves it.
 - `paused`: A run on the task has stopped to ask a human a question and is
   waiting for the answer. See `pauses.md`.
+
+## Paths and waiting
+
+- A task that changes files declares its **paths**: plain file and directory
+  paths, relative to the repository root. Globs are not allowed. A task with no
+  paths is approved as a task that changes no files.
+- Two tasks overlap when a path of one is the same as, or contains, a path of
+  the other. Overlapping tasks run one at a time, in the order of the
+  project's queue (normally approval order; a board member may move a task in
+  the queue). A task cannot be claimed while an overlapping task ahead of it is
+  unfinished.
+- A subtask waits for whatever its parent waits for, and for any earlier
+  sibling subtask whose paths overlap its own.
+- Moonbeam compares the files you change with your task's paths. Changes
+  outside them are flagged at review, and the board must give a reason to
+  accept them.
 
 ## Authority
 
@@ -45,15 +65,28 @@ Conditions describe a task's circumstances without changing its state.
 - Agents and board members may propose tasks. Only a board member moves a task
   from `proposed` to `approved`.
 - An approved task is claimed by one claimant at a time. Claiming starts work.
+  An agent run's claim expires if the run stops showing activity for 30
+  minutes, and ends when the run ends without a handoff. A person's claim never
+  expires. A claimant may release its claim; a board member may break anyone's
+  claim.
 - The implementer submits its handoff to Moonbeam, which moves the task to
-  `in_review`. A task that has been split enters `in_review` when all its
-  subtasks are done (see `splits.md`).
+  `in_review`. Moonbeam refuses the handoff unless the task's branch merges
+  cleanly into its target (the main branch, or the parent's branch for a
+  subtask). A task that has been split enters `in_review` when all its subtasks
+  are done (see `splits.md`).
 - The reviewer records findings but does not implement fixes or accept the task.
-  Review findings always go to a human.
-- Only a board member accepts work (`completed`) or returns it. A returned
-  task goes back to `approved`, with return notes, for the next claimant. A
-  returned split parent that is given new subtasks goes to `in_progress`.
-  Completed subtasks are never reopened.
+  Review findings always go to a human. A reviewer whose review of a subtask has
+  findings may add fix subtasks in the same step (see `splits.md`).
+- Only a board member accepts work (`completed`) or returns it. Accepting merges
+  the work into the main branch; if the merge fails, the accept is refused and
+  the task stays in review. A returned task goes back to `approved`, with
+  return notes, for the next claimant. A returned split parent that is given
+  new subtasks goes to `in_progress`; one returned without new subtasks goes to
+  `approved`, and whoever claims it may only add subtasks. Completed subtasks
+  are never reopened.
+- Board members may cancel any unfinished task. An agent may cancel only a
+  `proposed` task it proposed, or a subtask its own run created that no one has
+  claimed yet. Otherwise, recommend cancellation to the board.
 - Subtasks created by a split are approved automatically, within the parent's
   scope envelope. See `splits.md`.
 
@@ -63,13 +96,17 @@ There are no lifecycle directories in this repository. A task's location in the
 file tree says nothing about its state.
 
 - When a run starts, Moonbeam writes the task file into the working checkout so
-  the agent can read its assignment. That file is a **read-only snapshot**.
-  Editing, moving, or deleting it does not change the task's state, and the
-  next snapshot may overwrite it.
+  the agent can read its assignment. That file is a **read-only snapshot**,
+  excluded from commits. Editing, moving, or deleting it does not change the
+  task's state, and the next snapshot may overwrite it.
 - Report progress, blockers, pauses, splits, and handoffs to Moonbeam, not by
   editing the snapshot.
+- Commit your work on the task's branch. Work you leave uncommitted when your
+  run ends is not published.
 - When a board member accepts a task, Moonbeam writes the task file, with its
-  handoff, review, and acceptance, into the repository as the permanent record.
+  handoff, review, and acceptance, to `tasks/TASK-NNN-short-description.md` as
+  the permanent record. The record is part of the same merge commit as the
+  accepted work, authored by the accepting board member.
 
 ## File conventions
 
@@ -82,12 +119,10 @@ as `ADR-NNN`.
 These are not yet decided by the Moonbeam board. Until they are, do not assume
 an answer; pause and ask if one matters to your work.
 
-- Who may cancel a task, and from which states. Until decided, agents do not
-  cancel tasks; they may recommend cancellation to the board.
 - The exact mechanism an agent uses to submit a handoff, raise a blocker, or
   record a split in Moonbeam.
-- Where in the repository Moonbeam writes accepted task records, and its commit
-  policy (branch, author, message) for write-back.
-- Claim timeouts, and how a claim is released.
 - How a project is worked by hand when Moonbeam is unavailable, and how that
-  work is reconciled with Moonbeam afterwards.
+  work is reconciled with Moonbeam afterwards. Commits made on the main branch
+  by hand are allowed and shown as a warning; how commits pushed directly to an
+  external mirror (such as GitHub) reach Moonbeam's canonical repository is not
+  yet decided.

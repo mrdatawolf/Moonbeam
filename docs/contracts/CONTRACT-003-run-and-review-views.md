@@ -3,11 +3,55 @@
 Status: Proposed
 Approved by:
 Approved date:
-Related tasks: TASK-009
-Related ADRs: ADR-005, ADR-003, ADR-002 (context: ADR-001)
+Revised: 2026-09-24 (TASK-012), see "Revision history"
+Related tasks: TASK-009, TASK-012
+Related ADRs: ADR-005 (as amended), ADR-003, ADR-002 (context: ADR-001)
 Related contracts: CONTRACT-001 (task lifecycle), CONTRACT-002 (identity),
-CONTRACT-004 (run branches and merge on acceptance), future runs contract,
+CONTRACT-004 (task branches and merge on acceptance), future runs contract,
 future pauses contract
+
+## Revision history
+
+### 2026-09-24 — TASK-012: board answers, round 1 sheet
+
+The board answered `docs/contracts/BOARD-QUESTIONS-2026-09-24.md`, following
+every recommendation. This revision applies the answers that concern this
+contract and aligns it with CONTRACT-001, CONTRACT-002, and CONTRACT-004 as
+revised the same day. The contract stays Proposed until the board approves it.
+
+- **Run statuses (Board C5):** the SV-3 run status names are now the canonical
+  names that the future runs contract must use. Runs end as "finished", never
+  "completed". "Not responding" appears after 2 minutes, or 5 minutes for local
+  models.
+- **Pauses (Board C5, B3):** the person answering may correct the category, and
+  both categories are kept. Each pause is answered separately; the run resumes
+  when all are answered. While any pause is open, the tab title shows it
+  (SV-6). Answering from the decision queue comes with pauses in phase 4 and is
+  outside TASK-007.
+- **Cost (Board B3):** USD; local models show "Local, not metered";
+  subscription CLIs show "Estimated".
+- **Validation evidence (Board C4):** Moonbeam runs tests, typecheck, and build
+  itself on the reviewed commit from phase 3; until then, agent-reported results
+  are labelled as such. Warnings never block accepting but are confirmed once;
+  out-of-scope files need a written reason. No per-criterion ticking. Main
+  having moved since review allows accepting, with a warning.
+- **Merge failure (Board A4):** "Merge pending" is removed. A failed merge
+  rejects the accept and the task stays In review with the conflict shown.
+  Handoffs are only accepted when mergeable, so a conflict at acceptance means
+  main moved after the handoff.
+- **Split parents (Board A5, C6, A4):** a returned split parent is never worked
+  directly, so the "parent's own attempt" case is removed. The combined diff is
+  the parent's branch compared with main. A subtask that could not be
+  integrated is shown, with the system blocker on the parent.
+- **Display details (Board C6):** "same model" is defined by model identifier;
+  every Markdown file renders as a document; only credentials are redacted.
+- **Paths (Board A1):** a task with no paths is approved to change no files, so
+  any file it changes is outside declared paths.
+- **Branches (Board C1, C3):** one branch per task ("task branch", not "run
+  branch"). Commits on main made outside Moonbeam are shown as a warning.
+- **Viewing and stopping (Board B2, C5):** every screen is readable without a
+  selected user; any board member can stop any run.
+- Q1–Q17 moved to "Resolved questions". No new open questions.
 
 ## Purpose
 
@@ -82,7 +126,8 @@ do about it** (Paperclip `DESIGN.md`, "Product stance").
   expected to reuse (see "Interfaces"), but it does not design those screens.
 - The pause review surface (periodic analysis of pauses).
 - Track-record views.
-- Notifications. V1 has none (see Q14).
+- Notifications. V1 has none. Open pauses are surfaced in the tab title
+  instead (SV-6, Board B3).
 - Mobile-specific UI (PROJECT.md excludes it). Narrow screens must be usable,
   not optimized.
 
@@ -115,7 +160,9 @@ do about it** (Paperclip `DESIGN.md`, "Product stance").
 - **Same-model review** — a review that the server flagged because its reviewer
   run used the same model as the implementing run (CONTRACT-001 T7, A11). A
   review of human-claimed work is never flagged. The screens show the stored
-  flag and never compute it themselves (see Q9 for what "same model" means).
+  flag and never compute it themselves. "Same model" means the same model
+  identifier, regardless of endpoint or runner; two quantizations of one model
+  count as the same model (CONTRACT-001 T7, Board C6).
 - **Headline status** — the single status shown when there is room for only
   one (see SV-4).
 - **Tone** — the semantic color role of a status (see SV-1). Tones are never the
@@ -125,7 +172,7 @@ do about it** (Paperclip `DESIGN.md`, "Product stance").
 
 Inputs are the records Moonbeam already holds: the task and its envelope, the
 audit history, claims, runs with their events and costs, pauses, handoffs,
-reviews, artifacts, and the run branch with its diff (see "Interfaces" for the
+reviews, artifacts, and the task branch with its diff (see "Interfaces" for the
 data each view needs). User inputs are the actions in "Actions" and the answer
 to a pause.
 
@@ -136,7 +183,7 @@ rejection with its CONTRACT-001 failure category and reason.
 ## Preconditions
 
 1. A board member is selected (CONTRACT-002). Actions require a selected user.
-   Reading does not (see Q15).
+   Reading does not (Board B2).
 2. The run or task exists in a registered project.
 3. The screens never compute lifecycle state locally. They show the server's
    state and ask the server to act. When the server rejects an action, the
@@ -182,7 +229,7 @@ screen. "Task" is always "task" (never issue or ticket). "Run" is always "run"
 | | reviewer run live | Agent review running | live |
 | | review recorded, or split parent ready | Awaiting decision | review |
 | | accept in progress | Merging | live |
-| Run status (see Q1) | `starting` | Starting | live |
+| Run status (canonical names, Board C5) | `starting` | Starting | live |
 | | `running` | Running | live |
 | | `running` with an open pause | Paused | attention |
 | | `stopping` | Stopping | neutral |
@@ -191,7 +238,7 @@ screen. "Task" is always "task" (never issue or ticket). "Run" is always "run"
 | | `finished`, no handoff | Ended without handoff | neutral |
 | | `failed` | Failed | danger |
 | | `stopped` | Stopped | neutral |
-| | no report from the runner within the liveness window (Q2) | Not responding | attention |
+| | no report from the runner within the liveness window: 2 minutes, or 5 minutes for a local-model endpoint (Board C5) | Not responding | attention |
 | Pause | open | Waiting for answer | attention |
 | | answered | Answered | success |
 | | superseded (claim released or ended) | Superseded | neutral |
@@ -205,23 +252,31 @@ screen. "Task" is always "task" (never issue or ticket). "Run" is always "run"
 | | failed | Failed | danger |
 | | running | Running | live |
 | | not run | Not run | neutral |
-| Check source qualifier (Q3) | reported in the handoff only | Reported by agent | neutral |
+| Check source qualifier (Board C4) | reported in the handoff only | Reported by agent | neutral |
 | | run and recorded by Moonbeam | Verified by Moonbeam | neutral |
 | Scope check | every changed file covered | Within declared paths | success |
 | | at least one file not covered | N outside declared paths | danger |
 | | declared path with no change | Not changed | neutral |
-| | task has no declared paths | Paths not declared | attention |
+| | task declares no paths and changed no files (Board A1) | No paths, no changes | neutral |
 | Branch (CONTRACT-004) | up to date with main | Up to date | neutral |
-| | accepted, merge not yet complete (only if CONTRACT-001 Q17 allows it) | Merge pending | attention |
-| | main moved since the branch started | Behind main | attention |
+| | main moved since the branch started or since review | Behind main | attention |
 | | cannot merge cleanly | Merge conflict | danger |
 | | merged at acceptance | Merged | success |
+| | completed subtask whose work could not be integrated into the parent's branch | Not integrated | danger |
 | Warning | same-model review | Same model as implementer | attention |
+| | main has commits that did not come from an acceptance (Board C3) | Commits on main outside Moonbeam | attention |
 
-The vocabulary for run statuses, branch statuses, and pause statuses must be
-confirmed against the runs, pauses, and branches contracts when they are
-written. If those contracts name a value differently, this table changes to
-match them, not the other way round.
+A task with no declared paths was approved to change no files (CONTRACT-001,
+Board A1). If it changed any file, its scope check shows "N outside declared
+paths" like any other task.
+
+**Run status names are canonical (Board C5).** The run statuses above
+(`starting`, `running`, `stopping`, `finished`, `failed`, `stopped`, with Paused
+shown for a running run that has an open pause) are the names the future runs
+contract must use. A run ends as "finished", never "completed", so a run is
+never confused with a completed task. Branch statuses follow CONTRACT-004. Pause
+statuses must be confirmed against the pauses contract when it is written; if
+it names a pause value differently, this table changes to match it.
 
 **SV-4 Headline status and precedence.** Where only one status fits (a list
 row, a tab title, a compact card), show the one that most needs a human, in
@@ -242,7 +297,13 @@ hover, focus, or in the detail header).
 commit hashes, file paths, token counts, costs, durations, and timestamps use
 the monospace token and one shared formatter per kind. Timestamps show relative
 time with the absolute local time available on hover and focus and to screen
-readers. Costs show the currency and a fixed number of decimals (Q7).
+readers. Costs are in USD, shown with 2 decimals for totals and 4 decimals for
+single runs under $1 (Board B3).
+
+**SV-6 Tab title.** V1 has no notifications. While any open pause exists in
+Moonbeam, every Moonbeam tab shows the count in its page title, for example
+"(1 paused) Moonbeam" (Board B3). The title returns to normal when no pause is
+open.
 
 ### RV — Run view
 
@@ -271,7 +332,8 @@ to bottom. Higher layers never require reading lower ones.
   are never hidden behind a disclosure.
 - Started by: the board member who started the run, and when (I14 in
   CONTRACT-001: no run is self-starting, so this is always present).
-- Branch: the run branch name (CONTRACT-004), copyable.
+- Branch: the task branch name (CONTRACT-004; one branch per task, shared by
+  the task's runs in turn), copyable.
 - Duration: live elapsed time, or total duration once ended.
 - Actions: Stop run (live runs only, A-6). Cancel task is available from a
   secondary menu (A-5).
@@ -297,7 +359,9 @@ closed. On a narrow screen it is the first thing after the header.
 - **Claim:** the agent claim's lease deadline (CONTRACT-001 claim expiry), shown
   as time remaining. While paused or blocked, it reads "Lease suspended".
 - **Liveness:** "Updated Ns ago". When the view has not received an update
-  within the liveness window, it shows "Not responding" (SV-3) with the time of
+  within the liveness window (2 minutes, or 5 minutes for a run whose model
+  endpoint is a local model; Board C5), it shows "Not responding" (SV-3) with
+  the time of
   the last update. This is a display state only. Whether the server acts on it
   belongs to the runs contract.
 
@@ -314,11 +378,19 @@ and the next step for the human:
 
 The progress checklist, if any, remains visible with its final item states.
 
+Uncommitted work is never published when a run ends (Board C5, CONTRACT-004
+B4). When the run left uncommitted files, the ended summary lists them as "Not
+published: N uncommitted files", neutral tone, with the file paths one step
+away.
+
 **RV-7 Cost.** The summary shows, per run:
 
-- cost, with its **source**: metered (reported by the provider), estimated
-  (computed from token counts and a configured price), local (no metered cost),
-  or unknown (Q7, Q8)
+- cost in USD, with its **source** (Board B3):
+  - metered: reported by the provider
+  - estimated: a frontier CLI on a subscription, showing the CLI's reported
+    equivalent cost, labelled "Estimated"
+  - local: a local model endpoint, showing tokens and "Local, not metered"
+  - unknown
 - input, output, and cached tokens where the endpoint reports them
 - duration
 
@@ -345,7 +417,10 @@ The answer interaction for an open pause:
 - Choose one of the offered options, or choose "Other answer", or add a written
   answer to a chosen option. At least one of a chosen option or written text is
   required.
-- An optional category correction (Q4).
+- An optional category correction (Board C5). The person answering may change
+  the category. Both the agent's category and the corrected one are kept, and
+  the answered card shows both ("Asked as Scope question, corrected to Missing
+  requirement").
 - The answer is attributed before sending: "Answering as <selected user>".
 - The primary button is "Send answer". It is disabled only while sending, and
   when neither an option nor text is given. The reason is shown next to it.
@@ -361,14 +436,15 @@ The answer interaction for an open pause:
   rejected with `conflict`. The card refreshes to the current state, shows who
   or what closed it, and keeps the unsent draft visible and copyable.
 
-Whether multiple open pauses on one run are answered independently, and when
-the run resumes, is defined by the pauses contract (Q5). This contract requires
-that each open pause has its own card and can be answered on its own.
+Each open pause on a run has its own card and is answered on its own. The run
+resumes when all its open pauses are answered (Board C5). Until then the run
+stays Paused, and the "Needs you" region shows how many of its pauses are still
+open. How the answer reaches the agent is the pauses contract's.
 
 **RV-9 Artifacts layer.** Grouped, each group with a count, each group omitted
 when empty in a live run and shown with its empty state in an ended run:
 
-- **Changed files** — paths changed on the run branch so far (or at the end),
+- **Changed files** — paths changed on the task branch so far (or at the end),
   each marked with the scope check (SV-3). Opening a file shows its diff. For a
   run whose task is in review, a link opens the full review surface.
 - **Documents** — Markdown documents created or changed, each openable as
@@ -394,7 +470,9 @@ when empty in a live run and shown with its empty state in an ended run:
   failed run is marked, and the summary links to it.
 - Long transcripts load in pages. Loading more never moves the user's reading
   position.
-- Secrets and credentials are redacted before display (Q12).
+- Credentials are redacted before display and storage: known credential patterns and
+  configured secret values. In V1 only credentials are redacted; local user
+  names and home paths are not masked (Board C6).
 - Copy and download of the raw log are available.
 
 **RV-11 Context rail.** Beside the layers on wide screens, and as a collapsible
@@ -425,7 +503,7 @@ handed off. It is the pull request of ADR-005.
 **RS-2 Layout.** In order from top to bottom:
 
 1. **Header** — task ID and title, project, state and conditions, review
-   sub-status (SV-3), attempt ("Attempt 2 of 2"), the run branch and review
+   sub-status (SV-3), attempt ("Attempt 2 of 2"), the task branch and review
    snapshot commit, and the decision actions (RS-12).
 2. **Readiness summary** (RS-4) — one line per check, each linking to its
    section.
@@ -467,7 +545,11 @@ section:
 - **Validation** — "N passed, N failed, N not run", with the source qualifier.
 - **Scope** — "Within declared paths" or "N outside declared paths".
 - **Pauses** — "N pauses during this attempt" (neutral), or "No pauses".
-- **Branch** — Up to date, Behind main, or Merge conflict.
+- **Branch** — Up to date, Behind main (with the number of new main commits),
+  or Merge conflict (with the files). Accepting while Behind main is allowed
+  when the merge is clean, with a warning (Board C4). When any of the new main
+  commits did not come from an acceptance, the line adds "Commits on main
+  outside Moonbeam" (Board C3).
 - **Blocked** — present only when the task is blocked, with the blockers.
 - **Waiting on this task** — present only when other tasks have a path
   dependency on this one (CONTRACT-001 "Path dependencies"): "N tasks are
@@ -489,11 +571,13 @@ narrow ones:
   review"), when recorded
 
 A criterion with no evidence is marked "No evidence given". The board member's
-own judgment is not recorded per criterion (see Q10).
+own judgment is not recorded per criterion: there is no ticking of individual
+criteria in V1 (Board C4). The board member decides once for the task.
 
 **RS-5 Documents.** Every Markdown document created or changed in the snapshot
 is listed. Contracts and ADRs are listed first, then other `docs/` files, then
-the rest (Q11).
+the rest (Board C6). Every Markdown file renders as a document. In V1 no other
+format renders here; other files appear only in Code changes.
 
 - Each document is **rendered in full**, not as a diff, by default: headings,
   tables, lists, links, and code blocks. The board reads the whole document it
@@ -528,11 +612,25 @@ the rest (Q11).
 
 **RS-7 Validation.** Each check (tests, typecheck, build, and any other the task
 names) with result, duration, when it ran, the commit it ran against, and its
-source qualifier (Q3). Each opens to its output, with failures expanded by
-default. A check that ran against a commit other than the review snapshot is
-labelled "Ran on an earlier commit". When nothing was reported: "No validation
-results were reported for this attempt." in attention tone, since the task's
-validation requirements usually expect some.
+source qualifier. Each opens to its output, with failures expanded by default.
+
+- **Verified by Moonbeam (Board C4):** from delivery phase 3, Moonbeam runs the
+  project's tests, typecheck, and build itself on the review snapshot commit,
+  and shows those results labelled "Verified by Moonbeam". While they run, each
+  shows "Running". How and where they run is the runs contract's.
+- **Reported by agent:** results the handoff reports are shown labelled
+  "Reported by agent". Until Moonbeam's own checks exist, these are the only
+  results, and the label makes clear they are testimony, not evidence.
+- A check that ran against a commit other than the review snapshot is labelled
+  "Ran on an earlier commit".
+- When main has moved since the snapshot, the section notes that results were
+  produced on the branch, not on the merged result.
+- When nothing was reported or run: "No validation results for this attempt."
+  in attention tone, since the task's validation requirements usually expect
+  some.
+
+Failed or missing validation is a warning. It never blocks accepting (Board C4,
+A-1).
 
 **RS-8 Previews.** Screenshots and images attached by the runs of the attempt,
 as a gallery with captions, openable at full size, and keyboard navigable.
@@ -572,11 +670,16 @@ files:
 - a summary line with the counts
 
 The check is automatic and exact about coverage (path matching rules are
-CONTRACT-001's and CONTRACT-004's). It is a flag, not a verdict: whether an
-out-of-scope change is acceptable is the board member's call, and the accept
-confirmation lists it (A-1). When the task has no declared paths (for example
-created before paths existed): "This task declares no paths, so changes can't
-be checked." in attention tone, with every changed file listed.
+CONTRACT-001's and CONTRACT-004's: plain file and directory paths, no globs). It
+is a flag, not a verdict: whether an out-of-scope change is acceptable is the
+board member's call. The accept confirmation lists it and requires a written
+reason (A-1, Board C4).
+
+When the task has no declared paths, it was approved as a task that changes no
+files (CONTRACT-001, Board A1). The section says "This task declares no paths,
+so it was approved to change no files." If it changed nothing, that is the
+whole result. If it changed files, every changed file is listed as outside
+declared paths in danger tone.
 
 **RS-11a Pauses.** The pause history for every run of the task (all attempts,
 latest first, with the latest attempt's pauses expanded): each pause card in its
@@ -595,10 +698,14 @@ sticky action bar at the bottom on narrow screens:
 | Action | Shown when | Disabled when (reason shown next to it) |
 |---|---|---|
 | **Accept and merge** (A-1) | Top-level task in `in_review` | Blocked ("Accept is unavailable while the task is blocked"); a subtask is not done; merge conflict (CONTRACT-004); an accept is already in progress |
-| **Accept without review** (A-2) | Top-level leaf task in `in_review` with no review on the latest attempt. Replaces Accept and merge in that case. | Same as Accept and merge |
+| **Accept without review** (A-2) | Top-level task in `in_review` that entered review by handoff (CONTRACT-001 T9), with no review on the latest attempt. Replaces Accept and merge in that case. | Same as Accept and merge |
 | **Return** (A-3) | Top-level task in `in_review` | Never disabled while shown, except while another action is in progress |
-| **Start agent review** (A-7) | Leaf task in `in_review` with no reviewer run live | While a reviewer run is live |
+| **Start agent review** (A-7) | Task in `in_review` that entered review by handoff, with no reviewer run live | While a reviewer run is live |
 | **Cancel task** (A-5) | Any non-terminal task, in a secondary menu | Never disabled while shown |
+
+Handoffs are accepted only when the branch merges cleanly into its target
+(CONTRACT-001 T6, Board A4). A merge conflict at acceptance therefore means main
+moved after the handoff. The disabled Accept then says so and points to Return.
 
 Rules:
 
@@ -615,21 +722,26 @@ Rules:
 
 - a **Subtasks** section directly after the readiness summary: one row per
   subtask with its state (Completed or Cancelled), review verdict, finding
-  count, out-of-scope count, same-model warning if any, cost, and a link to its
-  own read-only review surface
+  count, out-of-scope count, same-model warning if any, integration status
+  ("Not integrated" in danger tone when its work could not be merged into the
+  parent's branch), cost, and a link to its own read-only review surface
 - **Findings from subtask reviews**, collected in one list, grouped by subtask,
   so the board sees every finding carried forward (CONTRACT-001 T8) without
   opening each subtask
 - the combined result: documents, code changes, validation, previews, and scope
-  check across the parent's result as it would merge. How subtask branches
-  combine into the parent's result is CONTRACT-004's (Q13). Each file shows
-  which subtask changed it.
-- no parent-level review requirement (CONTRACT-001 T9). An optional integration
-  review, if recorded, is shown in Agent review. If the parent was returned
-  earlier and then worked directly by a claimant, that claimant's handoff is
-  shown as the parent's own attempt. Whether it needs its own agent review is
-  open (CONTRACT-001 Q16). Until decided, the surface shows it like a leaf's
-  handoff, with its review status, and does not require the waiver step.
+  check for the **parent's task branch compared with main** (Board C6,
+  CONTRACT-004 B3). That branch holds every integrated subtask's work, so it is
+  exactly what will merge. Each file shows which subtask changed it.
+- when a subtask could not be integrated, the Blocked line of the readiness
+  summary shows the system's integration blocker (CONTRACT-001 C1, Board A4):
+  which subtask's work is missing, the conflicting files, and that a board
+  member resolves it, typically by returning the parent with a fix subtask.
+- no parent-level review requirement when the parent entered review by subtasks
+  (CONTRACT-001 T9). An optional integration review, if recorded, is shown in
+  Agent review. A returned split parent is never worked directly (Board A5), so
+  it has no handoff of its own. A parent that fell back (CONTRACT-001 T14) and
+  was then worked and handed off directly is shown like a leaf, with the review
+  requirement and waiver of a leaf.
 
 Returning a split parent follows CONTRACT-001 T10: subtasks are never reopened.
 The Return dialog lets the board member add new subtasks (A-3).
@@ -669,25 +781,31 @@ Every action below:
    branch <branch> into <main branch> of <project>." It lists any open warnings
    from the readiness summary: review verdict other than Pass, same-model
    review, failed or missing validation, out-of-scope files, handoff deviations
-   or risks, branch behind main. If warnings are present, the user confirms
-   they have seen them (Q6) before the final button is enabled.
+   or risks, branch behind main, commits on main outside Moonbeam. Warnings
+   never block accepting (Board C4). If warnings are present, the user confirms
+   once that they have reviewed them ("I've reviewed these") before the final
+   button is enabled. The confirmation is recorded with the acceptance
+   (CONTRACT-001 T9).
+   If any changed file is outside declared paths, the dialog also requires a
+   written **reason for accepting out-of-scope files** (non-empty after
+   trimming whitespace), recorded with the acceptance (Board C4).
 3. The final button reads "Accept and merge".
 4. While the merge runs, the header shows "Merging" (live tone), and all
    decision actions are disabled.
 5. Success: the surface switches to its Completed form (RS-14).
-6. Failure: the surface shows what failed and what to do, using CONTRACT-004's
-   outcomes (for example a merge conflict and the next step that contract
-   defines). Whether the task stays in review or becomes completed with the
-   merge pending is open (CONTRACT-001 Q17). The surface shows the state the
-   server reports, and in the second case shows "Accepted, merge pending" in
-   attention tone until the merge completes. The UI does not attempt recovery
-   on its own.
+6. Failure (Board A4): the accept is rejected and the task stays In review.
+   Main is unchanged, and so is the task. The surface shows the
+   CONTRACT-004 category (`merge_conflict` with the conflicting files, or
+   `repository_unavailable`), states "Main was not changed", and offers Return
+   as the next step for a conflict. The UI does not attempt recovery on its
+   own.
 
 **A-2 Accept without review** (CONTRACT-001 T9 review waiver, A5).
 
-As A-1, but the dialog is titled "Accept without an agent review", explains
-that the task has no agent review for its latest attempt, and requires a
-**reason** (non-empty after trimming whitespace). The reason is shown in the
+As A-1 (including the warnings confirmation and any out-of-scope reason), but
+the dialog is titled "Accept without an agent review", explains that the task
+has no agent review for its latest attempt, and requires a **reason**
+(non-empty after trimming whitespace). The reason is shown in the
 task's history and on the completed review surface as "Review waived: <reason>".
 
 **A-3 Return** (CONTRACT-001 T10).
@@ -703,8 +821,8 @@ task's history and on the completed review surface as "Review waived: <reason>".
    per field. The dialog says what each choice does (CONTRACT-001 T10): with
    new subtasks, the parent goes to In progress and the new subtasks to
    Approved; without them, the parent goes to Approved and its next claimant
-   may add subtasks or do the fix-up work. It never offers to reopen a
-   completed subtask.
+   may only add subtasks, following the return notes, and does not work the
+   parent directly (Board A5). It never offers to reopen a completed subtask.
 4. The final button reads "Return task".
 5. Success: the header shows the new state (Approved, or In progress for a
    split parent with new subtasks) and "Returned by <person>". The notes appear
@@ -723,11 +841,12 @@ task", never "Cancel", to avoid ambiguity.
 
 **A-6 Stop run** (runs contract).
 
-Available in the run view of a live run. The dialog states the consequence: the
-run stops, its claim ends, the task returns to Approved, and the work so far
-stays on the branch (CONTRACT-001 T5, ADR-005). An optional reason. While
-stopping, the run shows "Stopping". The stop itself, and whether it is
-immediate, is the runs contract's.
+Available in the run view of a live run, to any board member for any run
+(Board C5). The dialog states the consequence: the run stops, its claim ends,
+the task returns to Approved, committed work stays on the task branch, and
+uncommitted changes are not published (CONTRACT-001 T5, CONTRACT-004 B4,
+Board C5). An optional reason. While stopping, the run shows "Stopping". The
+stop itself, and whether it is immediate, is the runs contract's.
 
 **A-7 Start agent review** (runs contract).
 
@@ -784,7 +903,7 @@ These hold on every render of these screens.
 | Diff too large | The file list still shows. Individual diffs load on request. A file too large to show says so and offers the raw file. |
 | Document fails to render | Source text fallback with a notice (RS-5). |
 | Action rejected | The CONTRACT-001 category and reason, next to the action, with the user's input kept. `conflict` refreshes the view. |
-| Merge failure at acceptance | CONTRACT-004's outcome, shown in the header and readiness summary, with the next step. The task's state is whatever the server reports. |
+| Merge failure at acceptance | The accept is rejected (Board A4). The task stays In review. The header and readiness summary show `merge_conflict` with the files (or `repository_unavailable`), "Main was not changed", and Return as the next step. |
 | No user selected | Actions are disabled with the reason "Choose who you are to take this action", linking to the user select. |
 
 Empty states say what is missing and what to do first, and are specific to the
@@ -800,7 +919,8 @@ artifacts says "This run produced no files, documents, or results."
   role, model, endpoint, started by, duration, cost, and "Now" or outcome
   sentence. Intended for the dashboard's active runs and the task detail.
 - **Pause card** — RV-8, answerable anywhere it is shown, with identical
-  behavior (Q16 for the decision queue).
+  behavior. The decision queue answers pauses with this card once pauses exist
+  (delivery phase 4). That is outside TASK-007's scope (Board B3).
 - **Readiness summary** — RS-4 in compact form, intended for the decision
   queue's in-review rows.
 
@@ -810,7 +930,8 @@ artifacts says "This run produced no files, documents, or results."
 
 - Run: ID, task, purpose, role, model identifier, model endpoint (name and
   address), runner machine, started by (user) and at, status and outcome, ended
-  at, failure reason and failing step, stop reason and actor, branch name.
+  at, failure reason and failing step, stop reason and actor, task branch name,
+  and the uncommitted files left unpublished at run end.
 - Live signal: the latest event time and a way to receive new events and status
   changes without reloading.
 - Task context: ID, title, project, state, conditions, parent (for subtasks),
@@ -822,10 +943,11 @@ artifacts says "This run produced no files, documents, or results."
 - Changed files so far with the scope check result per file.
 - Artifacts: documents, previews, validation results, the handoff or review
   produced.
-- Cost: amount, currency, source (metered, estimated, local, unknown), tokens
+- Cost: amount in USD, source (metered, estimated, local, unknown), tokens
   in/out/cached.
-- Pauses of this run: every field in RV-8, status, answer, answering user,
-  times.
+- Whether the run's model endpoint is a local model (for the liveness window).
+- Pauses of this run: every field in RV-8, status, the agent's category and any
+  corrected category, answer, answering user, times.
 - Transcript: ordered events with types (message, tool call, tool result,
   runner output, error, pause marker), paged, in readable and raw forms, with
   redaction applied.
@@ -839,15 +961,17 @@ artifacts says "This run produced no files, documents, or results."
   and subtasks with their states.
 - Attempts: each handoff with its time, implementing runs, and the snapshot
   commit it refers to. Which attempt is latest.
-- The snapshot: the branch, the snapshot commit, the merge base with main, and
-  the branch status (up to date, behind main, conflict) from CONTRACT-004.
+- The snapshot: the task branch, the snapshot commit, the merge base with main,
+  and the branch status (up to date, behind main with the count of new main
+  commits, conflict with files) from CONTRACT-004, and whether any new main
+  commits did not come from an acceptance.
 - The changes in the snapshot: per file, path, change type, line counts,
   binary or generated or large flags, the diff, and the full content before and
   after (for rendering documents).
 - The scope check: per changed file, the declared path covering it or none;
   per declared path, whether anything under it changed.
-- Validation results: check name, result, duration, time, commit, source, and
-  output.
+- Validation results: check name, result, duration, time, commit, source
+  (reported by agent, or verified by Moonbeam), and output.
 - Previews: images and links with captions and the run that attached them.
 - The handoff and each review, as structured sections (so that acceptance
   evidence, findings, verdicts, deviations, and risks can be shown in place),
@@ -856,14 +980,18 @@ artifacts says "This run produced no files, documents, or results."
   the implementing and reviewer models it compared.
 - Path dependencies: tasks waiting on this one.
 - For a split parent: each subtask's state, latest verdict, findings, scope
-  check counts, same-model flag, cost, and which files each subtask changed.
+  check counts, same-model flag, integration status, cost, and which files each
+  subtask changed; the parent branch compared with main; and any integration
+  blocker.
+- How the task entered its latest review (by handoff or by subtasks), which
+  decides the review requirement.
 - Pauses for all runs of the task.
 - Runs of the task with cost, grouped by attempt, and totals.
 - The audit history.
 - Which decision actions the server allows for the selected user now, with
   reasons for those it does not.
-- After a decision: acceptor or returner, time, notes or waiver reason, merge
-  commit.
+- After a decision: acceptor or returner, time, notes or waiver reason,
+  out-of-scope reason, whether warnings were confirmed, merge commit.
 
 ## UX expectations
 
@@ -931,11 +1059,14 @@ The implementation is accepted against this contract when:
    table below renders with the specified status, sections, actions, and empty
    or error text. Screenshots at wide and narrow widths are attached to the
    handoff.
-2. **Actions.** Accept and merge, accept without review (reason required),
-   return (notes required; split parent with new subtasks), cancel (reason
-   required), answer pause, and stop run each work end to end against the
-   server, show their result in place, and show rejections with the
-   CONTRACT-001 category. A `conflict` refreshes the view.
+2. **Actions.** Accept and merge (warnings confirmation when warnings exist;
+   reason when files are outside declared paths), accept without review
+   (reason required), return (notes required; split parent with new subtasks),
+   cancel (reason required), answer pause (with and without a category
+   correction), and stop run each work end to end against the server, show
+   their result in place, and show rejections with the CONTRACT-001 category.
+   A `conflict` refreshes the view. A merge failure at acceptance leaves the
+   task In review with the conflict shown.
 3. **Gates.** No human decision action is offered on a subtask or on a task not
    in `in_review` (automated UI test).
 4. **Flags.** Out-of-scope files and same-model reviews are flagged in every
@@ -970,13 +1101,18 @@ The implementation is accepted against this contract when:
 | Review | In review, awaiting decision, verdict Pass | Readiness summary, all sections, Accept and merge enabled |
 | Review | Verdict Changes required or Human decision required | Attention tone, findings, warnings listed in the accept confirmation |
 | Review | Same-model review | Warning in readiness, Agent review, and accept confirmation |
-| Review | Out-of-scope changes | Danger count in readiness, flagged rows, listed in accept confirmation |
-| Review | Paths not declared | Attention notice, all files listed |
+| Review | Out-of-scope changes | Danger count in readiness, flagged rows, listed in accept confirmation with a required reason |
+| Review | No paths declared | "Approved to change no files" notice; any changed file listed as outside declared paths; out-of-scope reason required at accept |
 | Review | No validation reported | Attention empty state |
 | Review | Blocked while in review | Blocked in readiness, Accept disabled with reason, Return enabled |
-| Review | Behind main / merge conflict | Branch status, and for conflict Accept disabled with CONTRACT-004's next step |
+| Review | Behind main / merge conflict | Branch status with new main commit count; Behind main allows accept with a warning; conflict disables Accept and points to Return |
+| Review | Commits on main outside Moonbeam | Warning on the Branch line and in the accept confirmation |
+| Review | Accept rejected by merge failure | Still In review, `merge_conflict` with files, "Main was not changed", Return offered |
 | Review | Merging | Merging, actions disabled |
-| Review | Split parent in review | Subtasks section, collected findings, combined result, Return with Add subtasks |
+| Review | Split parent in review | Subtasks section, collected findings, combined result (parent branch compared with main), Return with Add subtasks |
+| Review | Split parent with a subtask not integrated | "Not integrated" on the subtask row, system integration blocker in readiness, Accept disabled with reason |
+| Run view | Several open pauses | One card per pause, count still open, run stays Paused until all are answered |
+| Any | Open pause anywhere | Tab title shows the paused count (SV-6) |
 | Review | Subtask (any state) | Read-only, "Subtasks aren't accepted individually", link to parent |
 | Review | Completed | Accepted by, merge commit or waiver reason, no actions |
 | Review | Earlier returned attempt | Returned by, notes, link to current state |
@@ -988,78 +1124,78 @@ Board review of this contract is the validation for TASK-009 itself.
 
 ## Open questions
 
-Each item states the default this contract proposes. The board may accept or
-change it before approving.
+None. Every question from the first draft was answered by the board on
+2026-09-24 (see "Resolved questions"). Whether a run may keep working while a
+pause is open remains open in the pauses workflow document and belongs to the
+pauses contract.
+
+## Resolved questions
+
+Every item below was answered "follow the recommendation" on the round 1
+answer sheet (`docs/contracts/BOARD-QUESTIONS-2026-09-24.md`).
 
 - **Q1 — Run status names.** Proposed: `starting`, `running`, `stopping`,
   `finished` (with outcome handed off, review recorded, or no handoff),
   `failed`, `stopped`, with Paused shown when a running run has an open pause.
-  "Finished" is used instead of "completed" so a run is never confused with a
-  completed task. CONTRACT-001 says a run ends "completed, failed, or stopped".
-  The runs contract should adopt these names, or this table follows it.
-- **Q2 — "Not responding".** Proposed: the UI shows Not responding when no event
-  or status report has arrived for 2 minutes during a live run. This is display
-  only. Should the value differ for local models, which can be slow to produce
-  a first token? Whether the server ends such runs is the runs contract's.
-- **Q3 — Who runs validation.** Proposed: V1 shows agent-reported validation
-  from the handoff, labelled "Reported by agent", and shows "Verified by
-  Moonbeam" results only if a later runs contract has Moonbeam run the task's
-  checks on the snapshot itself. Should Moonbeam run tests, typecheck, and
-  build on the review snapshot before review? That would make the validation
-  section evidence rather than testimony, at the cost of runner work.
-- **Q4 — Correcting a pause's category.** Proposed: the person answering may
-  change the category, and both the agent's and the corrected category are
-  kept for pause review. Alternative: the category is fixed as asked, and
-  correction happens only in pause review.
-- **Q5 — Several open pauses on one run.** Proposed: each is answered on its
-  own, and the run resumes when all are answered. Belongs to the pauses
-  contract, which also decides whether a run may keep working while a pause is
-  open (`pauses.md` open question).
-- **Q6 — Accepting with warnings.** Proposed: warnings never block accepting
-  (only blocked, unfinished subtasks, and merge conflicts do). When warnings
-  exist, the accept dialog lists them and requires one "I've reviewed these"
-  confirmation, which is recorded with the acceptance. Alternatives: no
-  confirmation, or a written reason for accepting over specific warnings (for
-  example out-of-scope files), as the review waiver does.
-- **Q7 — Currency and precision.** Proposed: USD, shown with 2 decimals for
-  totals and 4 for single runs under $1.
-- **Q8 — Cost of local models and subscription CLIs.** Proposed: local
-  llama.cpp endpoints show tokens and "Local, not metered". Frontier CLIs on a
-  subscription show the CLI's reported equivalent cost labelled "Estimated".
-  Alternatives: a configured price per endpoint for local models (for example
-  to compare with frontier cost in track records).
-- **Q9 — What counts as "same model".** CONTRACT-001 T7 has the server flag
-  same-model reviews but does not define model identity. Proposed: the same
-  model identifier (for example the same Claude model version or the same GGUF
-  model), regardless of endpoint or runner. Different quantizations of one
-  local model count as the same model. Different versions of a frontier model
-  family count as different. The server decides, so every screen agrees.
-- **Q10 — Per-criterion human judgment.** Proposed: not in V1. The board member
-  reads evidence per criterion but decides once for the task. Alternative: let
-  the board member tick criteria while reviewing, recorded with the acceptance.
-- **Q11 — Which files are "documents".** Proposed: every Markdown file in the
-  snapshot is rendered in full. Contracts and ADRs are listed first, then
-  `docs/`, then other Markdown files. Should other formats (for example
-  diagrams or HTML) render too?
-- **Q12 — Redaction in transcripts.** Proposed: known credential patterns and
-  configured secret values are redacted before display and storage. Should
-  local user names and home paths also be masked (Paperclip offers this)?
-- **Q13 — A split parent's combined result.** The review surface needs one
-  combined diff for the parent. How subtask branches combine (a parent
-  integration branch, or merging subtask branches in order at acceptance) is
-  CONTRACT-004's. The review surface shows whatever that contract defines as
-  "what will merge".
-- **Q14 — Noticing pauses without notifications.** V1 has no notifications, so
-  an open pause waits until someone looks. Proposed: while any open pause
-  exists, every Moonbeam tab shows it in the page title (for example
-  "(1 paused) Moonbeam"). Alternative: nothing beyond the decision queue and
-  dashboard.
-- **Q15 — Reading without a selected user.** Proposed: all screens are readable
-  before choosing a user. Actions require a selected user. CONTRACT-002 may
-  decide otherwise.
-- **Q16 — Answering pauses from the decision queue.** Proposed: yes, with the
-  same pause card, so a board member doesn't have to open the run. This affects
-  TASK-007's scope.
-- **Q17 — Stop run authority.** Proposed: any board member can stop any run
-  (ADR-003 full authority), with an optional reason. Confirm for the runs
-  contract.
+  Board C5, 2026-09-24: runs end as "finished", never "completed".
+  *Applied:* SV-3 (names declared canonical for the future runs contract);
+  CONTRACT-001 T5 and CONTRACT-002 now say finished, failed, or stopped.
+- **Q2 — "Not responding".** Proposed: 2 minutes without an event. Should local
+  models differ?
+  Board C5, 2026-09-24: 2 minutes, or 5 minutes for local models.
+  *Applied:* SV-3, RV-5, Interfaces (run data). Whether the server ends such
+  runs stays with the runs contract.
+- **Q3 — Who runs validation.**
+  Board C4, 2026-09-24: Moonbeam runs tests, typecheck, and build itself on the
+  reviewed commit in phase 3. Until then, agent-reported results are labelled
+  as such.
+  *Applied:* SV-3 (source qualifier), RS-7, Interfaces.
+- **Q4 — Correcting a pause's category.**
+  Board C5, 2026-09-24: the person answering may correct the category, and
+  both categories are kept.
+  *Applied:* RV-8, Interfaces; `TEMPLATE/docs/workflow/pauses.md`.
+- **Q5 — Several open pauses on one run.**
+  Board C5, 2026-09-24: each pause is answered separately, and the run resumes
+  when all are answered.
+  *Applied:* RV-8, state coverage; CONTRACT-001 C2.
+- **Q6 — Accepting with warnings.**
+  Board C4, 2026-09-24: warnings never block accepting, but the board member
+  confirms once. Out-of-scope files need a written reason.
+  *Applied:* A-1, A-2, RS-7, RS-11, validation item 2; CONTRACT-001 T9.
+- **Q7 — Currency and precision.**
+  Board B3, 2026-09-24: USD.
+  *Applied:* SV-5 (2 decimals for totals, 4 for single runs under $1), RV-7.
+- **Q8 — Cost of local models and subscription CLIs.**
+  Board B3, 2026-09-24: local models show "Local, not metered"; subscription
+  CLIs show "Estimated".
+  *Applied:* RV-7.
+- **Q9 — What counts as "same model".**
+  Board C6, 2026-09-24: the same model identifier. Two quantizations of one
+  model count as the same model.
+  *Applied:* Definitions; CONTRACT-001 T7 defines it for the server.
+- **Q10 — Per-criterion human judgment.**
+  Board C4, 2026-09-24: no ticking of individual criteria in V1.
+  *Applied:* RS-4a.
+- **Q11 — Which files are "documents".**
+  Board C6, 2026-09-24: all Markdown files render as documents.
+  *Applied:* RS-5. No other format renders in V1.
+- **Q12 — Redaction in transcripts.**
+  Board C6, 2026-09-24: only credentials are redacted in V1.
+  *Applied:* RV-10.
+- **Q13 — A split parent's combined result.**
+  Board C6, 2026-09-24: the combined diff is the parent's branch compared with
+  main.
+  *Applied:* RS-13, Interfaces; CONTRACT-004 B3.
+- **Q14 — Noticing pauses without notifications.**
+  Board B3, 2026-09-24: while any pause is open, the tab title shows it.
+  *Applied:* Scope (Excluded), SV-6, state coverage.
+- **Q15 — Reading without a selected user.**
+  Board B2, 2026-09-24: anyone can view; every action requires choosing a user.
+  *Applied:* Preconditions; CONTRACT-002.
+- **Q16 — Answering pauses from the decision queue.**
+  Board B3, 2026-09-24: yes, but only once pauses exist (phase 4). This is out
+  of TASK-007's scope.
+  *Applied:* Interfaces (pause card).
+- **Q17 — Stop run authority.**
+  Board C5, 2026-09-24: any board member can stop any run.
+  *Applied:* A-6.

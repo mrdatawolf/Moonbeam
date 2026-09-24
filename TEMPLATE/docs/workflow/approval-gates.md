@@ -32,14 +32,17 @@ envelope needs a new task approved by the board. See `splits.md`.
 ## Review
 
 Every handoff, including each subtask's, receives an independent agent review.
-Review informs the board's decision; it is not acceptance. Review findings
-always go to a human.
+A board member may accept a task without one only by waiving it with a
+recorded reason. Review informs the board's decision; it is not acceptance.
+Review findings always go to a human.
 
 ## Acceptance
 
 Implementation completion is not acceptance, and neither is a passing review.
 Only a board member accepts work. Acceptance happens once, on the parent task;
-subtasks are not accepted individually.
+subtasks are not accepted individually. Accepting changes to files outside the
+task's paths requires a written reason.
 
-When a board member accepts a task, Moonbeam writes the task record, with its
-handoff, review, and acceptance, into the repository.
+Accepting merges the task's branch into the main branch, together with the task
+record, written to `tasks/TASK-NNN-short-description.md`. If the merge fails,
+the acceptance is refused and the task stays in review.

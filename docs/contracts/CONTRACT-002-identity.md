@@ -3,9 +3,41 @@
 Status: Proposed
 Approved by:
 Approved date:
-Related tasks: TASK-005
+Revised: 2026-09-24 (TASK-012), see "Revision history"
+Related tasks: TASK-005, TASK-012
 Related ADRs: ADR-003 (context: ADR-001, ADR-005)
-Related contracts: CONTRACT-001 (consumes this contract; see its Q13)
+Related contracts: CONTRACT-001 (consumes this contract; see its Q13),
+CONTRACT-004 (uses each user's name and e-mail address for merge authorship)
+
+## Revision history
+
+### 2026-09-24 — TASK-012: board answers, round 1 sheet
+
+The board answered `docs/contracts/BOARD-QUESTIONS-2026-09-24.md`, following
+every recommendation. This revision applies the answers that concern this
+contract and aligns it with CONTRACT-001 as revised the same day. The contract
+stays Proposed until the board approves it.
+
+- **User registry (Board B1, C3):** the initial users are entered at first-run
+  setup and are not named in this contract. Each user now has an e-mail address.
+  Renamed users show their current name in history. Any human may manage users.
+- **Viewing (Board B2):** anyone can view without choosing a user. Every action
+  requires one.
+- **Agent reads (Board A8):** an agent run may read its whole project and no
+  other project.
+- **Identity mode (Board A8):** audit records with a human actor record the
+  identity mode `selected`.
+- **Known limit (Board A8):** an agent that ignores its credential can pose as
+  the UI. Accepted for V1, with no extra measure.
+- **Alignment with CONTRACT-001 (Board A8):** the human-only list now matches
+  CONTRACT-001's transitions: reopen is removed; review waiver and "move task in
+  project queue" (D1) are added. CONTRACT-001 lists `unidentified` and states
+  the order of checks.
+- **Answering a pause** is listed as human-only. This follows from
+  CONTRACT-001's definition of a pause as a question awaiting a human and from
+  Board C5 ("the person answering"). It is called out here so the board can
+  confirm it when approving.
+- Q1–Q8 moved to "Resolved questions". No new open questions.
 
 ## Purpose
 
@@ -27,8 +59,9 @@ guarantee ends (see "Known limits in V1").
 
 ### Included
 
-- The user registry: who the human users are, and how users are added,
-  renamed, deactivated, and reactivated.
+- The user registry: who the human users are, their display names and e-mail
+  addresses, first-run setup, and how users are added, edited, deactivated, and
+  reactivated.
 - Human user selection in the UI, and how the selected user is attached to
   requests.
 - Agent run credentials: issued per run, bound to the run's task and project,
@@ -46,9 +79,9 @@ guarantee ends (see "Known limits in V1").
 - How runs are started, observed, and stopped, and how a runner delivers a
   credential to an agent process (future runs contract). This contract only
   requires that a run's credential reaches that run and nothing else.
-- Git and repository credentials for run branches (ADR-005; future run
-  branches contract). The agent run credential defined here is a credential
-  for Moonbeam's own interface only.
+- Git and repository credentials for task branches (ADR-005; CONTRACT-004). The
+  agent run credential defined here is a credential for Moonbeam's own
+  interface only.
 - Lifecycle rules: which state transitions exist and their preconditions
   (CONTRACT-001).
 - Network exposure. Moonbeam is deployed only on the office LAN (ADR-003); how
@@ -91,7 +124,7 @@ A resolved actor contains:
 
 | Kind | Fields |
 |---|---|
-| Human | user id (stable, never reused), display name, identity mode (`selected` in V1) |
+| Human | user id (stable, never reused), display name, e-mail address, identity mode (`selected` in V1) |
 | Agent | run id, the task the run is bound to, project, agent role, model |
 | System | the named trigger (for example `claim_expired`) |
 
@@ -110,7 +143,8 @@ CONTRACT-001).
 ## Preconditions
 
 1. Moonbeam is reachable only from the office LAN (ADR-003).
-2. The user registry contains at least one active user.
+2. The user registry contains at least one active user, except during
+   first-run setup (see "User registry").
 3. Every agent process that talks to Moonbeam was started as part of a run that
    a human started (CONTRACT-001, I14), and holds only that run's credential.
 
@@ -118,14 +152,26 @@ CONTRACT-001).
 
 ### User registry
 
-- The registry lists the human users. At setup it contains the six team
-  members (names supplied by the board; see Q1).
-- Each user has a stable user id and a display name. Display names are unique
-  among active users, ignoring case and surrounding whitespace.
-- **Add user:** any human may add a user by giving a display name. The new user
-  is active and immediately selectable.
-- **Rename user:** any human may change a user's display name. The user id does
-  not change. Past records show the current display name (see Q6).
+- The registry lists the human users. Each user has a stable user id, a display
+  name, and an **e-mail address** (Board C3). The name and e-mail address are
+  used as the git author of acceptance merges (CONTRACT-004 B8).
+- Display names are unique among active users, ignoring case and surrounding
+  whitespace. The e-mail address is required and must be a syntactically valid
+  address.
+- **First-run setup (Board B1):** when the registry has no users at all,
+  Moonbeam offers first-run setup and nothing else. The person setting up enters
+  the initial users (for this team, its six board members), each with a display
+  name and e-mail address. This contract does not name them. Setup ends when at
+  least one user exists; from then on, users are managed only through the
+  operations below. Registry changes made during setup are recorded with the
+  actor "first-run setup", because no user can be selected yet.
+- **Add user:** any human may add a user by giving a display name and e-mail
+  address (Board B1). The new user is active and immediately selectable.
+- **Edit user:** any human may change a user's display name or e-mail address.
+  The user id does not change. Past records in Moonbeam show the user's
+  **current** display name (Board B1). Git commits already made keep the name
+  and address they were made with, because repository history is never
+  rewritten (CONTRACT-004).
 - **Deactivate user:** any human may deactivate a user. A deactivated user:
   - no longer appears in the user select and cannot act;
   - is still shown, marked inactive, wherever past records name them;
@@ -137,9 +183,10 @@ CONTRACT-001).
   them.
 - **Last active user:** deactivating the only remaining active user is
   rejected.
-- Agents may not add, rename, deactivate, or reactivate users.
-- Every registry change is recorded with the acting human, the time, and the
-  change (before and after values).
+- Agents may not add, edit, deactivate, or reactivate users, and cannot perform
+  first-run setup.
+- Every registry change is recorded with the acting human (or "first-run
+  setup"), the time, and the change (before and after values).
 
 ### Human user selection
 
@@ -155,8 +202,8 @@ CONTRACT-001).
   server records that user as the actor (ADR-003, decision 1).
 - If the selected user has been deactivated, the next action is rejected
   `unidentified` and the UI asks the person to select again.
-- Viewing without a selected user: proposed, reading is allowed without a
-  selection and every action requires one (see Q3).
+- **Viewing without a selected user (Board B2):** anyone on the LAN can view
+  every screen without selecting a user. Every action requires a selection.
 
 ### Agent run credentials
 
@@ -171,15 +218,16 @@ CONTRACT-001).
   only on:
   - the task its run is bound to;
   - tasks that CONTRACT-001 lets an agent act on from that binding (for
-    example the subtasks it creates by splitting its task, and new task
-    proposals arising from it);
+    example the subtasks it adds to its task's parent, as a claimant or as a
+    reviewer, and new task proposals arising from it);
   - within the same project only.
   Any other target is denied `not_permitted`. The exact relationship rules per
   action (claimant, author, reviewer) are owned by CONTRACT-001.
-- **Read access.** An agent credential may read the project its run belongs
-  to, and no other project (proposed; see Q4).
+- **Read access (Board A8):** an agent credential may read everything in the
+  project its run belongs to (other tasks, contracts, pause history), and
+  nothing in any other project.
 - **Ends with the run.** The credential stops working the moment the run ends,
-  whether it completes, fails, or is stopped. Every later request with it is
+  whether it finishes, fails, or is stopped. Every later request with it is
   rejected `unidentified` and is not re-evaluated as a human request (R3).
 - **No renewal, no reuse.** A credential cannot be extended, transferred to
   another run, or reissued. A new run gets a new credential.
@@ -189,7 +237,8 @@ CONTRACT-001).
 ### System actor
 
 - The system actor exists only inside Moonbeam, for the automatic actions that
-  other contracts name (for example CONTRACT-001, T5, T8, T12, T14, T16).
+  other contracts name (for example CONTRACT-001 T5, T8, T12, T14, T16, and the
+  integration blocker in C1).
 - No credential, header, selection, or other client input can produce a system
   actor. System actions are not requestable by any client.
 
@@ -203,13 +252,14 @@ order:
 2. **Check permission.** If it denies, reject with its category. Nothing is
    evaluated further.
 3. **Evaluate the action** under the contract that owns it (existence of the
-   target, lifecycle state, and input validation).
+   target, lifecycle state, input validation, and any repository step).
 
 Because the agent gate (step 2) comes before target and lifecycle evaluation,
 an agent attempt at a human-only action is always rejected
 `authority_violation`, whatever the target's state, and it is always recorded
 as a rejected attempt (CONTRACT-001, "Audit record"). If the target does not
-exist, the recorded attempt names the requested target.
+exist, the recorded attempt names the requested target. CONTRACT-001 states
+the same order in its "Failure behavior".
 
 #### V1 policy
 
@@ -223,18 +273,23 @@ exist, the recorded attempt names the requested target.
 #### Human-only actions
 
 The following actions are human-only. This list is fixed. No configuration,
-identity mode, or future roles model may grant any of them to an agent.
+identity mode, or future roles model may grant any of them to an agent. It
+matches CONTRACT-001 as revised on 2026-09-24 (TASK-012).
 
 | Action | Source |
 |---|---|
 | Approve a task | ADR-003; CONTRACT-001 T2 |
-| Accept a task, including waiving review and the merge that acceptance performs | ADR-003; CONTRACT-001 T9; ADR-005 |
-| Return a task | CONTRACT-001 T10 |
-| Reopen a subtask (if CONTRACT-001 keeps this action) | CONTRACT-001 T13 |
+| Accept a task, including the merge and permanent record that acceptance performs | ADR-003; CONTRACT-001 T9; ADR-005; CONTRACT-004 B7, B9 |
+| Waive the agent review when accepting | CONTRACT-001 T9 (A5) |
+| Return a task, including adding subtasks as part of the return | CONTRACT-001 T10 |
+| Move a task in the project queue | CONTRACT-001 D1 (Board A3) |
 | Break another claimant's claim | CONTRACT-001 T4 |
 | Cancel a task, beyond the cases CONTRACT-001 allows agents | CONTRACT-001 T15 |
 | Start a run | CONTRACT-001, I14 |
-| Add, rename, deactivate, or reactivate a user | This contract |
+| Answer a pause, including correcting its category | CONTRACT-001 definition of "paused" (a question awaiting a human); Board C5 |
+| First-run setup; add, edit, deactivate, or reactivate a user | This contract |
+
+Reopening a subtask is no longer an action: CONTRACT-001 removed T13.
 
 Other contracts may add actions to this list. They may not remove any.
 
@@ -258,9 +313,10 @@ When global login is integrated:
 
 ### Recording the identity mode
 
-Proposed (see Q5): every audit record with a human actor also records the
-identity mode (`selected` in V1). Later, history can tell honor-system
-attribution apart from authenticated attribution.
+Every audit record with a human actor also records the identity mode (Board
+A8): `selected` in V1, `authenticated` after global login. History can then
+tell honor-system attribution apart from authenticated attribution.
+CONTRACT-001's audit record carries this field.
 
 ## Postconditions and invariants
 
@@ -277,25 +333,28 @@ attribution apart from authenticated attribution.
 - **ID5 — Binding.** A successful agent action targets only the run's own
   project and a task within the run's binding.
 - **ID6 — Attribution.** Every successful action has exactly one resolved actor,
-  and that actor is what the audit trail records.
+  and that actor is what the audit trail records, with the identity mode for a
+  human.
 - **ID7 — Stable users.** A user id is never deleted or reused. Every user named
-  in a record remains resolvable to a display name.
-- **ID8 — At least one active user.** The registry never has zero active users.
+  in a record remains resolvable to a current display name.
+- **ID8 — At least one active user.** Once first-run setup has ended, the
+  registry never has zero active users.
 - **ID9 — Secrecy of credential values.** No credential value appears in any
   view, audit record, or repository write that Moonbeam produces.
 
 ## Failure behavior
 
-Rejections change nothing. Categories are shared with CONTRACT-001, plus one
-new category:
+Rejections change nothing. Categories are shared with CONTRACT-001, which lists
+all of them, including `unidentified` defined here:
 
 | Category | When |
 |---|---|
-| `unidentified` | No agent credential and no selected user; the selected user does not exist or is inactive; the agent credential is unknown, malformed, or belongs to a run that has ended. **New in this contract** (CONTRACT-001 needs to list it; see Q7). |
+| `unidentified` | No agent credential and no selected user; the selected user does not exist or is inactive; the agent credential is unknown, malformed, or belongs to a run that has ended. |
 | `authority_violation` | An agent attempts a human-only action. Always recorded as a rejected attempt. |
 | `not_permitted` | An agent targets something outside its run's binding (another task, another project, a user record). |
-| `validation` | Registry input is invalid: empty display name, duplicate display name among active users, deactivating the last active user. |
+| `validation` | Registry input is invalid: empty display name, duplicate display name among active users, missing or malformed e-mail address, deactivating the last active user. |
 | `not_found` | The user record being changed does not exist. |
+| `invalid_transition` | First-run setup is requested when the registry already has users. |
 
 Consistent with CONTRACT-001 (A12), `unidentified` rejections are not recorded
 in the audit trail. Only `authority_violation` attempts are.
@@ -309,9 +368,10 @@ are implementation choices.
 |---|---|---|
 | resolve actor | internal, on every request | actor or `unidentified` |
 | check permission | internal, on every action | allow, or deny with category |
-| who am I | any request | the resolved actor (human: user and identity mode; agent: run, task, project, role, model) |
-| list users | any human | active users (and, on request, inactive ones) |
-| add / rename / deactivate / reactivate user | human only | the updated user record |
+| who am I | any request | the resolved actor (human: user, e-mail, and identity mode; agent: run, task, project, role, model) |
+| first-run setup | anyone, only while the registry has no users | the initial user records |
+| list users | any human, and any viewer (Board B2) | active users (and, on request, inactive ones) |
+| add / edit / deactivate / reactivate user | human only | the updated user record |
 | select user / clear selection | UI, per browser | the selected user, or none |
 | issue run credential | internal, at run start (runs contract) | one credential, delivered only to the run |
 | end run credential | internal, at run end (runs contract) | the credential stops resolving |
@@ -319,16 +379,21 @@ are implementation choices.
 ## UX expectations
 
 - The selected user's name is always visible in the UI header, with a one-step
-  switch.
+  switch. Viewing needs no selection; action controls without a selection say
+  "Choose who you are to take this action".
 - Human-only actions show the acting user in their confirmation, for example
   "Approve as Patrick". This guards against acting as someone else on a shared
   machine.
 - Human-only actions are never offered in an agent context (CONTRACT-001).
 - When a selection becomes invalid (the user was deactivated), the UI asks the
   person to select again, and does not silently switch to another user.
-- Records by inactive users show the name with an "inactive" marker.
+- Records by inactive users show the current name with an "inactive" marker.
 - The user list is ordered by display name. Inactive users are hidden from the
-  select and shown separately in user management.
+  select and shown separately in user management, which also shows e-mail
+  addresses.
+- First-run setup explains that the users entered become the board members who
+  approve and accept work, and that each e-mail address is used as the git
+  author of the merges that person accepts.
 - The run view shows which agent, role, and model a run acts as, never the
   credential value.
 
@@ -343,14 +408,19 @@ Implementation is accepted against this contract when automated tests show:
    agent credential are rejected `unidentified`, including when they name a
    valid human user, and never succeed as a human.
 3. **Credential lifetime:** a credential works while its run is active and
-   stops working immediately when the run completes, fails, or is stopped.
+   stops working immediately when the run finishes, fails, or is stopped.
 4. **Binding:** an agent credential is denied `not_permitted` on another task
-   outside its binding and on any other project.
+   outside its binding and on any other project, for reads and writes. Reads
+   within its own project are allowed.
 5. **Human resolution:** an action with an active selected user succeeds as that
-   user; with no selection or an inactive user it is rejected `unidentified`.
-6. **Registry:** add, rename, deactivate, and reactivate behave as specified;
-   duplicate names and deactivating the last active user are rejected
-   `validation`; agents cannot change the registry; no user can be deleted.
+   user and is recorded with identity mode `selected`; with no selection or an
+   inactive user it is rejected `unidentified`. Reading without a selection is
+   allowed.
+6. **Registry:** first-run setup is available only while the registry is empty;
+   add, edit, deactivate, and reactivate behave as specified; duplicate names,
+   missing or malformed e-mail addresses, and deactivating the last active user
+   are rejected `validation`; agents cannot change the registry; no user can be
+   deleted; a renamed user's current name appears on past records.
 7. **System actor:** no client input produces a system actor.
 8. **Order of checks:** an agent attempt at a human-only action on a missing or
    wrongly-stated task returns `authority_violation`, not `not_found` or
@@ -371,57 +441,61 @@ design for security.
 
 - **Human attribution is honor-system.** "Approved by X" proves that someone
   selected X in a browser on the LAN.
-- **An agent that ignores its credential can pose as the UI.** The agent gate
-  (ID1) holds for every request that carries an agent credential. An agent
-  process with network access that deliberately calls Moonbeam without its
-  credential and names a human user cannot be told apart from a person in V1,
-  because there is no human authentication. The mitigations in V1 are that
-  runs are given only their own credential, that agent instructions forbid
-  this, and that every such action is attributed to a named human who can see
-  it. Closing this gap fully requires human authentication (global login).
-  See Q2.
+- **An agent that ignores its credential can pose as the UI (Board A8: accepted
+  as a known V1 limit).** The agent gate (ID1) holds for every request that
+  carries an agent credential. An agent process with network access that
+  deliberately calls Moonbeam without its credential and names a human user
+  cannot be told apart from a person in V1, because there is no human
+  authentication. V1 adds no extra measure. The mitigations are that runs are
+  given only their own credential, that agent instructions forbid this, and
+  that every such action is attributed to a named human who can see it. The
+  real fix is human authentication (global login).
 
 ## Open questions
 
-Each item states the proposed default used in this contract. The board may
-accept or change it before approving the contract.
+None. All questions from the first draft were answered by the board on
+2026-09-24 (see "Resolved questions").
 
-- **Q1 — Initial users.** The registry is seeded at setup with the six team
-  members. Please supply the display names to seed (the owner, the office
-  manager, two primary developers, two part-time developers).
-- **Q2 — Agents posing as the UI.** Proposed: accept this as a known V1 limit
-  (see "Known limits in V1"), as ADR-003 implies. Options for a cheap extra
-  measure:
-  - (A) **No extra measure** (proposed default).
-  - (B) **Record the request origin** (the client's network address) on every
-    human-only action, so an action coming from a dev box that runs agents is
-    visible in the audit trail. Cheap, but it does not help when a developer
-    also uses a browser on that dev box.
-  - (C) **An office passphrase per browser**, entered once when a browser first
-    selects a user, and never given to agents. This is lightweight
-    authentication and would amend ADR-003 ("V1 has no authentication").
+## Resolved questions
+
+- **Q1 — Initial users.** Please supply the display names to seed (the owner,
+  the office manager, two primary developers, two part-time developers).
+  Board B1, 2026-09-24: "follow the recommendation". No names were supplied.
+  *Applied:* User registry. The users are entered at first-run setup, with
+  display names and e-mail addresses, and are not named in this contract.
+- **Q2 — Agents posing as the UI.** Options: (A) no extra measure; (B) record
+  the request origin; (C) an office passphrase per browser.
+  Board A8, 2026-09-24: (A), accept this as a known V1 limit. Global login is
+  the real fix.
+  *Applied:* Known limits in V1.
 - **Q3 — Viewing without a selected user.** Proposed: anyone on the LAN can view
-  the dashboard without selecting a user (useful for a wall display), and
-  every action requires a selection. Alternative: require a selection even to
-  view.
+  without selecting a user, and every action requires a selection.
+  Board B2, 2026-09-24: follow the recommendation. Anyone can view; every action
+  requires choosing a user.
+  *Applied:* Human user selection, Interfaces, UX, validation item 5.
 - **Q4 — Agent read scope.** Proposed: an agent run can read everything in its
-  own project (other tasks, contracts, pause history) but nothing in other
-  projects. Alternative: restrict reads to its own task and its linked
-  contracts.
+  own project but nothing in other projects.
+  Board A8, 2026-09-24: an agent may read its whole project, and no other
+  project.
+  *Applied:* Agent run credentials (read access), validation item 4.
 - **Q5 — Recording the identity mode.** Proposed: audit records with a human
-  actor also record the identity mode (`selected` now, `authenticated` after
-  login), so history distinguishes honor-system attribution. This adds a field
-  to CONTRACT-001's audit record.
+  actor also record the identity mode.
+  Board A8, 2026-09-24: yes, audit records note that the identity was
+  "selected".
+  *Applied:* Resolve actor, Recording the identity mode, ID6, validation item
+  5; CONTRACT-001 "Audit record".
 - **Q6 — Renamed users in history.** Proposed: past records show a user's
-  current display name. Alternative: records keep the name as it was at the
-  time of the action.
-- **Q7 — Alignment with CONTRACT-001.** CONTRACT-001 is being revised in
-  parallel. For consistency it needs to: list the `unidentified` failure
-  category; confirm that the agent gate is evaluated before lifecycle state (so
-  agent attempts on a human-only action always yield `authority_violation`);
-  and settle whether "reopen subtask" still exists after its answer A2. The
-  human-only list here follows CONTRACT-001 as approved and should be updated
-  to match its revision.
-- **Q8 — Who may manage users.** Proposed: any human, consistent with full
-  authority for every board member in V1. Is that acceptable, or should user
-  management wait for roles?
+  current display name.
+  Board B1, 2026-09-24: yes.
+  *Applied:* User registry (edit user), ID7, UX. Git history keeps the name it
+  was written with.
+- **Q7 — Alignment with CONTRACT-001.** CONTRACT-001 needs to list
+  `unidentified`, confirm that the agent gate is evaluated before lifecycle
+  state, and settle whether "reopen subtask" still exists.
+  Board A8, 2026-09-24: just apply it in TASK-012.
+  *Applied:* Human-only actions (reopen removed; review waiver and queue move
+  added; the list matches CONTRACT-001), Permission check, Failure behavior;
+  CONTRACT-001 "Failure behavior" lists `unidentified` and the order of checks.
+- **Q8 — Who may manage users.** Proposed: any human.
+  Board B1, 2026-09-24: yes (full authority in V1).
+  *Applied:* User registry.

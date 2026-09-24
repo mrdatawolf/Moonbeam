@@ -44,8 +44,13 @@ than paused. See `lifecycle.md`.
 4. **Submit it** through the pause mechanism Moonbeam provides for your run. If
    no such mechanism is available to you, stop and put the question, in the
    format above, in your final output so a human sees it.
-5. **Resume** only when the pause is resolved. Record in your handoff any
-   pause resolution that changed how you interpreted the task.
+5. **Resume** only when the pause is resolved. If you asked several questions,
+   each is answered separately, and your run resumes when all of them are
+   answered. Record in your handoff any pause resolution that changed how you
+   interpreted the task.
+
+An answer never widens the task's scope envelope. If the answer implies work
+outside it, that work needs a new task approved by the board.
 
 ## Pause categories
 
@@ -61,7 +66,8 @@ pause review can close the gap up front.
 | Scope question | You cannot tell whether something is inside the task's scope envelope. | The task's scope envelope. |
 
 If a question fits more than one category, choose the one whose fix would have
-prevented the pause.
+prevented the pause. The board member who answers may correct the category;
+Moonbeam keeps both your category and the corrected one for pause review.
 
 ## Pause review
 
@@ -77,7 +83,4 @@ These are not yet decided by the Moonbeam board.
 - The exact mechanism by which an agent raises a pause and receives the answer.
 - Whether a run may continue with work that does not depend on the answer while
   a pause is open.
-- Whether a pause resolution may widen a task's scope envelope. Until decided,
-  treat work outside the envelope as requiring a new or amended task approved by
-  the board.
 - Whether the pause category list above is final.

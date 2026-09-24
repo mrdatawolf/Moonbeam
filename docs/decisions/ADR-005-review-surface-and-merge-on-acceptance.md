@@ -85,3 +85,28 @@ dispatcher committing, as recorded in the root `AGENTS.md`.
 - A contract for run branches: naming, how a branch is updated from main,
   conflicts, and cleanup.
 - Add the review surface requirements to the run view design.
+
+## Amendment — 2026-09-24: one branch per task (Board C1)
+
+Recorded by TASK-012. The decision text above is left as approved; this
+amendment corrects how it is read.
+
+The board decided (answer sheet `docs/contracts/BOARD-QUESTIONS-2026-09-24.md`,
+item C1, "follow the recommendation") that **a branch belongs to a task, not to
+a run**:
+
+- Where this ADR says "branch per run" (title), "every run works on its own
+  branch" (decision 1), and "its run branch" (decision 5), read **task
+  branch**: one branch per task, named `moonbeam/TASK-NNN`, used by each of the
+  task's runs in turn. Claims guarantee one writer at a time, and each run's
+  commits are identified by the commit range it published.
+- This matches decision 3, "a returned task continues on its branch".
+- Everything else in decision 1 is unchanged: Moonbeam names and creates the
+  branch, and agents never merge into, rebase onto, or push to main.
+- Accepted work is merged with a merge commit, not squashed, and a cancelled
+  task's branch is kept for 30 days (also Board C1).
+
+The mechanics are specified in CONTRACT-004 ("Task branches, checkouts, and
+merge on acceptance"). Separately, Board C2 places each project's canonical
+repository as a bare repository on the Moonbeam host, with GitHub as a mirror;
+that is consistent with decision 6 and needs no amendment here.

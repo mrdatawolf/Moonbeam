@@ -8,19 +8,23 @@ A task is ready for review (`in_review`) when:
 - Relevant documentation is current.
 - Material assumptions, deviations, pause resolutions, and unresolved risks are
   recorded.
+- The work is committed on the task's branch, and the branch merges cleanly
+  into its target (the main branch, or the parent's branch for a subtask).
+  Moonbeam refuses a handoff otherwise.
 - An implementation handoff has been submitted to Moonbeam.
 - If the task was split, all its subtasks are done.
 
 A subtask is done when its handoff has been submitted and its independent agent
-review is recorded. It is never accepted on its own. (The exact condition is
-defined by Moonbeam's task lifecycle contract; see the open questions in
-`splits.md`.)
+review is recorded, whatever the verdict. Its work is then merged into the
+parent's branch. It is never accepted on its own and never reopened.
 
 A task is complete (`completed`) only when:
 
 - Independent review findings have been resolved or explicitly accepted by the
   board.
-- A board member accepts the result in Moonbeam.
+- A board member accepts the result in Moonbeam, and Moonbeam merges it into
+  the main branch.
 
-Moonbeam then writes the task record into the repository. Editing a task file
-never completes a task.
+The merge includes the task record, written to
+`tasks/TASK-NNN-short-description.md`. Editing a task file never completes a
+task.
