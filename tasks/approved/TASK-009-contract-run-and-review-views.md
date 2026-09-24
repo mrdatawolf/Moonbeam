@@ -4,8 +4,8 @@ Owner role: UX specialist
 Assigned agent:
 Proposed by: Claude (planning session)
 Proposed date: 2026-09-24
-Approved by:
-Approved date:
+Approved by: Patrick
+Approved date: 2026-09-24
 Related contracts: CONTRACT-003 (to be produced)
 Related ADRs: ADR-005
 Dependencies: None

@@ -4,8 +4,8 @@ Owner role: Contract designer
 Assigned agent:
 Proposed by: Claude (planning session)
 Proposed date: 2026-09-24
-Approved by:
-Approved date:
+Approved by: Patrick
+Approved date: 2026-09-24
 Related contracts: CONTRACT-004 (to be produced)
 Related ADRs: ADR-001, ADR-005
 Dependencies: None

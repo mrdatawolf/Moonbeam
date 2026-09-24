@@ -4,8 +4,8 @@ Owner role: UX specialist
 Assigned agent:
 Proposed by: Claude (planning session)
 Proposed date: 2026-09-24
-Approved by:
-Approved date:
+Approved by: Patrick
+Approved date: 2026-09-24
 Related contracts: CONTRACT-001
 Related ADRs: ADR-002
 Dependencies: TASK-007 (overlapping paths: `ui/`)
