@@ -26,3 +26,14 @@ acceptance.
 
 `AGENTS.md` may clarify this file but must not contradict it. If instructions
 appear inconsistent, stop and ask the human to resolve the conflict.
+
+## This repository versus `TEMPLATE/`
+
+This repository is developed with the classic folder-based DbC workflow
+described above: a task's state is the `tasks/` directory that holds it.
+
+`TEMPLATE/` is a deliverable for Moonbeam-managed projects, not instructions for
+this repository (ADR-004). Its CLAUDE.md, AGENTS.md, and workflow docs describe
+the Moonbeam variant, in which Moonbeam holds task state and there are no
+lifecycle directories. Do not follow them when working here; edit them only
+under a task that covers `TEMPLATE/`.
