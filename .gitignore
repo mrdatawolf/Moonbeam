@@ -10,4 +10,18 @@ Thumbs.db
 # Environment
 .env
 .env.local
+.env.*.local
 
+# Dependencies and build output
+node_modules/
+dist/
+*.tsbuildinfo
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Tooling caches
+.vite/

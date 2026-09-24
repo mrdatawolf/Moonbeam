@@ -1,0 +1,22 @@
+{
+  "name": "moonbeam",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.24.0",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @moonbeam/server --filter @moonbeam/ui run dev",
+    "dev:server": "pnpm --filter @moonbeam/server run dev",
+    "dev:ui": "pnpm --filter @moonbeam/ui run dev",
+    "build": "pnpm -r run build",
+    "typecheck": "pnpm -r run typecheck",
+    "test": "pnpm -r run test",
+    "db:generate": "pnpm --filter @moonbeam/db run generate",
+    "db:migrate": "pnpm --filter @moonbeam/db run migrate"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2"
+  }
+}

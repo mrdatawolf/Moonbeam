@@ -1,0 +1,16 @@
+packages:
+  - packages/*
+  - server
+  - ui
+
+# pnpm 11 blocks dependency build scripts unless allowed here.
+allowBuilds:
+  # Postgres binaries for embedded Postgres in development; their postinstall
+  # restores symlinks inside the bundled Postgres distribution.
+  '@embedded-postgres/darwin-arm64': true
+  '@embedded-postgres/darwin-x64': true
+  '@embedded-postgres/linux-arm64': true
+  '@embedded-postgres/linux-x64': true
+  '@embedded-postgres/windows-x64': true
+  # Installs the platform binary used by Vite, tsx and drizzle-kit.
+  esbuild: true
