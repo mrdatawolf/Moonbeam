@@ -1,8 +1,8 @@
 # CONTRACT-004: Task branches, checkouts, and merge on acceptance
 
-Status: Proposed
-Approved by:
-Approved date:
+Status: Accepted
+Approved by: Patrick
+Approved date: 2026-09-24
 Revised: 2026-09-24 (TASK-012), see "Revision history"
 Related tasks: TASK-010, TASK-012
 Related ADRs: ADR-005 (as amended 2026-09-24), ADR-001, ADR-003 (context:

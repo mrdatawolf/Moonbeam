@@ -1,8 +1,8 @@
 # CONTRACT-003: Run view and review surface
 
-Status: Proposed
-Approved by:
-Approved date:
+Status: Accepted
+Approved by: Patrick
+Approved date: 2026-09-24
 Revised: 2026-09-24 (TASK-012), see "Revision history"
 Related tasks: TASK-009, TASK-012
 Related ADRs: ADR-005 (as amended), ADR-003, ADR-002 (context: ADR-001)
