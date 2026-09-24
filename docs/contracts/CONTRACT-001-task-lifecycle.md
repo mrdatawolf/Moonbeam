@@ -1,8 +1,8 @@
 # CONTRACT-001: Task lifecycle, claims, and splits
 
-Status: Proposed
-Approved by:
-Approved date:
+Status: Approved
+Approved by: Patrick
+Approved date: 2026-09-24
 Related tasks: TASK-002
 Related ADRs: ADR-001, ADR-003 (context: ADR-004)
 
@@ -661,43 +661,61 @@ accept or change it before approving the contract.
   run activity; human claim 7 days of inactivity. Alternative: human claims never
   expire. Should an expiring human claim warn the claimant first (no
   notifications exist in V1)?
+  A1 - human claims never expire.
 - **Q2 — Subtask review with findings.** Proposed (A): the subtask completes on
   any recorded review and findings are carried to the parent's review; humans
   can reopen a subtask earlier. Alternative (B): a review with findings holds
   the subtask in `in_review` until a human disposes of it — closer to "findings
   go to a human" per subtask, but it is effectively a per-subtask human decision,
   which the 2026-09-24 decision avoided.
+  A2 - similar to DbC ideals, a subtask once the agent(s) mark it as completed are done.  no reopening, instead if a problem is found a new subtask is created, run, closed.
 - **Q3 — Returning a split parent without reopening.** Proposed: the parent goes
   to `approved` and becomes directly claimable for integration work.
   Alternative: require reopening at least one subtask or adding one.
+  a3 - I think a2 answers this as the subtask won't reopen it would create new ones.
 - **Q4 — Where a returned leaf task goes.** Proposed: `approved`, unclaimed, with
   return notes. Alternative: `in_progress` with the prior claimant retained
   (matches the classic DbC folder flow, but agent runs usually end at handoff).
+  a4 - again I think there should not be returned leafs.
+  a4 (corrected 2026-09-24) - leaf tasks can be returned. The proposed default
+  stands: back to `approved`, unclaimed, with return notes.
 - **Q5 — Review before acceptance.** Proposed: a leaf top-level task needs a
   recorded review of its latest handoff, or an explicit human waiver with a
   reason. Alternatives: review is never required, or never waivable.
+  a5 - is this still a question with a1-a4 answered?
+  a5 (clarified 2026-09-24) - yes. A top-level leaf task needs an agent review
+  before acceptance, and a human may override that with a recorded reason (the
+  proposed default).
 - **Q6 — Nested splits.** Proposed: not allowed in V1 (only top-level tasks
   split). Allowing nesting raises the question of how a mid-level subtask gets
   reviewed and completed.
+  a6 - I agree only top level spilts.  if another layer of splits is needed then I think we failed on the initial planning stage.
 - **Q7 — Agent cancellation.** Proposed: agents may only withdraw `proposed`
   tasks they authored. Should an agent claimant be able to cancel a subtask it
   finds redundant, or must it raise a blocker for a human?
+  a7 - agents can close subtasks it created.
 - **Q8 — Scope envelope after approval.** Proposed: fixed; changing scope means
   cancelling and re-proposing. Alternative: a human may edit it, which then
   requires re-checking existing subtasks against the edited envelope.
+  a8 - yes cancel and repropose.
 - **Q9 — Blocked vs. claims.** Proposed: blocking suspends claim expiry; agents
   cannot claim a blocked task but humans can; a blocked parent effectively
   blocks its subtasks. Confirm each point.
+  a9 - yes agents cannot claim a blocked task and blocking the parent effectively blocks all subtasks. but also unblocking the parent unblocks all subtasks
 - **Q10 — Adding subtasks after a split.** Proposed: humans may add subtasks to
   an unclaimed split parent in `in_progress`; agents may not (they propose a new
   task or raise a blocker). Confirm.
+  a10 - I don't think the person should have to be involved in raising/blocking subtasks.
 - **Q11 — Reviewer independence for human-claimed work.** Proposed: any agent
   reviewer satisfies independence when the claimant was a human. Should the
   reviewer also be required to use a different model than the implementing run?
+  a11 - strngly suggested to have a different model then the implementing one.  But I don't think we can go as far as requiring.
 - **Q12 — Audit granularity.** Are claim renewals recorded in the audit trail
   (proposed: no, only the latest renewal time is visible), and are rejected
   actions other than authority violations recorded (proposed: no)?
+  a12 - no and no
 - **Q13 — Identity dependency.** This contract assumes the identity and
   permission interface (ADR-003 follow-up) reliably distinguishes agent
   credentials from UI user selection. That contract should be produced before
   or alongside implementation of this one.
+  a13 - that makes sense and I agree. 
