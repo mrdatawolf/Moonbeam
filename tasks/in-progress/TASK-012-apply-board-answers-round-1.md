@@ -1,11 +1,11 @@
 # TASK-012: Apply board answers (round 1) across CONTRACT-001 to CONTRACT-004
 
 Owner role: Contract designer
-Assigned agent:
+Assigned agent: contract-architect
 Proposed by: Claude (planning session)
 Proposed date: 2026-09-24
-Approved by:
-Approved date:
+Approved by: Patrick (instructed in planning session)
+Approved date: 2026-09-24
 Related contracts: CONTRACT-001, CONTRACT-002, CONTRACT-003, CONTRACT-004
 Related ADRs: ADR-005
 Dependencies: The board answers `docs/contracts/BOARD-QUESTIONS-2026-09-24.md`

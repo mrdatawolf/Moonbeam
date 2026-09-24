@@ -31,7 +31,7 @@ Source: 001-Q21
 - V1 allows plain file and directory paths only, with no globs, so overlap
   stays simple and exact.
 
-Answer:
+Answer: follow the recommendation
 
 ### A2. Path dependencies inside a split
 Source: 001-Q14, 004-Q3
@@ -46,7 +46,7 @@ Source: 001-Q14, 004-Q3
   when the earlier sibling is completed, because by then its work is merged
   into the parent's branch (CONTRACT-004).
 
-Answer:
+Answer: follow the recommendation
 
 ### A3. Reordering dependencies
 Source: 001-Q15
@@ -59,7 +59,7 @@ Source: 001-Q15
 cannot create cycles. A task already `in_progress` or later cannot be moved
 behind an unfinished task.
 
-Answer:
+Answer: follow the recommendation
 
 ### A4. When merging fails
 Source: 001-Q17, 004-Q4, 004-Q5, 004-Q8
@@ -77,7 +77,7 @@ Source: 001-Q17, 004-Q4, 004-Q5, 004-Q8
   a system blocker on the parent. This allows "system" as an actor that can
   raise blockers. A fix subtask then resolves it.
 
-Answer:
+Answer: follow the recommendation
 
 ### A5. Returned split parent: direct work or subtasks only?
 Source: 001-Q16
@@ -87,7 +87,7 @@ split parent goes to `approved`. Whoever claims it may only add subtasks,
 following your return notes, and may not change files directly. No separate
 parent-level review is needed, because each fix subtask gets its own review.
 
-Answer:
+Answer: follow the recommendation
 
 ### A6. Which agent runs may add or cancel subtasks
 Source: 001-Q18, 001-Q19
@@ -100,7 +100,7 @@ Source: 001-Q18, 001-Q19
 - **Cancel:** only the run that created the subtask, and only while no one has
   claimed it.
 
-Answer:
+Answer: follow the recommendation
 
 ### A7. Unblocking a parent
 Source: 001-Q20
@@ -109,7 +109,7 @@ Source: 001-Q20
 parent is blocked" state on its subtasks. Blockers recorded on a subtask
 itself stay open until someone resolves them.
 
-Answer:
+Answer: follow the recommendation
 
 ### A8. Identity basics
 Source: 002-Q2, 002-Q4, 002-Q5, 002-Q7
@@ -121,7 +121,7 @@ Source: 002-Q2, 002-Q4, 002-Q5, 002-Q7
 - **002-Q5:** yes, audit records note that the identity was "selected".
 - **002-Q7:** just apply it in TASK-012; it keeps the contracts consistent.
 
-Answer:
+Answer: follow the recommendation
 
 ---
 
@@ -135,7 +135,7 @@ Source: 002-Q1, 002-Q6, 002-Q8
   **Recommendation:** yes.
 - Can anyone manage users? **Recommendation:** yes (full authority in V1).
 
-Answer (names):
+Answer (names):  follow the recommendation
 
 ### B2. Viewing without choosing a user
 Source: 002-Q3, 003-Q15
@@ -143,7 +143,7 @@ Source: 002-Q3, 003-Q15
 **Recommendation:** yes, anyone can view. Every action requires choosing a
 user.
 
-Answer:
+Answer: follow the recommendation
 
 ### B3. Small display choices
 Source: 003-Q7, 003-Q8, 003-Q14, 003-Q16
@@ -155,7 +155,7 @@ Source: 003-Q7, 003-Q8, 003-Q14, 003-Q16
 - Pauses can be answered from the decision queue, but only once pauses exist
   (phase 4). This is out of TASK-007's scope.
 
-Answer:
+Answer: follow the recommendation
 
 ---
 
@@ -170,7 +170,7 @@ Source: 004-Q1, 004-Q2, 004-Q6, 004-Q12
 - Merge commits, not squash.
 - Cancelled branches are kept for 30 days.
 
-Answer:
+Answer: follow the recommendation
 
 ### C2. Where project repositories live
 Source: 004-Q15
@@ -183,7 +183,7 @@ share or Gitea), or only on developers' machines and GitHub?
 its own machine. GitHub or Gitea can be a mirror. **Only you can answer the
 current setup.**
 
-Answer:
+Answer: follow the recommendation (GitHub)
 
 ### C3. Authorship and records
 Source: 004-Q7, 004-Q9, 004-Q14
@@ -195,7 +195,7 @@ Source: 004-Q7, 004-Q9, 004-Q14
 - Records go to `tasks/TASK-NNN-slug.md`.
 - Commits made on main by hand are allowed and shown as a warning.
 
-Answer:
+Answer: follow the recommendation
 
 ### C4. Review evidence
 Source: 003-Q3, 003-Q6, 003-Q10, 004-Q10
@@ -210,7 +210,7 @@ Source: 003-Q3, 003-Q6, 003-Q10, 004-Q10
 - There is no ticking of individual criteria in V1.
 - If main has moved since review, you can still accept, with a warning.
 
-Answer:
+Answer: follow the recommendation
 
 ### C5. Runs and pauses
 Source: 003-Q1, 003-Q2, 003-Q4, 003-Q5, 003-Q17, 004-Q11, 004-Q13, 004-Q16
@@ -226,7 +226,7 @@ Source: 003-Q1, 003-Q2, 003-Q4, 003-Q5, 003-Q17, 004-Q11, 004-Q13, 004-Q16
 - Detecting rewritten branch history is enough for V1.
 - No special rules for local models until they get writing roles.
 
-Answer:
+Answer: follow the recommendation
 
 ### C6. Review display details
 Source: 003-Q9, 003-Q11, 003-Q12, 003-Q13
@@ -238,4 +238,4 @@ Source: 003-Q9, 003-Q11, 003-Q12, 003-Q13
 - Only credentials are redacted in V1.
 - A split parent's combined diff is its branch compared with main.
 
-Answer:
+Answer: follow the recommendation
