@@ -20,6 +20,11 @@ Dependencies:
 
 ### Excluded
 
+### Paths
+
+Files and directories this task may create or change. The dispatcher uses these
+to decide whether tasks can run in parallel in the shared checkout.
+
 ## Plan
 
 ## Acceptance criteria

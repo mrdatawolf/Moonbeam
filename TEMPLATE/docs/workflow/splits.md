@@ -10,6 +10,7 @@ A task's scope envelope is its:
 
 - inclusions (what the task is authorized to change or deliver)
 - exclusions (what it must not change or deliver)
+- paths (the files and directories it may create or change)
 - linked contracts
 - constraints (technical, operational, or process limits stated in the task,
   its contracts, or its ADRs)
@@ -21,7 +22,7 @@ The envelope is recorded in the task's "Scope envelope" section (see
 
 1. **Subtasks inherit the parent's scope envelope and may only narrow it.** A
    subtask may include less, exclude more, and add constraints. It may not
-   include anything the parent excludes or does not include, drop a linked
+   include anything the parent excludes or does not include, add paths, drop a linked
    contract, or relax a constraint.
 2. **Subtasks of an approved task are approved automatically.** Because a
    subtask cannot exceed an envelope the board already approved, no further

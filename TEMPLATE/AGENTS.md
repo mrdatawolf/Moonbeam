@@ -64,6 +64,20 @@ Use the templates in `docs/templates/`. A handoff must state what changed, what
 was validated, any deviations or assumptions, and any unresolved risks. Submit
 the handoff to Moonbeam for the task; do not rely on editing the task snapshot.
 
+## Run branches and review
+
+Each run works on its own branch, which Moonbeam names and creates. The branch is
+the run's work product; the board sees it through Moonbeam's review surface
+(rendered documents, the diff, test results, previews), not by checking it out.
+
+- Commit your work to the run branch. Never merge into, rebase onto, or push to
+  the project's main branch yourself.
+- Stay within the paths in your task's scope envelope. Moonbeam compares the
+  branch's changes against them, and the reviewer checks them.
+- Your handoff names every changed file by its path in the repository.
+- Moonbeam merges the branch only when a board member accepts the task. Merging
+  is acceptance. A returned task continues on its branch.
+
 ## Dispatching isolated (worktree) subagents
 
 An isolated git worktree forks from the repository's default branch (e.g.

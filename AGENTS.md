@@ -41,31 +41,56 @@ implementer moves it to `tasks/in-progress/`. See
 Use the templates in `docs/templates/`. A handoff must state what changed, what
 was validated, any deviations or assumptions, and any unresolved risks.
 
-## Dispatching isolated (worktree) subagents
+## Dispatching subagents
 
-An isolated git worktree forks from the repository's default branch (e.g.
-`main`), not from whatever branch the orchestrating session is actually on.
-If the real working branch (a feature branch, or uncommitted changes on the
-current checkout) isn't on the default branch, a worktree subagent silently
-builds on a stale base and can miss files, context, or in-flight work
-entirely — with no error, since from its point of view that base is simply
-"the repository."
+The board plans work up front, the work happens out of sight, and the board
+reviews the result at the end. That final review only works if the board can see
+the result in its normal checkout. These rules exist to guarantee that.
 
-Before dispatching a subagent into an isolated worktree:
+### Work in the shared checkout by default
 
-- Commit anything the subagent needs to see — including new task files —
-  to the working branch first. A worktree only sees committed history, never
-  uncommitted changes sitting in the originating checkout.
-- Explicitly name the real working branch in the subagent's prompt and have
-  it sync onto that branch (merge or rebase) before making any changes,
-  rather than letting it assume its default fork point is correct.
-- After merging a subagent's work back, check for duplicate task-lifecycle
-  files it may have had to reconstruct locally because it couldn't see the
-  original (e.g. a stale copy left behind in `tasks/approved/` alongside the
-  proper one it created in `tasks/review/`), and remove the superseded copy.
+- Subagents work directly in the orchestrating checkout on the working branch.
+  They do not use isolated worktrees unless the rule below applies.
+- Tasks may run in parallel only when their **scope envelopes declare
+  non-overlapping paths** (see "Paths" in `docs/templates/task.md`). If paths
+  overlap or are unknown, the later-approved task depends on the earlier one.
+  Record that under its "Dependencies" and do not dispatch it until the earlier
+  task has reached `review/` with its work committed. If the earlier task is
+  returned, pause the later one until the rework is back in `review/`.
+- Only the dispatcher runs git write operations (`git mv`, `git add`,
+  `git commit`). Subagents edit files and report. This avoids index-lock
+  collisions and supports agents that have file access but no shell.
 
-This was discovered when several task files existed only as uncommitted
-changes on a feature branch; parallel worktree subagents forked from `main`
-at dispatch time, never saw them, and each had to reconstruct its task file
-by hand — producing duplicate lifecycle copies that needed manual
-reconciliation after merging.
+### The dispatcher owns lifecycle moves
+
+- The dispatcher moves task files between lifecycle directories on the working
+  branch: to `in-progress/` when it dispatches, and to `review/` when the handoff
+  arrives. Lifecycle state never lives only on a side branch.
+- When a task reaches `review/`, the dispatcher commits the task's work together
+  with its move. The handoff and the dispatcher's summary must name the changed
+  files by their paths in the board's checkout.
+- In this repository, work on the working branch in `review/` is not accepted
+  work. Acceptance is still the board moving the task to `completed/`. A returned
+  task is fixed forward on the working branch.
+
+### Isolated worktrees are the exception
+
+Use an isolated worktree only when parallel tasks must touch overlapping paths or
+need an independent build or run environment. In that case:
+
+- Commit everything the subagent needs to see (including its task file) to the
+  working branch first. A worktree forks from committed history only, and
+  possibly from the default branch rather than the branch you are on. Name the
+  real working branch in the prompt and have the subagent sync onto it before
+  changing anything.
+- When the task reaches review, the dispatcher merges the worktree branch into
+  the working branch **before presenting it to the board**. Merge one task at a
+  time, in the order they finish, and resolve conflicts within the task's scope.
+  Then remove the worktree and its branch.
+- Check for duplicate task-lifecycle files left by the merge and remove any
+  superseded copy.
+
+These rules come from a run in which three parallel worktree tasks reached
+review but existed only on hidden side branches. The board could not see
+CONTRACT-001 or the other results, and lifecycle state was split across four
+copies of the repository.

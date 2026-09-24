@@ -61,6 +61,9 @@ decides; agents propose, implement, review, and report.
 - Track records per model and role, derived from review and acceptance outcomes.
 - UI focused first on the **dashboard** and the **run view**, following
   Paperclip's layered disclosure (summary → artifacts → raw logs).
+- A review surface where the board sees each task's actual result (rendered
+  documents, diff, validation, previews). Each run works on its own branch, and
+  accepting a task merges it (ADR-005).
 - Simple user select to set who is acting. No login in V1 (ADR-003).
 - Cost visibility per run, task, project, and model. There are no budgets and
   no enforcement in V1.
@@ -97,8 +100,8 @@ decides; agents propose, implement, review, and report.
 - **Project** — a governed repository registered in Moonbeam.
 - **Task** — a unit of work with a desired outcome, scope, and acceptance
   criteria. Its lifecycle state lives in Moonbeam's database (ADR-001).
-- **Scope envelope** — a task's inclusions, exclusions, linked contracts, and
-  constraints. Subtasks inherit it and may only narrow it.
+- **Scope envelope** — a task's inclusions, exclusions, paths (the files it may
+  change), linked contracts, and constraints. Subtasks inherit it and may only narrow it.
 - **Split** — dividing a task into subtasks within its scope envelope.
   Subtasks are approved automatically and each gets an independent agent
   review. Human acceptance happens once, on the parent task.

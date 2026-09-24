@@ -34,6 +34,11 @@ parent.
 
 ### Contracts
 
+### Paths
+
+Files and directories this task may create or change. Moonbeam uses these to
+check a run's changes against its scope, and the reviewer verifies them.
+
 ### Constraints
 
 ## Plan

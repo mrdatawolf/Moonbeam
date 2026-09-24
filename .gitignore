@@ -25,3 +25,6 @@ pnpm-debug.log*
 
 # Tooling caches
 .vite/
+
+# Claude Code agent worktrees
+.claude/worktrees/

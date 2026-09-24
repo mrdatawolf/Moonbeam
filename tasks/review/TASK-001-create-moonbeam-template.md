@@ -144,6 +144,18 @@ widen the scope envelope; whether the pause categories are final.
 
 Root `CLAUDE.md` and all of `TEMPLATE/`.
 
+### Amendment after handoff (2026-09-24, board direction)
+
+After the board chose option C (ADR-005), the dispatcher made these changes to
+`TEMPLATE/`:
+
+- `AGENTS.md`: added a "Run branches and review" section.
+- `docs/templates/task.md`: added "Paths" to the scope envelope.
+- `docs/workflow/splits.md`: added paths to the envelope and to the narrowing
+  rule.
+
+The reviewer should include these changes.
+
 ## Review
 
 Not reviewed.
