@@ -38,8 +38,8 @@ The envelope is recorded in the task's "Scope envelope" section (see
    subtask on its own.
 6. **The parent enters review when all its subtasks are done.** The parent's
    review and handoff cover the combined result.
-7. **A board member accepts the parent or returns it.** When returning it, the
-   board member may reopen specific subtasks.
+7. **A board member accepts the parent or returns it.** Completed subtasks are
+   never reopened. If a problem is found, the fix is done in a new subtask.
 
 ## Writing a good split
 

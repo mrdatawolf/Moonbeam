@@ -145,7 +145,8 @@ decides; agents propose, implement, review, and report.
   approval and acceptance. Subtasks are the means of getting it done. They are
   approved automatically and reviewed by an agent, but they are not accepted
   individually. The parent enters review when all its subtasks are done, and a
-  board member accepts it or returns it, optionally reopening specific
-  subtasks.
+  board member accepts it or returns it. A subtask is done once its agent
+  review is recorded and is never reopened. If a problem is found, the fix is a
+  new subtask (CONTRACT-001).
 - **Budgets (2026-09-24):** V1 shows costs but does not budget or enforce them.
 - **DbC presentation material (2026-09-24):** removed from this repository.

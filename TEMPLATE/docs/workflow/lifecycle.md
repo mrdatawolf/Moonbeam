@@ -7,7 +7,8 @@ authoritative; nothing in this repository is.
 proposed --board approval--> approved --claim--> in_progress
 in_progress --implementation handoff--> in_review
 in_review --board acceptance--> completed
-in_review --board returns it--> in_progress
+in_review --board returns it--> approved
+                                (a split parent given new subtasks goes to in_progress)
 (any state before completed) --cancellation--> cancelled
 ```
 
@@ -49,8 +50,10 @@ Conditions describe a task's circumstances without changing its state.
   subtasks are done (see `splits.md`).
 - The reviewer records findings but does not implement fixes or accept the task.
   Review findings always go to a human.
-- Only a board member accepts work (`completed`) or returns it to
-  `in_progress`.
+- Only a board member accepts work (`completed`) or returns it. A returned
+  task goes back to `approved`, with return notes, for the next claimant. A
+  returned split parent that is given new subtasks goes to `in_progress`.
+  Completed subtasks are never reopened.
 - Subtasks created by a split are approved automatically, within the parent's
   scope envelope. See `splits.md`.
 
