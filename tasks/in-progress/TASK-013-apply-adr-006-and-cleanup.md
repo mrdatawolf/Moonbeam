@@ -1,13 +1,13 @@
 # TASK-013: Apply ADR-006, record Q18/Q22/Q23, and clean up follow-ups
 
 Owner role: Contract designer
-Assigned agent:
+Assigned agent: contract-architect
 Proposed by: Claude (planning session)
 Proposed date: 2026-09-24
 Approved by: Patrick
 Approved date: 2026-09-24
 Related contracts: CONTRACT-001, CONTRACT-003, CONTRACT-004
-Related ADRs: ADR-001, ADR-005, ADR-006
+Related ADRs: ADR-001, ADR-005 (incl. 2026-09-24 amendment), ADR-006
 Dependencies: ADR-006 approved
 
 ## Desired outcome
@@ -33,6 +33,36 @@ The board also accepted the recommendations for:
   project. Under ADR-006, a push happens only on explicit request.
 
 CONTRACT-004 Q17 is resolved by ADR-006.
+
+## Scope expansion (board-directed, 2026-09-24)
+
+When the board approved this task, it also amended ADR-005: acceptance no
+longer merges. The merge into main is a separate human step after acceptance
+(Moonbeam merges on request, or a human merges by hand), and pushing is a
+further step. This task also applies that amendment:
+
+- CONTRACT-001:
+  - T9 accept no longer merges.
+  - Add a human-only merge action for completed tasks, and integration status.
+  - Path dependencies are satisfied when the earlier work is on main.
+  - Revise the Board A4 "merge fails at acceptance" behavior into merge-time
+    behavior.
+  - I18 still holds.
+- CONTRACT-002: the merge and push actions are human-only.
+- CONTRACT-003:
+  - The accept dialog no longer merges.
+  - Add an integration panel on completed tasks (Merge, Push, status, refusal
+    messages).
+  - The decision queue's treatment of accepted but unmerged tasks is an open
+    question.
+- CONTRACT-004:
+  - Merging happens on request, not at accept.
+  - The record is written as part of the merge.
+  - Detect hand merges.
+  - Merge-time conflicts.
+- `TEMPLATE/AGENTS.md` and `TEMPLATE/docs/workflow/`: remove "Merging is
+  acceptance" wording.
+- Flag, don't decide, the three open points listed in the ADR-005 amendment.
 
 ## Scope
 
@@ -78,6 +108,7 @@ CONTRACT-004 Q17 is resolved by ADR-006.
 - `docs/PROJECT.md`
 - `TEMPLATE/AGENTS.md`
 - `TEMPLATE/docs/templates/task.md`
+- `TEMPLATE/docs/workflow/`
 
 ## Plan
 

@@ -110,3 +110,37 @@ The mechanics are specified in CONTRACT-004 ("Task branches, checkouts, and
 merge on acceptance"). Separately, Board C2 places each project's canonical
 repository as a bare repository on the Moonbeam host, with GitHub as a mirror;
 that is consistent with decision 6 and needs no amendment here.
+
+## Amendment — 2026-09-24: acceptance and merge are separate human steps (Board)
+
+Decision 3 ("Merging is acceptance") is superseded as follows. Decisions 1, 2,
+4, and 6 stand. Decision 5 is adjusted as described below.
+
+1. **Acceptance is a decision, not a merge.** A board member accepts the task,
+   and it becomes `completed`. Accepting does not change the project
+   repository.
+2. **Integration is a separate, explicit human step after acceptance.** For a
+   completed task, a human either:
+   - asks Moonbeam to **merge** the task branch into main (a human-only action
+     in the UI), or
+   - merges it by hand. Moonbeam then detects that the branch has reached main.
+
+   Pushing to a remote is a further, separate step (ADR-006).
+3. **The main branch still holds only accepted work.** Nothing merges before
+   acceptance, and Moonbeam refuses to merge a branch whose task is not
+   `completed`. Returned, cancelled, or rejected work never reaches main.
+4. **A completed task shows its integration status**: not merged, merged by
+   Moonbeam, merged by hand, or merge refused. Pushed or not pushed is shown
+   too.
+5. **Decision 5 changes**: a later task with overlapping paths waits until the
+   earlier task's work is **on main**, not only until it is completed. This
+   preserves "the later task's branch starts from main with the earlier work".
+
+Open points for the contracts (TASK-013):
+
+- What happens when a merge requested after acceptance conflicts. The task is
+  already `completed` and cannot be returned.
+- How the permanent task record reaches the repository when the merge is done
+  by hand.
+- Whether completed tasks that stay unmerged should surface in the decision
+  queue.
