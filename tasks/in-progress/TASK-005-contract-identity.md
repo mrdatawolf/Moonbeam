@@ -1,7 +1,7 @@
 # TASK-005: CONTRACT-002: identity and permission interface
 
 Owner role: Contract designer
-Assigned agent:
+Assigned agent: contract-architect
 Proposed by: Claude (planning session)
 Proposed date: 2026-09-24
 Approved by: Patrick

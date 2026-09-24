@@ -1,7 +1,7 @@
 # TASK-004: Revise CONTRACT-001 with board answers and ADR-005
 
 Owner role: Contract designer
-Assigned agent:
+Assigned agent: contract-architect
 Proposed by: Claude (planning session)
 Proposed date: 2026-09-24
 Approved by: Patrick

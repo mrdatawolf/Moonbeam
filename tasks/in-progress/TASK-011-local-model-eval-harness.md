@@ -1,7 +1,7 @@
 # TASK-011: Local model evaluation harness (optional, early)
 
 Owner role: Implementer
-Assigned agent:
+Assigned agent: implementer (Claude)
 Proposed by: Claude (planning session)
 Proposed date: 2026-09-24
 Approved by: Patrick

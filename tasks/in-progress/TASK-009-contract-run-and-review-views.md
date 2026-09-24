@@ -1,7 +1,7 @@
 # TASK-009: CONTRACT-003: run view and review surface
 
 Owner role: UX specialist
-Assigned agent:
+Assigned agent: interface-designer
 Proposed by: Claude (planning session)
 Proposed date: 2026-09-24
 Approved by: Patrick
