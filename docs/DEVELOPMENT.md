@@ -120,7 +120,10 @@ real database:
   (`transitions`, `splits`, `queue`, `conditions`), CONTRACT-002 (`identity`),
   project registration (`projects`), concurrent claims and races
   (`concurrency`), and a seeded random walk that checks the CONTRACT-001
-  invariants after every step (`invariants`).
+  invariants after every step (`invariants`). TASK-017 regressions (`review-fixes`) cover deferred review
+  completion, run-end and project-root races, lease resumption, repeated actions,
+  agent e-mail redaction, and a leaf matrix of six states × eight actions ×
+  three actors (human claimant, independent bound agent, anonymous viewer).
 
 Run one file with `pnpm --filter @moonbeam/server exec vitest run src/test/queue.test.ts`.
 The first run of a session takes a few seconds longer while Postgres initialises.
@@ -139,10 +142,16 @@ for phase 2. Request and response shapes are the zod schemas in
 - **Agent:** send `Authorization: Bearer <run credential>`. An agent credential
   always makes the request an agent request, even if it also names a user; a
   bad, expired or ended-run credential is `unidentified` and never falls back to
-  the user header.
+  the user header. Before applying an agent lifecycle action, the server checks
+  the run and credential again after taking the project lock; an ended run or
+  revoked/expired credential is `unidentified`. Human actions are unchanged.
 - **System:** never from a request. No header or body field sets the actor kind.
 - Reads need no identity (anyone on the LAN can view). Agents read only their
-  own project.
+  own project. User lists omit e-mail addresses for requests with agent
+  credentials, including when a user header is also present. They retain ids,
+  display names, active/inactive status and timestamps. Human and anonymous
+  viewer lists retain e-mail addresses; human who-am-I retains its e-mail
+  address, while agent who-am-I contains only run identity fields.
 
 Every action runs: resolve actor → permission check → lifecycle rules →
 repository step, in that order. An agent attempt at a human-only action is
@@ -185,9 +194,18 @@ them, and lease expiry is also applied by a 15-second sweep and before reads.
 Development and test only (`MOONBEAM_DEV_ROUTES=1`), until the runs contract
 exists: `POST /api/dev/runs` starts a run bound to a task and returns its
 credential once (human only, like starting a run); `POST /api/dev/runs/:id/end`
-ends it (its credential stops working and T5 ends its claim);
+ends it (its credential stops working and T5 ends its claim; closing its pauses
+resumes any other run’s lease they had suspended, once no suspension remains);
 `POST /api/dev/runs/:id/pauses` and `POST /api/dev/pauses/:id/close` open and
 answer a pause.
+
+A deferred subtask completion belongs to the reviewed handoff. Returning the
+subtask or recording a new handoff clears that deferred completion; a new review
+is required before it completes. Moving a task to its current queue or sibling
+position is `invalid_transition` and writes no audit record. Repeating an agent’s
+withdrawal of its own never-approved proposal also returns `invalid_transition`
+without an authority-violation record. Project registration rechecks the current
+projects root under the same lock used for root changes.
 
 ### Failure categories and HTTP status
 

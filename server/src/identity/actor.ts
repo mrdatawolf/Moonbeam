@@ -22,6 +22,8 @@ export interface AgentActor {
   projectId: string;
   role: string;
   model: string;
+  /** The credential the request presented; re-checked when the action is applied (F2). Never shown. */
+  credentialId: string;
 }
 
 /** Only ever constructed inside the server (CONTRACT-002 "System actor"). */
@@ -88,6 +90,7 @@ export async function resolveActor(db: Database, headers: Headers, now: Date): P
       projectId: row.run.projectId,
       role: row.run.role,
       model: row.run.model,
+      credentialId: row.credential.id,
     };
   }
 

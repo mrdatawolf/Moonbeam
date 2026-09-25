@@ -177,6 +177,10 @@ export class LifecycleService {
         if (!project) reject("not_found", "The project does not exist.");
         // The action is applied at the moment it holds the project lock.
         const ctx = new ActionContext(tx, this.clock(), project!);
+        // The actor was resolved before the lock was taken. An agent's run
+        // may have ended (or its credential been revoked or expired) since
+        // then, so it is checked again now (TASK-017 F2; precondition 3).
+        if (actor.kind === "agent") await this.assertRunStillActive(ctx, actor);
         await this.processDueExpiries(ctx);
 
         let task: TaskRow | undefined;
@@ -196,6 +200,26 @@ export class LifecycleService {
     } catch (err) {
       if (err instanceof AuthorityViolation) await this.recordViolation(actor, err);
       throw err;
+    }
+  }
+
+  /**
+   * Re-validate an agent actor under the project lock. Runs are ended under
+   * the same lock (their bound task's project), so this sees any end that was
+   * applied first. The outcome is the one resolving the actor now would give:
+   * `unidentified` (CONTRACT-002 R3).
+   */
+  private async assertRunStillActive(ctx: ActionContext, actor: Extract<Actor, { kind: "agent" }>): Promise<void> {
+    const [row] = await ctx.tx
+      .select({ status: schema.agentRuns.status, revokedAt: schema.runCredentials.revokedAt, expiresAt: schema.runCredentials.expiresAt })
+      .from(schema.runCredentials)
+      .innerJoin(schema.agentRuns, eq(schema.agentRuns.id, schema.runCredentials.runId))
+      .where(and(eq(schema.runCredentials.id, actor.credentialId), eq(schema.agentRuns.id, actor.runId)));
+    if (!row || row.status !== "active" || row.revokedAt) {
+      reject("unidentified", "The agent credential belongs to a run that has ended.");
+    }
+    if (row!.expiresAt && row!.expiresAt.getTime() <= ctx.now.getTime()) {
+      reject("unidentified", "The agent credential has expired.");
     }
   }
 
@@ -704,7 +728,14 @@ export class LifecycleService {
         })
         .returning();
       await this.endClaim(ctx, claim!, "handed_off");
-      await ctx.updateTask(t.id, { state: "in_review", enteredReviewBy: "handoff", latestHandoffId: handoff!.id });
+      // A deferred T8 completion belongs to the review of an earlier handoff;
+      // a new handoff must be reviewed itself (I7, T8; TASK-017 F1).
+      await ctx.updateTask(t.id, {
+        state: "in_review",
+        enteredReviewBy: "handoff",
+        latestHandoffId: handoff!.id,
+        pendingCompletionReviewId: null,
+      });
       await ctx.audit(actor, {
         taskId: t.id,
         parentTaskId: t.parentId,
@@ -903,7 +934,9 @@ export class LifecycleService {
         added = await this.addSubtasksTo(ctx, t, newSubtasks, actor, "return");
         toState = "in_progress";
       }
-      await ctx.updateTask(t.id, { state: toState, returnNotes: input.reason, enteredReviewBy: null });
+      // Leaving review drops any deferred T8 completion: the subtask must be
+      // handed off and reviewed again (I7, T8; TASK-017 F1).
+      await ctx.updateTask(t.id, { state: toState, returnNotes: input.reason, enteredReviewBy: null, pendingCompletionReviewId: null });
       await ctx.audit(actor, {
         taskId: t.id,
         parentTaskId: t.parentId,
@@ -959,6 +992,11 @@ export class LifecycleService {
           // T15: an agent may withdraw only a proposed task it authored.
           // Anything else on a top-level task is "cancel beyond what T15
           // allows" (human-only, audited).
+          // Repeating its own withdrawal is not a new attempt beyond the
+          // allowance: the proposal was withdrawn (cancelled before any
+          // approval), so it is `invalid_transition` (Idempotence; TASK-017 F5).
+          const ownWithdrawn = t.authorRunId === actor.runId && t.state === "cancelled" && t.approvedAt === null;
+          if (ownWithdrawn) reject("invalid_transition", "The proposal has already been withdrawn.");
           if (!(t.state === "proposed" && t.authorRunId === actor.runId)) {
             this.deny(actor, "cancel_beyond_agent_allowance", { taskId: t.id, projectId: t.projectId });
           }
@@ -1125,6 +1163,9 @@ export class LifecycleService {
         reject("validation", `Position must be between 1 and ${order.length}.`);
       }
       const from = order.findIndex((o) => o.id === t.id) + 1;
+      // A move to the position the task already holds changes nothing, so it
+      // is rejected like any repeated action (Idempotence; TASK-017 F4).
+      if (input.position === from) reject("invalid_transition", `The task is already at position ${from}.`);
       const reordered = order.filter((o) => o.id !== t.id);
       reordered.splice(input.position - 1, 0, t);
       const field = scope === "queue" ? "queuePosition" : "siblingPosition";
@@ -1262,10 +1303,14 @@ export class LifecycleService {
           details: { claimId: claim.id, formerClaimant: claimantOf(claim), runOutcome: input.status },
         });
       } else {
-        await ctx.tx
+        const closed = await ctx.tx
           .update(schema.pauses)
           .set({ closedAt: ctx.now, closeReason: "superseded" })
-          .where(and(eq(schema.pauses.runId, run.id), isNull(schema.pauses.closedAt)));
+          .where(and(eq(schema.pauses.runId, run.id), isNull(schema.pauses.closedAt)))
+          .returning({ taskId: schema.pauses.taskId });
+        // Another run's lease on a task this run had paused resumes once the
+        // task is no longer paused (C2, "Claim expiry"; TASK-017 F3).
+        await this.refreshLeases(ctx, [...new Set(closed.map((p) => p.taskId))]);
       }
       return run.taskId;
     });

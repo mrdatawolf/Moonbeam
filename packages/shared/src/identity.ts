@@ -21,6 +21,21 @@ export const userSchema = z.object({
 });
 export type User = z.infer<typeof userSchema>;
 
+/**
+ * A user record as a request with an agent credential receives it: everything
+ * but the e-mail address (board decision on TASK-006 note N1, 2026-09-25).
+ * Humans and viewers receive `userSchema`.
+ */
+export const agentUserSchema = userSchema.omit({ email: true });
+export type AgentUser = z.infer<typeof agentUserSchema>;
+
+/**
+ * `GET /api/users`. Humans and viewers get full user records; an agent gets
+ * records without e-mail addresses.
+ */
+export const userListResponseSchema = z.object({ users: z.array(z.union([userSchema, agentUserSchema])) });
+export type UserListResponse = z.infer<typeof userListResponseSchema>;
+
 const displayName = z
   .string()
   .trim()

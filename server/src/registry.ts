@@ -24,7 +24,8 @@ const run = promisify(execFile);
 // checks such as "last active user" and "names unique among active users"
 // hold under concurrency.
 const REGISTRY_LOCK = 0x6d6f6f6e; // "moon"
-const PROJECTS_LOCK = 0x6265616d; // "beam"
+/** Serialises projects-root changes and project registration (exported for tests). */
+export const PROJECTS_LOCK = 0x6265616d; // "beam"
 
 type UserRow = typeof schema.users.$inferSelect;
 
@@ -316,6 +317,16 @@ export class RegistryService {
     const now = this.opts.clock();
     return this.db.transaction(async (tx) => {
       await this.lock(tx, PROJECTS_LOCK);
+      // The root may have changed since the checks above. Read and check it
+      // again under the lock that root changes also take, so a project is
+      // never registered outside the current root (ADR-006; CONTRACT-004
+      // Q25 decision a; TASK-017 F6).
+      const [settings] = await tx.select().from(schema.settings).where(eq(schema.settings.id, 1));
+      const current = settings?.projectsRoot ?? null;
+      if (!current) reject("validation", "Set the projects root before registering projects.");
+      if (!isWithin(real!, current!) || real === current) {
+        reject("validation", `"${input.path}" is not inside the projects root (${current}).`);
+      }
       const [dupe] = await tx.select().from(schema.projects).where(eq(schema.projects.repoPath, real!));
       if (dupe) reject("validation", `This repository is already registered as "${dupe.name}".`);
       const [p] = await tx

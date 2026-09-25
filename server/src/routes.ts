@@ -6,6 +6,7 @@
 import { Router, type Request, type Response } from "express";
 import {
   actionResultSchema,
+  agentUserSchema,
   decisionQueueSchema,
   devStartRunResponseSchema,
   projectListResponseSchema,
@@ -17,6 +18,7 @@ import {
   taskDetailSchema,
   taskListResponseSchema,
   taskStateSchema,
+  userListResponseSchema,
   userSchema,
   whoAmIResponseSchema,
 } from "@moonbeam/shared";
@@ -40,6 +42,10 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const userView = (u: { id: string; displayName: string; email: string; active: boolean; createdAt: Date; updatedAt: Date }) =>
   userSchema.parse({ ...u, createdAt: u.createdAt.toISOString(), updatedAt: u.updatedAt.toISOString() });
+
+/** A user record for the requesting actor: agents never receive e-mail addresses (TASK-017 N1). */
+const userViewFor = (actor: Actor | null, u: Parameters<typeof userView>[0]) =>
+  actor?.kind === "agent" ? agentUserSchema.parse(userView(u)) : userView(u);
 
 const projectView = (p: { id: string; name: string; repoPath: string; mainBranch: string; registeredAt: Date }) =>
   projectSchema.parse({ id: p.id, name: p.name, repoPath: p.repoPath, mainBranch: p.mainBranch, registeredAt: p.registeredAt.toISOString() });
@@ -83,9 +89,9 @@ export function apiRoutes(services: Services): Router {
   });
 
   router.get("/users", async (req, res) => {
-    await resolve(req); // an invalid credential is still `unidentified` (R3)
+    const actor = await resolve(req); // an invalid credential is still `unidentified` (R3)
     const users = await registry.listUsers(req.query.includeInactive === "true");
-    res.json({ users: users.map(userView) });
+    res.json(userListResponseSchema.parse({ users: users.map((u) => userViewFor(actor, u)) }));
   });
 
   router.post("/users", async (req, res) => {

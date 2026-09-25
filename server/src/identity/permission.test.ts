@@ -3,7 +3,7 @@ import type { AgentActor, HumanActor } from "./actor.js";
 import { checkPermission, HUMAN_ONLY_ACTIONS } from "./permission.js";
 
 const human: HumanActor = { kind: "human", userId: "u", displayName: "A", email: "a@x.y", identityMode: "selected" };
-const agent: AgentActor = { kind: "agent", runId: "r", taskId: "t", projectId: "p", role: "implementer", model: "m" };
+const agent: AgentActor = { kind: "agent", runId: "r", taskId: "t", projectId: "p", role: "implementer", model: "m", credentialId: "c" };
 
 describe("checkPermission (CONTRACT-002 V1 policy)", () => {
   it("never denies a human", () => {
