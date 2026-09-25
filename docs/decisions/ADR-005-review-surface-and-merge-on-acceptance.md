@@ -144,3 +144,23 @@ Open points for the contracts (TASK-013):
   by hand.
 - Whether completed tasks that stay unmerged should surface in the decision
   queue.
+
+## Amendment — 2026-09-25: repository location and hand merges (Board)
+
+Recorded by TASK-014. The text above is left as approved.
+
+- **Repository location.** The first amendment's statement that Board C2
+  places each project's canonical repository as a bare repository on the
+  Moonbeam host, with GitHub as a mirror, is superseded by ADR-006: the
+  project's existing repository under the projects root is canonical, Moonbeam
+  holds no repository, and Moonbeam pushes only on request.
+- **Hand merges.** The second amendment's point 3 ("nothing merges before
+  acceptance") binds Moonbeam and agents. A person who merges by hand acts
+  under ADR-007 (Proposed): the hand merge stands, is recorded as an override,
+  and, if it happens before acceptance, the task is treated as accepted
+  ("accepted by early merge; review skipped").
+- **Open points.** The board answered all three on 2026-09-25: a hand merge is
+  always accepted as fact (CONTRACT-004 Q19); the task record of a hand-merged
+  task is written in the next merge Moonbeam performs (CONTRACT-004 Q20);
+  accepted but unmerged tasks appear in the decision queue as their own group
+  (CONTRACT-001 Q24). See those contracts' resolved questions.

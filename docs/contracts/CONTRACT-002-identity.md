@@ -1,16 +1,32 @@
 # CONTRACT-002: Identity and permission interface
 
-Status: Accepted
+Status: Approved
 Approved by: Patrick
 Approved date: 2026-09-24
-Revised: 2026-09-24 (TASK-012; TASK-013), see "Revision history"
-Related tasks: TASK-005, TASK-012, TASK-013
-Related ADRs: ADR-003 (context: ADR-001, ADR-005 as amended, ADR-006)
+Revised: 2026-09-24 (TASK-012; TASK-013); 2026-09-25 (TASK-014), see "Revision
+history"
+Related tasks: TASK-005, TASK-012, TASK-013, TASK-014
+Related ADRs: ADR-003, ADR-007 (Proposed) (context: ADR-001, ADR-005 as
+amended, ADR-006)
 Related contracts: CONTRACT-001 (consumes this contract; see its Q13),
 CONTRACT-004 (uses each user's name and e-mail address for the authorship of
 merges they request)
 
 ## Revision history
+
+### 2026-09-25 — TASK-014: project administration is human-only (Q9)
+
+The board answered CONTRACT-004 Q24 on 2026-09-25, which also resolves Q9. This
+revision applies it. It does not change the approval; the status word is now
+"Approved", as in the other contracts.
+
+- **Human-only actions:** setting or changing the projects root, registering a
+  project, and relinking a project are added (CONTRACT-004 B13). An agent
+  attempt is an audited `authority_violation`.
+- **Accept anyway:** the "accept anyway" override for a known conflict
+  (CONTRACT-001 T9, Q25) is named as part of accepting, so it is human-only
+  like the rest of the accept.
+- Q9 moved to "Resolved questions".
 
 ### 2026-09-24 — TASK-013: merge and push are human-only
 
@@ -293,12 +309,12 @@ the same order in its "Failure behavior".
 The following actions are human-only. This list is fixed. No configuration,
 identity mode, or future roles model may grant any of them to an agent. It
 matches CONTRACT-001 and CONTRACT-004 as revised on 2026-09-24 (TASK-012,
-TASK-013).
+TASK-013) and 2026-09-25 (TASK-014).
 
 | Action | Source |
 |---|---|
 | Approve a task | ADR-003; CONTRACT-001 T2 |
-| Accept a task. Accepting does not merge (ADR-005 amendment). | ADR-003; CONTRACT-001 T9 |
+| Accept a task, including "accept anyway" for a known conflict (a recorded override, ADR-007). Accepting does not merge (ADR-005 amendment). | ADR-003; CONTRACT-001 T9 (Q25) |
 | Merge a completed task into main, including the permanent record written with the merge | ADR-005 amendment; ADR-006; CONTRACT-001 M1; CONTRACT-004 B7, B9 |
 | Push main to its remote | ADR-006; CONTRACT-004 B16 |
 | Waive the agent review when accepting | CONTRACT-001 T9 (A5) |
@@ -309,6 +325,7 @@ TASK-013).
 | Start a run | CONTRACT-001, I14 |
 | Answer a pause, including correcting its category | CONTRACT-001 definition of "paused" (a question awaiting a human); Board C5 |
 | First-run setup; add, edit, deactivate, or reactivate a user | This contract |
+| Set or change the projects root; register a project; relink a project | CONTRACT-004 B13 (Board, 2026-09-25, Q24; resolves Q9) |
 
 Reopening a subtask is no longer an action: CONTRACT-001 removed T13.
 
@@ -474,18 +491,17 @@ design for security.
 
 ## Open questions
 
-All questions from the first draft were answered by the board on 2026-09-24
-(see "Resolved questions"). One question was raised by the TASK-013 revision
-and is **not decided**:
-
-- **Q9 — Project administration actions.** Should setting the projects root,
-  registering a project, and relinking a moved project be added to the
-  human-only list? This is CONTRACT-004 Q24(c). Agents are already confined to
-  their run's project (`not_permitted`), but listing these actions would make an
-  agent attempt an audited `authority_violation`. **Proposed default:** yes.
-  Until decided, the list above is unchanged.
+None. All questions have been answered by the board (see "Resolved
+questions").
 
 ## Resolved questions
+
+- **Q9 — Project administration actions.** Asked whether setting the projects
+  root, registering a project, and relinking a moved project are added to the
+  human-only list (CONTRACT-004 Q24(c)). Proposed default: yes.
+  Board, 2026-09-25: registering and relinking projects, and changing the
+  projects root, are human-only actions.
+  *Applied (TASK-014):* Human-only actions; CONTRACT-004 B13, Interfaces.
 
 - **Q1 — Initial users.** Please supply the display names to seed (the owner,
   the office manager, two primary developers, two part-time developers).

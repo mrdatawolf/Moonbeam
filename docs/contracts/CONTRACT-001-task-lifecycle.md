@@ -3,14 +3,44 @@
 Status: Approved
 Approved by: Patrick
 Approved date: 2026-09-24
-Revised: 2026-09-24 (TASK-004; TASK-012; TASK-013), see "Revision history"
-Related tasks: TASK-002, TASK-004, TASK-012, TASK-013
-Related ADRs: ADR-001, ADR-003, ADR-005 (as amended), ADR-006 (context:
-ADR-004)
+Revised: 2026-09-24 (TASK-004; TASK-012; TASK-013); 2026-09-25 (TASK-014), see
+"Revision history"
+Related tasks: TASK-002, TASK-004, TASK-012, TASK-013, TASK-014
+Related ADRs: ADR-001, ADR-003, ADR-005 (as amended), ADR-006, ADR-007
+(Proposed) (context: ADR-004)
 Related contracts: CONTRACT-002 (identity), CONTRACT-003 (run and review
 views), CONTRACT-004 (task branches, worktrees, and integration into main)
 
 ## Revision history
+
+### 2026-09-25 — TASK-014: board answers, round 2 (Q24, Q25, CONTRACT-004 Q19, Q20)
+
+The board answered the questions TASK-013 raised on 2026-09-25. The principle
+behind the answers is ADR-007 (Proposed): gates bind agents, humans may
+override, and every override is recorded. This revision applies the answers
+that concern this contract. It does not change the approval.
+
+- **Q24 (decision queue):** completed top-level tasks whose work is not on main
+  appear in the decision queue as their own group, "Accepted, not merged", with
+  refused merges first. *Changed:* UX expectations.
+- **Q25 (known conflict at acceptance):** refuses the accept with
+  `merge_conflict` by default. A human may use "accept anyway", which is
+  recorded as an override. *Changed:* transition table (T9), T9, Audit record,
+  Failure behavior, Interfaces, validation item 12.
+- **CONTRACT-004 Q19 (hand merges are fact):** a hand merge is always accepted
+  as fact. A hand merge made while a top-level task is `in_review` makes it
+  `completed` through the new system transition **M3 Accepted by early merge**,
+  with the note "accepted by early merge; review skipped". *Changed:*
+  Definitions (integration status), transition table (M3), M1, M2, new M3,
+  Audit record, I6, I22, Interfaces, validation item 15.
+- **CONTRACT-004 Q20 (record after a hand merge):** the hand merge stands; the
+  task record is written or updated, with a note, in the next merge Moonbeam
+  performs in that project. *Changed:* M1, M2.
+- **Overrides (ADR-007 point 4):** new "Overrides" subsection of the audit
+  record: who, when, what was bypassed, and the reason when one was given, on
+  the task and in its task record.
+- Q24 and Q25 moved to "Resolved questions". New open question Q26 (hand
+  merges before acceptance outside `in_review`).
 
 ### 2026-09-24 — TASK-013: ADR-006, the ADR-005 amendment, Q22 and Q23
 
@@ -26,7 +56,8 @@ Changed transitions and actions:
   from T9 and re-expressed at merge time in M1: a merge that cannot be made is
   refused, and the task stays `completed` with integration status "Merge
   refused". A merge conflict known at acceptance is a warning, not a refusal
-  (interim reading, Q25). T9 no longer raises `merge_conflict`; it raises
+  (interim reading, Q25; superseded by TASK-014, which restores the refusal
+  with an "accept anyway" override). T9 no longer raises `merge_conflict`; it raises
   `repository_unavailable` only when the changed-file set cannot be
   determined.
 - **New M1 Merge into main:** human only, for a completed top-level task whose
@@ -352,8 +383,9 @@ The output of every action is one of:
 - **On main**: a completed task's accepted commit is contained in the project's
   main branch, through a Moonbeam merge (M1) or a merge done by hand (M2).
 - **Integration status**: for a completed top-level task, whether its work is
-  not merged, merged by Moonbeam, or merged by hand, the outcome of its latest
-  refused merge request, and whether it is pushed (CONTRACT-004 B17).
+  not merged, merged by Moonbeam, or merged by hand (including accepted by
+  early merge, M3), the outcome of its latest refused merge request, whether
+  its task record is written, and whether it is pushed (CONTRACT-004 B17).
 - **Unfinished**: in a non-terminal state.
 - **Blocker**: a record stating what is needed, who can resolve it, and its
   effect. A task is `blocked` while it has at least one open blocker. It is
@@ -422,7 +454,7 @@ otherwise.
 | T6 | Hand off | `in_progress` → `in_review` | Claimant only | Handoff record present; not blocked; not paused; not a split parent with a completed subtask; branch merges cleanly into its integration target. |
 | T7 | Record review | `in_review` → `in_review` (top-level) | Agent reviewer (in a run) | Reviewer is not the claimant whose work is reviewed. Same-model reviews are flagged. On a subtask, may add fix subtasks to the parent in the same action. |
 | T8 | Subtask completes on review | `in_review` → `completed` (subtask) | System | T7 recorded on a subtask; subtask not blocked. Integrates into the parent's branch. |
-| T9 | Accept | `in_review` → `completed` | **Human only** | Top-level task; no non-done subtasks; not blocked; review requirement met; out-of-scope reason if needed. Changes nothing in the repository. |
+| T9 | Accept | `in_review` → `completed` | **Human only** | Top-level task; no non-done subtasks; not blocked; review requirement met; out-of-scope reason if needed; no known conflict with main unless "accept anyway" (Q25). Changes nothing in the repository. |
 | T10 | Return | `in_review` → `approved` or `in_progress` | **Human only** | Reason given. Leaf → `approved`. Split parent: see T10. |
 | T11 | Split / add subtasks | parent: `approved`/`in_progress` → `in_progress`; subtasks: (none) → `approved` | Claimant (human or agent); any Human if the task is unclaimed; Agent run bound to a non-done subtask; Agent reviewer run with T7 | Top-level task; subtask envelopes narrow the parent's; agent: parent not blocked. |
 | T12 | Parent enters review | `in_progress` → `in_review` (split parent) | System | Last non-done subtask became done and at least one subtask is `completed`. |
@@ -435,6 +467,7 @@ otherwise.
 | D1 | Move task in project queue, or subtask among its siblings | no state change | **Human only** | Top-level task in the queue, or a subtask (Board Q22); no started task gains an unfinished path dependency. See "Project queue and path dependencies". |
 | M1 | Merge into main | no state change (`completed`) | **Human only** | Top-level `completed` task whose work is not on main; project folder safe; merges cleanly. See M1. |
 | M2 | Merge by hand detected | no state change (`completed`) | System | Main contains the accepted commit of a completed top-level task that has no Moonbeam merge. See M2. |
+| M3 | Accepted by early merge | `in_review` → `completed` | System | Main contains the review commit of a top-level `in_review` task, merged by hand before acceptance (CONTRACT-004 Q19). See M3. |
 
 Any (state, action) pair not in this table is an illegal transition and is
 rejected (see "Failure behavior").
@@ -658,11 +691,16 @@ rejected (see "Failure behavior").
     applies to the merge action (M1). The out-of-scope check needs the task's
     changed-file set (CONTRACT-004). If it cannot be determined, the accept is
     rejected with `repository_unavailable`.
-  - **Known conflict (interim reading, Q25).** If the task branch does not
-    currently merge cleanly into main (for example because main moved since
-    the handoff), acceptance is still allowed. The conflict is a warning: a
-    merge requested later would be refused until it is resolved, and returning
-    the task (T10) resolves it on the branch now.
+  - **Known conflict (Board, 2026-09-25, Q25).** If the task branch is known
+    not to merge cleanly into current main (for example because main moved
+    since the handoff), the accept is refused by default with
+    `merge_conflict`, naming the conflicting files. Returning the task (T10)
+    resolves the conflict on the branch. A human may instead use **"accept
+    anyway"**, an explicit override (ADR-007 point 3): the accept then
+    proceeds, the override is recorded (see "Overrides" under Audit record),
+    and a merge requested later is refused until the conflict is resolved
+    (CONTRACT-004 B7). The interim reading (conflict as a warning only) is
+    withdrawn.
   - Main having moved since the handoff or review does not prevent acceptance.
     It is shown as a warning (Board C4, CONTRACT-003).
 - **Postconditions:**
@@ -674,7 +712,9 @@ rejected (see "Failure behavior").
     on main (M1, M2).
 - **Audit:** `accepted`, human actor, review references or waiver reason, the
   out-of-scope reason if any, whether the human confirmed the warnings shown at
-  acceptance (CONTRACT-003 A-1), and the accepted commit.
+  acceptance (CONTRACT-003 A-1), the accepted commit, and, when "accept anyway"
+  was used, the override (known conflict bypassed, with the conflicting
+  files).
 
 ### T10 Return
 
@@ -834,6 +874,10 @@ illegal transition (`invalid_transition`).
   - The accepted commit is merged into main, and the permanent record is
     written in that same merge commit (CONTRACT-004 B7, B9). For a split
     parent, this includes its subtasks' integrated work and records.
+  - The same merge commit also writes or updates, with a note, the task
+    record of every task in the project that was merged by hand (M2, M3) and
+    whose record is not yet written (Board, 2026-09-25, CONTRACT-004 Q20;
+    CONTRACT-004 B9). Their record status becomes written.
   - Integration status is Merged by Moonbeam.
   - The task leaves the project queue, and path dependencies on it are
     finished.
@@ -843,8 +887,10 @@ illegal transition (`invalid_transition`).
   the task are unchanged. The task stays `completed`, and its integration
   status shows Merge refused, with the category and details, until the next
   request. That status is informational: it is not a lifecycle state or
-  condition, and not an audit record (A12). What the board does after a
-  conflict is open (CONTRACT-004 Q19).
+  condition, and not an audit record (A12). After a conflict, a board member
+  may request the merge again later, or merge the branch by hand in the
+  project folder, resolving the conflict there. A hand merge is accepted as
+  fact and detected by M2 (Board, 2026-09-25, CONTRACT-004 Q19).
 - Main having moved since the review or acceptance does not prevent a clean
   merge. It is shown as a warning (Board C4, CONTRACT-003).
 - **Audit:** `merged`, human actor, from-state and to-state `completed`, and
@@ -861,8 +907,44 @@ illegal transition (`invalid_transition`).
     detected.
   - The task leaves the project queue, and path dependencies on it are
     finished.
-  - The permanent record is not written by this (CONTRACT-004 Q20).
-- **Audit:** `merge_detected`, system actor, and the main commit.
+  - The hand merge stands (ADR-007 point 2). Moonbeam never reverts it.
+  - The permanent record is not written by the hand merge. It is written or
+    updated, with a note that the task was merged by hand, in the next merge
+    Moonbeam performs in the project (M1; Board, 2026-09-25, CONTRACT-004
+    Q20). Until then its record status is "Record not written".
+  - The hand merge is recorded as an override (see "Overrides" under Audit
+    record): the Moonbeam merge step was bypassed. If a merge of the task was
+    refused earlier, that refusal is named in the override.
+  - If the merge's author, as git records it, is not the acceptor, this is
+    noted on the task and in its record (Board, 2026-09-25, CONTRACT-004 Q22).
+- **Audit:** `merge_detected`, system actor, the main commit, and the override.
+
+### M3 Accepted by early merge
+
+Board, 2026-09-25 (CONTRACT-004 Q19): a hand merge is always accepted as fact.
+If it happens before acceptance, the task is treated as accepted.
+
+- **Actor:** System.
+- **Trigger:** Moonbeam observes that main contains the review commit of a
+  top-level task in `in_review`: the handoff commit of its latest handoff
+  (T6), or, for a split parent that entered review by T12, its branch head
+  recorded at that entry (CONTRACT-004 B14). Whether this also applies to
+  tasks in other states is open (Q26).
+- **Preconditions:** none beyond the trigger. The hand merge is fact, so the
+  T9 preconditions (review requirement, out-of-scope reason, known conflict)
+  are not checked. Their absence is recorded in the override.
+- **Postconditions:**
+  - State `completed`. The acceptor is recorded as none, with the note
+    "accepted by early merge; review skipped". The accepted commit is the
+    review commit.
+  - Integration status is Merged by hand, with the main commit at which it was
+    detected. Everything M2 states about the record, the override, the
+    author note, the project queue, and path dependencies applies.
+- **Override record:** the human acceptance (T9) and its review requirement
+  were bypassed, together with the Moonbeam merge step.
+- **Audit:** `accepted_by_early_merge`, system actor, from-state `in_review`,
+  to-state `completed`, the main commit, the review commit, and the override.
+  It stands in place of both `accepted` and `merge_detected` for this task.
 
 ### C1 Blocked condition
 
@@ -1046,8 +1128,8 @@ For lifecycle purposes:
 
 ### Audit record
 
-Every successful transition, condition change, queue move, merge (M1), and
-detected hand merge (M2) produces exactly one audit record per affected task. A split or cascade produces one per task
+Every successful transition, condition change, queue move, merge (M1),
+detected hand merge (M2), and acceptance by early merge (M3) produces exactly one audit record per affected task. A split or cascade produces one per task
 touched. Each record contains:
 
 - project and task identifiers, and the parent identifier for subtasks
@@ -1080,6 +1162,28 @@ Two things are **not** recorded (A12):
 - claim renewals
 - rejections other than authority violations
 
+#### Overrides (ADR-007 point 4; Board, 2026-09-25)
+
+An override is a human action that bypasses a gate: inside Moonbeam, "accept
+anyway" (T9); outside Moonbeam, a hand merge detected by M2 or M3. Moonbeam
+never blocks or reverts an override made outside it (ADR-007 point 2). Every
+override is recorded, as part of the audit record of the action that carries
+it (`accepted`, `merge_detected`, or `accepted_by_early_merge`), with:
+
+- **who:** for "accept anyway", the selected user; for a hand merge, the merge
+  commit's author and committer as git records them, matched to a registry user
+  by e-mail address where possible (honor-system, ADR-003)
+- **when:** the server time of the action or detection, and for a hand merge
+  also the merge commit's time
+- **what was bypassed:** the known conflict and its files; the Moonbeam merge
+  step (and any earlier refused merge); or, for M3, human acceptance and review
+- **the reason**, when one was given. "Accept anyway" offers an optional reason
+  field. A hand merge carries no reason; its commit message is kept.
+
+The override is shown on the task and written into the task's record in the
+repository (CONTRACT-004 B9). Listing overrides for review (ADR-007 point 5) is
+phase 4 work and not part of this contract.
+
 ## Postconditions and invariants
 
 These hold after every action, at every observable moment.
@@ -1103,9 +1207,10 @@ These hold after every action, at every observable moment.
     then claimed).
   - No task in any other state has an active claim.
 - **I5 — One task per run.** An agent run holds at most one active claim.
-- **I6 — Acceptance.** Every `completed` top-level task has exactly one human
-  `accepted` record for its latest entry into review. No subtask has an
-  `accepted` record.
+- **I6 — Acceptance.** Every `completed` top-level task has, for its latest
+  entry into review, exactly one of: a human `accepted` record, or a system
+  `accepted_by_early_merge` record (M3, Board 2026-09-25). No subtask has
+  either record.
 - **I7 — Subtask review.** Every `completed` subtask has an agent review against
   its latest handoff, recorded by a reviewer other than its claimant.
 - **I8 — Subtasks are born approved.** No subtask is ever in `proposed`.
@@ -1152,8 +1257,8 @@ These hold after every action, at every observable moment.
 - **I21 — Acceptance leaves the repository unchanged.** T9 changes no branch,
   not main, and not the project folder (ADR-005 amendment).
 - **I22 — Merges follow acceptance.** Every successful M1 is on a `completed`
-  top-level task, and a task has at most one of: a Moonbeam merge (M1) or a
-  detected hand merge (M2).
+  top-level task, and a task has at most one of: a Moonbeam merge (M1), a
+  detected hand merge (M2), or an acceptance by early merge (M3).
 
 ## Failure behavior
 
@@ -1178,7 +1283,7 @@ Repository categories (defined by CONTRACT-004, raised by lifecycle actions):
 
 | Category | Raised by | When |
 |---|---|---|
-| `merge_conflict` | T6, M1 | The branch does not merge cleanly into its integration target. The conflicting files are named. (T9 raised it until the TASK-013 revision.) |
+| `merge_conflict` | T6, T9, M1 | The branch does not merge cleanly into its integration target. The conflicting files are named. For T9, only when the conflict with main is known and "accept anyway" was not used (Q25; T9 raised it until the TASK-013 revision, not at all between TASK-013 and TASK-014, and again since). |
 | `working_folder_unsafe` | M1 | Main is checked out in a folder that is not safe to update: uncommitted changes, an operation in progress, or untracked files in the merge's way (CONTRACT-004 B15, ADR-006). The folder and what to fix are named. |
 | `repository_unavailable` | T3, T6, T9, T11, M1 | The project repository cannot be read or written when the action needs it (for T9, to determine the changed-file set), or its registered folder is missing. |
 | `branch_name_taken` | T3, T11 | The task's branch name exists without a Moonbeam record for this task. |
@@ -1235,7 +1340,7 @@ validators are implementation choices.
 | renew claim | Extends an agent-run lease. No transition, and not audited (A12). |
 | hand off | T6 |
 | record review (optionally adding fix subtasks to the parent) | T7 (→ T11, T8, T12) |
-| accept task (with waiver reason, out-of-scope reason, and warnings confirmation as needed) | T9 (no merge; records the accepted commit) |
+| accept task (with waiver reason, out-of-scope reason, warnings confirmation, and "accept anyway" with an optional reason, as needed) | T9 (no merge; records the accepted commit) |
 | merge task into main | M1 (includes the permanent record, CONTRACT-004 B7, B9) |
 | return task (optionally adding new subtasks) | T10 (→ T11) |
 | split task / add subtasks | T11 |
@@ -1246,7 +1351,7 @@ validators are implementation choices.
 Pushing main is a project action defined by CONTRACT-004 B16. It has no
 lifecycle effect.
 
-No client can request a system transition (T5, T8, T12, T14, T16, M2) or add
+No client can request a system transition (T5, T8, T12, T14, T16, M2, M3) or add
 the integration blocker. There is no reopen action (T13 removed).
 
 Every task view exposes:
@@ -1281,11 +1386,10 @@ overlapping tasks.
   - blocked tasks, including split parents with the integration blocker
   - split parents that fell back (T14)
   - rejected authority-violation attempts
-
-  Whether it also shows completed tasks whose work is not yet on main,
-  including those whose latest merge was refused, is open (Q24). Until
-  decided, they are shown in the project queue, the task detail, and the
-  integration panel (CONTRACT-003 RS-15), not in the decision queue.
+  - **"Accepted, not merged"** (Board, 2026-09-25, Q24): completed top-level
+    tasks whose work is not on main, as their own group, with tasks whose
+    latest merge was refused listed first. They are also shown in the project
+    queue, the task detail, and the integration panel (CONTRACT-003 RS-15).
 - Accepting states that it does not merge. Merging and pushing are separate
   actions on the completed task (CONTRACT-003 RS-15). A refused merge says
   exactly what to fix and that nothing changed.
@@ -1397,8 +1501,10 @@ following:
       rejected if a started task would gain an unfinished path dependency.
 12. **Repository boundary:** T6 is rejected with `merge_conflict` when the
     branch does not merge cleanly into its target. T9 changes nothing in the
-    repository and succeeds even when the branch currently conflicts with
-    main. Acceptance with out-of-scope files and no reason is rejected. T10,
+    repository. While the branch conflicts with main, T9 is rejected with
+    `merge_conflict` and changes nothing, unless "accept anyway" is used; then
+    it succeeds and its audit record carries the override. Acceptance with
+    out-of-scope files and no reason is rejected. T10,
     T15, and T16 never merge (I18).
 15. **Merge (M1, M2):** a merge is human-only and allowed only for a completed
     top-level task not on main; otherwise `invalid_transition`. A merge
@@ -1406,7 +1512,11 @@ following:
     `repository_unavailable` leaves the task `completed`, main unchanged, and
     shows Merge refused. A successful merge records `merged` and finishes
     dependents' path dependencies. A hand merge is detected as M2 with a system
-    audit record and has the same effect on dependencies.
+    audit record carrying the override, and has the same effect on
+    dependencies. A hand merge of an `in_review` task's review commit moves it
+    to `completed` by M3 with the note "accepted by early merge; review
+    skipped". The next successful M1 in the project writes the records of
+    hand-merged tasks whose records were not yet written, each with its note.
 13. **Audit:**
     - Every successful action produces the specified audit records with the
       correct actor kind, and human actors carry the identity mode `selected`.
@@ -1418,37 +1528,35 @@ following:
 
 Board review of this contract was the validation for TASK-002. Board review of
 the 2026-09-24 revision diffs is the validation for TASK-004, TASK-012, and
-TASK-013.
+TASK-013, and of the 2026-09-25 revision diff for TASK-014.
 
 ## Open questions
 
-These were uncovered by the TASK-013 revision and are **not decided**. Where
-this contract needed an interim reading to stay coherent, it is marked in the
-body and repeated here with a proposed default. The ADR-005 amendment's other
-two open points are CONTRACT-004 Q19 (a merge that conflicts after
-acceptance) and Q20 (the permanent record after a hand merge).
+This was uncovered by the TASK-014 revision and is **not decided**.
 
-- **Q24 — Accepted but unmerged tasks in the decision queue (ADR-005
-  amendment, open point 3).** A completed task whose work is not on main still
-  holds every overlapping task behind it in the queue. Should the decision
-  queue show completed top-level tasks that are not merged, including those
-  whose latest merge was refused (and, pending CONTRACT-004 Q20, those merged by
-  hand without a record)? Interim reading: no; they are shown in the project
-  queue, the task detail, and the integration panel. **Proposed default:** yes,
-  as a separate "Accepted, not merged" group below the tasks awaiting a
-  decision, each entry opening the integration panel, with a refused merge
-  shown first.
-- **Q25 — A merge conflict known at acceptance.** Board A4 made a failed merge
-  reject the accept, which steered known conflicts to Return. Accepting no
-  longer merges. Interim reading (T9): a conflict with current main is a
-  warning that must be confirmed; accepting is allowed, and the later merge
-  would be refused until the conflict is resolved (CONTRACT-004 Q19).
-  Alternative: reject the accept with `merge_conflict` while the branch
-  currently conflicts with main, so the conflict is fixed through Return while
-  the task can still be returned. **Proposed default:** the interim reading,
-  which follows Board C4 ("warnings never block accepting"). Choose the
-  alternative if the board prefers to keep conflicts from ever reaching
-  `completed`.
+- **Q26 — A hand merge before acceptance, outside `in_review`.** The board said
+  a hand merge before acceptance makes the task accepted ("accepted by early
+  merge; review skipped"). M3 applies this to a top-level task in `in_review`,
+  where the merged commit is the one under review. Not decided:
+  - (a) A task branch that reaches main by hand while the task is `approved`
+    (for example after a return), `in_progress` (possibly with an active run
+    holding the claim), or has non-done subtasks. Which commit counts as
+    accepted, and what happens to an active claim or run and to unfinished
+    subtasks?
+  - (b) A subtask branch merged into main by hand. Subtasks never merge into
+    main through Moonbeam.
+  - (c) A task that is blocked or paused when M3 fires. M3 as written does not
+    wait for either; what happens to its open blockers or pause on
+    `completed`?
+
+  Interim reading: M3 fires only for top-level `in_review` tasks, whether or
+  not they are blocked or paused, and open blockers stay recorded as they were.
+  In every other case Moonbeam shows the warning "reached main by hand before
+  acceptance" on the task (CONTRACT-004 B14), records the override, and
+  changes no state. **Proposed default:** (a) treat the task as accepted by
+  early merge at the branch head contained in main, ending any claim as for a
+  cancelled run, and cancelling unfinished subtasks; (b) warning only; (c)
+  resolve blockers and pause by the system, noting the early merge.
 
 ## Resolved questions
 
@@ -1590,7 +1698,8 @@ clarified, both versions are kept.
   applies to T9. It is re-expressed at merge time: a merge requested with M1
   that cannot be made is refused, main is unchanged, and the task stays
   `completed` with integration status Merge refused. What follows a conflict
-  is open (CONTRACT-004 Q19). The rest of this answer stands: handoffs must be
+  was open (CONTRACT-004 Q19) until the board answered it on 2026-09-25: a
+  hand merge is accepted as fact (M2, M3). The rest of this answer stands: handoffs must be
   mergeable, the merge and the permanent record succeed or fail together (now
   in M1), and the system integration blocker is unchanged.
 - **Q18 — Which agent "created" a subtask.**
@@ -1643,3 +1752,20 @@ clarified, both versions are kept.
   task with no paths changes no files, and any file it does change needs a
   reason at acceptance. No separate declaration.
   *Applied:* T2 (interim wording made final); `TEMPLATE/docs/templates/task.md`.
+- **Q24 — Accepted but unmerged tasks in the decision queue (ADR-005
+  amendment, open point 3).** Asked whether the decision queue shows completed
+  top-level tasks that are not merged, including those whose latest merge was
+  refused. Interim reading was no; proposed default was a separate "Accepted,
+  not merged" group with refused merges first.
+  Board, 2026-09-25: accepted but unmerged tasks appear in the decision queue
+  as their own group ("Accepted, not merged"), with refused merges first.
+  *Applied (TASK-014):* UX expectations (decision queue); CONTRACT-003.
+- **Q25 — A merge conflict known at acceptance.** Interim reading was that a
+  conflict with current main is a warning and accepting is allowed; the
+  alternative was to reject the accept with `merge_conflict`.
+  Board, 2026-09-25: a conflict already known at acceptance refuses the accept
+  by default. A human may use an "accept anyway" override, which is recorded
+  (ADR-007).
+  *Applied (TASK-014):* transition table (T9), T9, Audit record (Overrides),
+  Failure behavior, Interfaces, validation item 12; CONTRACT-003,
+  CONTRACT-004 UX expectations.

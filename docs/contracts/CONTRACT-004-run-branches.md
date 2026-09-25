@@ -1,12 +1,13 @@
 # CONTRACT-004: Task branches, worktrees, and integration into main
 
-Status: Accepted
+Status: Approved
 Approved by: Patrick
 Approved date: 2026-09-24
-Revised: 2026-09-24 (TASK-012; TASK-013), see "Revision history"
-Related tasks: TASK-010, TASK-012, TASK-013
-Related ADRs: ADR-005 (as amended 2026-09-24, both amendments), ADR-006,
-ADR-001, ADR-003 (context: ADR-004)
+Revised: 2026-09-24 (TASK-012; TASK-013); 2026-09-25 (TASK-014), see "Revision
+history"
+Related tasks: TASK-010, TASK-012, TASK-013, TASK-014
+Related ADRs: ADR-005 (as amended), ADR-006, ADR-007 (Proposed), ADR-001,
+ADR-003 (context: ADR-004)
 Related contracts: CONTRACT-001 (lifecycle; boundary at T3, T6, T8, T9, T10,
 T11, T15/T16, M1, M2, and the integration blocker in C1), CONTRACT-002
 (identity; supplies the requesting board member's name and e-mail address, and
@@ -14,6 +15,38 @@ lists merge and push as human-only), CONTRACT-003 (review surface and
 integration panel; displays what this contract produces)
 
 ## Revision history
+
+### 2026-09-25 — TASK-014: board answers, round 2 (Q19–Q24)
+
+The board answered Q19–Q24 on 2026-09-25. The principle behind the answers is
+ADR-007 (Proposed): gates bind agents, humans may override, and every override
+is recorded. This revision applies them. It does not change the approval; the
+status word is now "Approved", as in the other contracts.
+
+- **Q19:** a hand merge is always accepted as fact. A hand merge before
+  acceptance of an `in_review` task makes it accepted ("accepted by early
+  merge; review skipped", CONTRACT-001 M3). *Changed:* B7 (conflict at merge
+  time), B14, validation item 15.
+- **Q20:** the hand merge stands. The task record is written or updated, with a
+  note, in the next merge Moonbeam performs in the project. *Changed:* B7 (what
+  is merged), B9, B17 (record status), R3, R8, validation item 7.
+- **Q21:** the interim reading is confirmed: the safe-folder check applies only
+  to the working tree that has main checked out. *Changed:* B15.
+- **Q22:** whoever performs the merge is its author; if that is not the
+  acceptor, this is noted. *Changed:* B8, B9.
+- **Q23:** Moonbeam never fetches from remotes; humans do. *Changed:* B16.
+- **Q24 (and CONTRACT-002 Q9):** registering and relinking projects, and
+  changing the projects root, are human-only. Relink verifies that the new path
+  is the same repository before updating it. *Changed:* B13, Failure behavior
+  (`validation`), Interfaces, validation item 16.
+- **Q25 (CONTRACT-001):** a conflict known at acceptance refuses the accept
+  unless a human uses "accept anyway". *Changed:* UX expectations.
+- **Overrides (ADR-007):** hand merges are recorded as overrides, on the task
+  and in its record (CONTRACT-001 "Overrides"). *Changed:* B9, B14.
+- Q19–Q24 moved to "Resolved questions". New open questions Q25 (changing the
+  projects root when projects would fall outside it) and Q26 (marking an
+  undetected hand merge), both carried forward from parts of Q24 and Q20 the
+  board did not answer.
 
 ### 2026-09-24 — TASK-013: ADR-006 and the ADR-005 amendment
 
@@ -458,8 +491,9 @@ Until the TASK-013 revision, this section made the merge part of acceptance.
   not on main (no Moonbeam merge recorded, no hand merge detected). Moonbeam
   refuses to merge any other task, with `invalid_transition` (CONTRACT-001
   M1). Subtasks never merge into main.
-- **What is merged:** the accepted commit, plus the permanent record (B9).
-  Nothing else.
+- **What is merged:** the accepted commit, plus the permanent record (B9),
+  plus the pending records of tasks in the project that were merged by hand
+  (B9, Board 2026-09-25, Q20). Nothing else.
 - **Order of checks:** the project folder safety check (B15), then the merge
   itself.
 - **Style (Board C1):** a merge commit on main, never a fast-forward, squash, or
@@ -484,11 +518,11 @@ Until the TASK-013 revision, this section made the merge part of acceptance.
   does not move after handoff, so a conflict at merge time means main moved
   after the handoff (through earlier merges or hand commits). Moonbeam does
   not resolve it. The task is `completed` and cannot be returned (CONTRACT-001
-  I12). What the board does next is **open (Q19)**. Until decided, the refusal
-  names the conflicting files, a board member may request the merge again
-  later, and a board member may merge the branch by hand in the project
-  folder, resolving the conflict there; Moonbeam then detects the hand merge
-  (B14).
+  I12). The refusal names the conflicting files. A board member may request
+  the merge again later, or merge the branch by hand in the project folder,
+  resolving the conflict there. A hand merge is always accepted as fact
+  (Board, 2026-09-25, Q19; ADR-007): Moonbeam detects it (B14), records it as
+  an override, and writes the task record in its next merge (B9).
 - **Main moved since review or acceptance (Board C4):** a board member may
   request the merge while main has advanced since the handoff, review, or
   acceptance, as long as the merge is clean. It is shown as a warning.
@@ -509,12 +543,16 @@ Until the TASK-013 revision, this section made the merge part of acceptance.
 
 | Commit | Author | Committer | Message |
 |---|---|---|---|
-| Moonbeam merge on main (B7) | The board member who requested the merge (registry name and e-mail, Board C3; interim reading, Q22) | Moonbeam system identity | `Merge TASK-NNN: <title>` with trailers below |
+| Moonbeam merge on main (B7) | The board member who performs the merge by requesting it (registry name and e-mail, Board C3; Board 2026-09-25, Q22) | Moonbeam system identity | `Merge TASK-NNN: <title>` with trailers below |
 | Update from target (B5) | Moonbeam system identity | Moonbeam system identity | `Update moonbeam/TASK-NNN from <target>` |
 | Subtask integration (B3) | Moonbeam system identity | Moonbeam system identity | `Integrate TASK-MMM into TASK-NNN` |
 | Agent work in a run | The run's agent identity: role and model, for example `implementer (claude-…) via Moonbeam` | Same | Agent's own message |
 | Human claimant work | The board member | The board member | Their own message |
 
+- **Merge author (Board, 2026-09-25, Q22):** whoever performs the merge is its
+  author: the requester for a Moonbeam merge, and the person who made it for a
+  hand merge (as git records it). If that person is not the acceptor, this is
+  noted on the task and in its record (B9).
 - The permanent record is part of the Moonbeam merge commit (B9), so it has no
   commit of its own.
 - Moonbeam-made commits carry trailers identifying the task (`Moonbeam-Task:`),
@@ -550,10 +588,18 @@ Until the TASK-013 revision, this section made the merge part of acceptance.
 - Moonbeam's record content is authoritative for its path. If the task branch
   changed that path, Moonbeam's record replaces it and the path is shown as
   outside scope.
-- **Hand merges:** a hand merge does not write the record. How the record
-  reaches the repository then is **open (Q20)**. Until decided, Moonbeam does
-  not write to main on its own, the record stays in Moonbeam, and the task's
-  integration status shows "Record not written" (B17).
+- **Hand merges (Board, 2026-09-25, Q20):** a hand merge stands and does not
+  write the record. Moonbeam does not write to main on its own. The record is
+  written, or updated if the path already exists (for example because the
+  merged branch carried a copy), in the next merge Moonbeam performs in the
+  project (B7), as part of that merge commit and under its all-or-nothing rule.
+  Until then the task's record status is "Record not written" (B17). The
+  record carries a note that the task was merged by hand, with the main commit
+  and the override (CONTRACT-001 "Overrides"); for a task accepted by early
+  merge (CONTRACT-001 M3), the note "accepted by early merge; review skipped".
+- **Notes in the record:** the record includes every override recorded on the
+  task (who, when, what was bypassed, and the reason when given), and a note
+  when the merge's author is not the acceptor (B8).
 - Cancelled and rejected tasks get no record in the repository. Their history
   stays in Moonbeam.
 - The task snapshot written into a task worktree at run start (ADR-001) is
@@ -606,7 +652,13 @@ Until the TASK-013 revision, this section made the merge part of acceptance.
   root. A projects root that is, or is inside, Moonbeam's install directory or
   its data directory is refused with `validation`, judged by the real location
   after resolving symbolic links. Moonbeam itself may live inside the projects
-  root. Changing the projects root after setup is open (Q24).
+  root.
+- **Human-only (Board, 2026-09-25, Q24; CONTRACT-002 Q9):** setting or changing
+  the projects root, registering a project, and relinking a project are
+  human-only actions (CONTRACT-002). An agent attempt is rejected as an audited
+  `authority_violation`. Changing the projects root after setup is allowed to a
+  board member; what happens to registered projects that would fall outside
+  the new root is open (Q25).
 - **Moonbeam never holds project repositories (ADR-006 decision 2).** It never
   clones, copies, or mirrors a project repository into its data directory or
   anywhere else. Its data directory holds only task worktrees and Moonbeam's
@@ -624,8 +676,14 @@ Until the TASK-013 revision, this section made the merge part of acceptance.
   or is no longer the registered repository, Moonbeam marks the project
   unavailable, shows it on the project, and rejects actions that need the
   repository with `repository_unavailable`. It offers a board member to relink
-  the project to a repository under the projects root. What makes a relink
-  target acceptable is open (Q24).
+  the project to a repository under the projects root.
+- **Relink verification (Board, 2026-09-25, Q24):** before updating the
+  registration, Moonbeam verifies that the new path is the same repository.
+  Applied criterion (the proposed default the board did not change): the
+  target contains the main commit Moonbeam last recorded for the project and
+  the recorded heads of the task branches Moonbeam still needs. Otherwise the
+  relink is rejected with `validation`, naming what is missing, and the
+  registration is unchanged.
 - **External servers:** none is required (ADR-005 decision 6). A remote is used
   only when a board member asks Moonbeam to push (B16). No remote is ever
   registered as a project or treated as authoritative.
@@ -647,18 +705,28 @@ Until the TASK-013 revision, this section made the merge part of acceptance.
   accepted commit of a completed top-level task is contained in main and no
   Moonbeam merge of it is recorded, Moonbeam records that the task was merged
   by hand, with the main commit at which it was detected. Only containment
-  counts. A squash, rebase, or cherry-pick done by hand is not detected (Q20).
+  counts. A squash, rebase, or cherry-pick done by hand is not detected, a
+  known limit (ADR-007); whether a board member may mark one as merged is open
+  (Q26).
+- **Hand merges are fact (Board, 2026-09-25, Q19; ADR-007).** Moonbeam never
+  blocks or reverts a hand merge. It records it as an override on the task
+  (CONTRACT-001 "Overrides"), including any earlier refused merge.
 - A hand commit or hand merge is not a Moonbeam merge. R1 and R2 cover only
-  Moonbeam's actions. A hand merge does not write the permanent record (B9,
-  Q20).
-- A task branch that reaches main by hand before its task is accepted is shown
-  as a warning on that task. What happens at its later acceptance is part of
-  Q20.
+  Moonbeam's actions. A hand merge does not write the permanent record; the
+  next Moonbeam merge in the project does (B9, Q20).
+- **Before acceptance (Q19):** when main contains the review commit of a
+  top-level `in_review` task, the task is treated as accepted: CONTRACT-001 M3
+  moves it to `completed` with the note "accepted by early merge; review
+  skipped", and its integration status is Merged by hand. A task branch that
+  reaches main by hand in any other state is shown as a warning on that task,
+  "reached main by hand before acceptance", and recorded as an override
+  (interim reading, CONTRACT-001 Q26).
 
 ### B15 Project folder safety at merge (ADR-006 decision 4)
 
-- Before merging (B7), Moonbeam checks the main checkout, if there is one.
-  Interim reading, pending Q21: the merge may proceed when main is not checked
+- Before merging (B7), Moonbeam checks the main checkout, if there is one. The
+  check applies only to the working tree that has main checked out (Board,
+  2026-09-25, Q21, confirming the interim reading): the merge may proceed when main is not checked
   out anywhere, or when the main checkout is on main and has no uncommitted
   changes, meaning:
   - no staged or unstaged changes to tracked files
@@ -705,7 +773,8 @@ Until the TASK-013 revision, this section made the merge part of acceptance.
   retry. The report stays until a later push succeeds.
 - Pushing does not depend on the project folder's state and never touches
   working files.
-- **Remote state:** Moonbeam does not fetch on its own (interim reading, Q23).
+- **Remote state:** Moonbeam never fetches from remotes; humans do (Board,
+  2026-09-25, Q23).
   How far main is ahead of the remote, and whether a task is pushed, are
   computed from the project repository's remote-tracking branch as last
   updated by a push or by a person's fetch, and shown with that time.
@@ -718,12 +787,16 @@ For each completed top-level task, Moonbeam exposes:
   - Not merged
   - Merging (a merge is in progress)
   - Merged by Moonbeam, with the merge commit, requester, and time
-  - Merged by hand, with the detection time and the main commit (B14)
+  - Merged by hand, with the detection time and the main commit (B14), and,
+    for a task accepted by early merge, the note "accepted by early merge;
+    review skipped"
   - Merge refused: the task is still not merged, and its latest refusal is
     shown (category, details, requester, time). The next merge request is
     evaluated afresh.
-- **Record status:** written (path and commit), or not written (hand merge,
-  Q20).
+- **Record status:** written (path and commit), or not written (hand merge;
+  pending the next Moonbeam merge in the project, B9).
+- **Overrides and notes:** every override recorded on the task, and the note
+  when the merge author is not the acceptor (B8).
 - **Push status:** Pushed, when the remote-tracking main contains the task's
   merge commit (or its accepted commit, for a hand merge); otherwise Not
   pushed.
@@ -756,7 +829,8 @@ branch is shown as Integrated or Not integrated (B3).
   (ADR-005 amendment). The former reading, "every completed task has exactly
   one acceptance merge", no longer holds.
 - **R3 — Accepted is what merges.** The work merged by a Moonbeam merge is
-  exactly the accepted commit, plus the permanent record.
+  exactly the accepted commit, plus the permanent record, plus any pending
+  records of hand-merged tasks (B9).
 - **R4 — One branch per task.** A task has at most one task branch, its name
   never changes, and no name is reused.
 - **R5 — Forward-only branches.** While a task is non-terminal, its task branch
@@ -774,8 +848,9 @@ branch is shown as Integrated or Not integrated (B3).
   conflict or picks a side. Conflicts are resolved only by a claimant in a
   checkout, or by a person merging by hand.
 - **R8 — Record with the Moonbeam merge.** A task's permanent record is put on
-  main by Moonbeam if and only if its Moonbeam merge is on main. For hand
-  merges, see Q20.
+  main by Moonbeam if and only if its Moonbeam merge is on main, or, for a
+  task merged by hand, in the first Moonbeam merge in the project after the
+  hand merge is detected (B9).
 - **R9 — Snapshots stay out.** A task snapshot is never committed to any branch.
 - **R10 — History is never rewritten.** Moonbeam never force-updates, rewinds,
   or rewrites main, locally or on a remote, including during recovery.
@@ -812,7 +887,7 @@ categories that reject lifecycle actions and merges, with the same names.
 | `history_rewritten` | The task branch head no longer contains the head Moonbeam last recorded (the claimant rewrote history). | The handoff is rejected until the branch builds on the recorded head. |
 | `push_rejected` | Push (B16): the remote refused it, for example because its main diverged. | Reported on the project with the remote's reason and what to do. Nothing changes. No retry, no force. |
 | `remote_unavailable` | Push (B16): the remote cannot be reached, authentication fails, or main has no remote. | As `push_rejected`. |
-| `validation` | Setup or registration: a projects root inside Moonbeam's install or data directory; a repository outside the root; not a git repository; already registered. | Rejected. |
+| `validation` | Setup or registration: a projects root inside Moonbeam's install or data directory; a repository outside the root; not a git repository; already registered; a relink target that is not the same repository (B13). | Rejected. |
 | Update conflict | B5's automatic update conflicts. | Not a rejection: the run starts with the conflict stated. |
 | Subtask integration conflict | B3. | Not a rejection: the subtask completes, its work is not integrated, and the system integration blocker is raised on the parent (CONTRACT-001 C1). |
 | Cleanup failure | B12. | Recorded, shown, retried. Never affects lifecycle, main, or the project folder. |
@@ -824,8 +899,8 @@ Illustrative names. Required behavior is the semantics above.
 
 | Operation | Trigger | Actor |
 |---|---|---|
-| set projects root | first-run setup | the person setting up |
-| register project / relink project | on request | board member (see Q24) |
+| set or change projects root | first-run setup; on request | board member (human only, CONTRACT-002) |
+| register project / relink project (relink verifies the same repository) | on request | board member (human only, CONTRACT-002) |
 | create task branch | first claim (T3); split of an unbranched parent (T11) | Moonbeam |
 | prepare task worktree | writing run start | Moonbeam (runner) |
 | update from target | writing run start | Moonbeam |
@@ -860,9 +935,10 @@ contract's outputs.
 - The task and review views show the branch name (copyable, so a board member
   can check it out on the host), its base, and for a subtask its parent branch.
 - The review surface shows mergeability before the board member presses
-  Accept. A conflict is listed as a warning in the accept confirmation, which
-  says that a merge requested after acceptance would be refused until it is
-  resolved, and that Return resolves it on the branch (CONTRACT-001 Q25).
+  Accept. A known conflict refuses the accept by default and says that Return
+  resolves it on the branch; the "accept anyway" override is offered, recorded,
+  and warns that a later merge would be refused until the conflict is resolved
+  (CONTRACT-001 T9, Q25).
 - When main has moved since the latest handoff or review, the review surface
   says so, with the number of new main commits, and flags hand commits among
   them.
@@ -945,97 +1021,54 @@ repository stands in for the remote; no external server is needed.
     locally or on the remote and nothing is retried; no push is ever forced.
 15. **Hand commits and hand merges:** a commit made on main by hand is reported
     as a hand commit; a hand merge that contains the accepted commit is
-    detected as Merged by hand and finishes dependents' path dependencies; a
-    squash merge by hand is not detected.
+    detected as Merged by hand, recorded as an override, and finishes
+    dependents' path dependencies; a hand merge of an `in_review` task's review
+    commit makes it `completed` by early merge; the next Moonbeam merge in the
+    project writes the pending records of hand-merged tasks, with their notes,
+    in its merge commit; a squash merge by hand is not detected.
 16. **Projects root and registration:** a projects root equal to or inside the
     install or data directory is refused, including through a symbolic link;
     nested repositories under the root are offered; a repository outside the
     root is refused, including through a symbolic link; a missing folder marks
     the project unavailable and actions that need it are rejected
-    `repository_unavailable`.
+    `repository_unavailable`; a relink to a repository lacking the last
+    recorded main commit or a needed task branch head is rejected with
+    `validation`; agent attempts to set the root, register, or relink are
+    rejected as `authority_violation`.
 17. **No held repositories (R15):** the data directory contains task worktrees
     and Moonbeam's own data, and no clone or copy of a project repository.
 
 Board review of this contract is the validation for TASK-010 itself, and board
-review of the revision diffs is the validation for TASK-012 and TASK-013.
+review of the revision diffs is the validation for TASK-012, TASK-013, and
+TASK-014.
 
 ## Open questions
 
-These were uncovered by the TASK-013 revision and are **not decided**. Where
-the contract needs an interim reading to stay coherent, it is marked in the
-body and repeated here with a proposed default.
+These are carried forward by the TASK-014 revision from parts of Q24 and Q20
+that the board's 2026-09-25 answers did not cover. They are **not decided**.
+See also CONTRACT-001 Q26 (hand merges before acceptance outside
+`in_review`).
 
-- **Q19 — A merge that conflicts after acceptance (ADR-005 amendment, open
-  point 1).** The task is `completed` and cannot be returned, and its branch no
-  longer moves (R6). Tasks with overlapping paths keep waiting until its work
-  is on main (CONTRACT-001). Options:
-  - (a) A board member merges by hand in the project folder, resolving the
-    conflict; Moonbeam detects the hand merge (B14).
-  - (b) A board member approves a new follow-up task that redoes or ports the
-    work on current main; the original task is then marked as not to be merged
-    (a new integration status) and stops holding dependents.
-  - (c) Allow a special "resolution run" on the completed task's branch that
-    merges main into it, followed by a new merge request.
-
-  In every option, a board member can already release waiting tasks by moving
-  the unmerged task behind them in the queue (CONTRACT-001 D1). **Proposed
-  default:** (a) for V1, as the body states now. Add (b) if the board wants a
-  way to abandon an accepted task's integration without merging it.
-- **Q20 — The permanent record after a hand merge (ADR-005 amendment, open
-  point 2).** A hand merge does not write the record. Options:
-  - (a) Moonbeam offers a human-only "Write task record" action for a task
-    merged by hand. It commits the record alone onto main, under the same
-    folder safety check (B15), authored by the requester.
-  - (b) At acceptance, Moonbeam commits the record onto the task branch, so any
-    merge carries it. This conflicts with "accepting does not change the
-    project repository" (ADR-005 amendment).
-  - (c) The record stays in Moonbeam only for hand-merged tasks.
-
-  Related, also undecided: whether a hand squash, rebase, or cherry-pick can be
-  marked as merged by a board member (it is not detected, B14), and what
-  happens when a task branch reached main by hand before acceptance (proposed:
-  on acceptance it is detected as Merged by hand, with the warning kept on the
-  task). **Proposed default:** (a). Until decided, the body uses (c) and shows
-  "Record not written".
-- **Q21 — What counts as a safe project folder.** ADR-006 says the merge is
-  allowed, when main is checked out in the project folder, only if the folder
-  is on main with no uncommitted changes. Interim reading (B15): the check
-  applies to whichever working tree has main checked out; with main not checked
-  out anywhere, the merge only moves the main branch; untracked files count
-  only where the merge would write, and ignored files never count. The stricter
-  alternative is to require the project folder to be on main for every merge,
-  and to treat any untracked file as unsafe. **Proposed default:** the interim
-  reading.
-- **Q22 — Who is the author of the merge commit.** Board C3 made the acceptor
-  the merge author when acceptance and merge were one step. Now a different
-  board member may request the merge. Interim reading (B8): the requester is
-  the author, and the acceptor is named in a trailer. Alternative: the acceptor
-  stays the author and the requester is named in a trailer. **Proposed
-  default:** the interim reading.
-- **Q23 — May Moonbeam fetch from the remote?** "Main is N ahead of the
-  remote" and "Pushed" are only as current as the repository's remote-tracking
-  branch. Interim reading (B16): Moonbeam never fetches on its own, and shows
-  when the remote state was last updated. Alternatives: a human-only "Check
-  remote" action that fetches, or a periodic fetch. A fetch changes no branch
-  and no files, only remote-tracking refs. **Proposed default:** add the
-  human-only "Check remote" action; no periodic fetch.
-- **Q24 — Registration details.** Not decided:
-  - (a) What makes a relink target acceptable. Proposed: a repository under the
-    root that contains the main commit Moonbeam last recorded and the project's
-    task branches.
-  - (b) Whether the projects root can be changed after setup, and what happens
-    to projects that would fall outside it. Proposed: changeable by a board
-    member only when every registered project stays under the new root.
-  - (c) Whether setting the projects root, registering, and relinking a
-    project are added to CONTRACT-002's human-only list. Proposed: yes. Agents
-    are already confined to their run's project, but listing them makes a
-    rejected attempt an audited `authority_violation`.
+- **Q25 — Changing the projects root when projects would fall outside it.**
+  The board made changing the root human-only (Q24) but did not say what
+  happens to registered projects outside a new root (R15 requires every
+  project under the root). Options: (a) refuse the change while any registered
+  project would fall outside; (b) allow it and mark those projects unavailable
+  until relinked. **Proposed default:** (a).
+- **Q26 — Marking an undetected hand merge.** A hand squash, rebase, or
+  cherry-pick is not detected (B14). Should a board member be able to mark such
+  a task as merged by hand (an override under ADR-007), so it stops holding
+  dependents and its record is written in the next merge? Until decided, the
+  task stays Not merged, and a board member can release waiting tasks by moving
+  it in the queue (CONTRACT-001 D1). **Proposed default:** yes, human-only,
+  recorded as an override.
 
 ## Resolved questions
 
 Q1–Q16 were answered "follow the recommendation" on the round 1 answer sheet
 (`docs/contracts/BOARD-QUESTIONS-2026-09-24.md`). Q17 and Q18 were resolved by
-ADR-006 and the board's answers when approving TASK-013.
+ADR-006 and the board's answers when approving TASK-013. Q19–Q24 were answered
+by the board on 2026-09-25 (TASK-014; principle in ADR-007).
 
 - **Q1 — Branch per task, not per run.**
   Board C1, 2026-09-24: one branch per task. ADR-005's "per run" wording gets
@@ -1069,7 +1102,7 @@ ADR-006 and the board's answers when approving TASK-013.
   all projects.
   *Applied:* Preconditions 3 and 4, B8; CONTRACT-002 user registry. Since
   TASK-013 the merge is a separate step, and the requester is the author as an
-  interim reading (Q22).
+  interim reading (Q22), confirmed by the board on 2026-09-25.
 - **Q8 — Record inside the merge.**
   Board A4, 2026-09-24: the merge and the permanent task record succeed or fail
   together.
@@ -1127,3 +1160,47 @@ ADR-006 and the board's answers when approving TASK-013.
   request.
   *Applied:* B16, R10, R13, Failure behavior (`push_rejected`,
   `remote_unavailable`), validation item 14.
+- **Q19 — A merge that conflicts after acceptance (ADR-005 amendment, open
+  point 1).** Options were (a) a hand merge in the project folder, detected by
+  Moonbeam; (b) a follow-up task and a "not to be merged" status; (c) a
+  resolution run. Proposed default: (a).
+  Board, 2026-09-25: a hand merge is always accepted as fact. If a hand merge
+  happens before acceptance, the task is treated as accepted, with the note
+  "accepted by early merge; review skipped".
+  *Applied (TASK-014):* B7, B14, B17, validation item 15; CONTRACT-001 M1, M2,
+  new M3, I6, I22, "Overrides". Cases outside `in_review` are CONTRACT-001
+  Q26.
+- **Q20 — The permanent record after a hand merge (ADR-005 amendment, open
+  point 2).** Options were (a) a human-only "Write task record" action; (b)
+  the record committed onto the branch at acceptance; (c) the record kept in
+  Moonbeam only. Proposed default: (a).
+  Board, 2026-09-25: the hand merge stands. The task record is written or
+  updated, with a note, in the next merge Moonbeam performs.
+  *Applied (TASK-014):* B7, B9, B14, B17, R3, R8, validation item 15;
+  CONTRACT-001 M1, M2. Marking an undetected hand merge is carried forward as
+  Q26.
+- **Q21 — What counts as a safe project folder.** Proposed default: the interim
+  reading.
+  Board, 2026-09-25: the interim reading is confirmed. The safe-folder check
+  applies only to the working tree that has main checked out.
+  *Applied (TASK-014):* B15.
+- **Q22 — Who is the author of the merge commit.** Proposed default: the
+  requester (interim reading).
+  Board, 2026-09-25: whoever performs the merge is its author. If that person
+  is not the acceptor, this is noted.
+  *Applied (TASK-014):* B8, B9, B17; CONTRACT-001 M2.
+- **Q23 — May Moonbeam fetch from the remote?** Proposed default: a human-only
+  "Check remote" action.
+  Board, 2026-09-25: Moonbeam never fetches from remotes. Humans do.
+  *Applied (TASK-014):* B16. No "Check remote" action.
+- **Q24 — Registration details.** Asked (a) what makes a relink target
+  acceptable, (b) whether the projects root can be changed, and (c) whether
+  root, register, and relink are human-only.
+  Board, 2026-09-25: registering and relinking projects, and changing the
+  projects root, are human-only actions. This also resolves CONTRACT-002 Q9.
+  Relink verifies that the new path is the same repository before updating
+  it.
+  *Applied (TASK-014):* B13, Failure behavior, Interfaces, validation item 16;
+  CONTRACT-002 human-only list. "Same repository" uses the proposed criterion
+  from (a). What happens to projects outside a new root is carried forward as
+  Q25.

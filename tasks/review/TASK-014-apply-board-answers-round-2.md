@@ -95,7 +95,45 @@ None.
 
 ## Implementation handoff
 
-Not started.
+Contract-architect, 2026-09-25. All contracts now say `Status: Approved`; each
+changed file has a dated 2026-09-25 TASK-014 revision note. IDs kept stable.
+
+| Answer | Where applied |
+|---|---|
+| 004 Q19 (hand merge is fact; early merge = accepted) | 001 new M3, M1, M2, I6, I22, Audit "Overrides", validation 15; 004 B7, B14, B17, validation 15; 003 SV-3, RS-14, RS-15, A-8 |
+| 004 Q20 (record in next Moonbeam merge, with note) | 001 M1, M2; 004 B7, B9, B17, R3, R8; 003 SV-3 "Record pending", RS-15; TEMPLATE AI_DEVELOPMENT_SYSTEM "Task records" |
+| 001 Q24 ("Accepted, not merged" group) | 001 UX; 003 RS-15, shared pieces, validation table |
+| 001 Q25 (refuse by default; "accept anyway") | 001 T9, table, Failure (`merge_conflict` on T9), Interfaces, validation 12, Overrides; 002 human-only list; 003 RS-4, RS-12, A-1; 004 UX |
+| 004 Q21 (safe-folder check on main's worktree only) | 004 B15 |
+| 004 Q22 (performer is author; noted if not acceptor) | 004 B8, B9, B17; 001 M2; 003 RS-14 |
+| 004 Q23 (never fetch) | 004 B16; 003 RS-15 |
+| 004 Q24 / 002 Q9 (root, register, relink human-only; relink verifies) | 004 B13, Failure, Interfaces, validation 16; 002 human-only list, Q9 resolved |
+| ADR-007 point 4 (override recording) | 001 Audit record "Overrides"; 004 B9 notes in record |
+| ADR-005 | new 2026-09-25 amendment (C2 bare-repo text superseded by ADR-006; hand merges under ADR-007; open points answered) |
+
+`TEMPLATE/docs/workflow/` needed no change (no stale wording found).
+
+Judgment calls for board review:
+
+- M3 trigger is the "review commit" (latest handoff commit, or a split
+  parent's branch head at T12). M3 fires even if the task is blocked or
+  paused (interim, part of 001 Q26).
+- Relink "same repository" uses the earlier proposed criterion: contains the
+  last recorded main commit and needed task branch heads.
+- "Accept anyway" reason is optional (ADR-007 "when one was given").
+- Hand-merge "who" is taken from git author/committer, honor-system.
+
+New open questions (flagged, not decided):
+
+- CONTRACT-001 Q26: hand merge before acceptance outside `in_review`
+  (approved/in_progress with active run, subtask branches, blocked/paused).
+- CONTRACT-004 Q25: changing the projects root when projects would fall
+  outside it.
+- CONTRACT-004 Q26: marking an undetected hand squash/rebase/cherry-pick as
+  merged.
+- Minor, not recorded as a question: whether unknown mergeability at
+  acceptance counts as a "known conflict" (text says only a known conflict
+  refuses).
 
 ## Review
 

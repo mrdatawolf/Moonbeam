@@ -1,17 +1,43 @@
 # CONTRACT-003: Run view and review surface
 
-Status: Accepted
+Status: Approved
 Approved by: Patrick
 Approved date: 2026-09-24
-Revised: 2026-09-24 (TASK-012; TASK-013), see "Revision history"
-Related tasks: TASK-009, TASK-012, TASK-013
-Related ADRs: ADR-005 (as amended), ADR-006, ADR-003, ADR-002 (context:
-ADR-001)
+Revised: 2026-09-24 (TASK-012; TASK-013); 2026-09-25 (TASK-014), see "Revision
+history"
+Related tasks: TASK-009, TASK-012, TASK-013, TASK-014
+Related ADRs: ADR-005 (as amended), ADR-006, ADR-007 (Proposed), ADR-003,
+ADR-002 (context: ADR-001)
 Related contracts: CONTRACT-001 (task lifecycle), CONTRACT-002 (identity),
 CONTRACT-004 (task branches, worktrees, and integration into main), future
 runs contract, future pauses contract
 
 ## Revision history
+
+### 2026-09-25 — TASK-014: board answers, round 2
+
+The board answered CONTRACT-001 Q24 and Q25 and CONTRACT-004 Q19–Q24 on
+2026-09-25 (principle: ADR-007, Proposed). This revision replaces the interim
+displays that depended on them. It does not change the approval; the status
+word is now "Approved", as in the other contracts.
+
+- **Decision queue (CONTRACT-001 Q24):** an "Accepted, not merged" group, with
+  refused merges first, leading to the integration panel. *Changed:* RS-15,
+  shared pieces.
+- **Known conflict at acceptance (CONTRACT-001 Q25):** the accept dialog
+  refuses by default and offers Return or an "Accept anyway" override with an
+  optional reason, recorded with the acceptance. *Changed:* RS-4, RS-12, A-1.
+- **Hand merges (CONTRACT-004 Q19, Q20):** new statuses "Accepted by early
+  merge" and "Record pending" (replacing "Record not written"); the conflict
+  refusal's next step is final. *Changed:* SV-3, RS-14, RS-15, A-8, validation
+  table.
+- **Overrides (ADR-007):** listed on the completed surface and the task
+  detail, including the note when the merge author is not the acceptor
+  (CONTRACT-004 Q22). *Changed:* RS-14.
+- **Remote state (CONTRACT-004 Q23):** Moonbeam never fetches. *Changed:*
+  RS-15.
+- The "Open questions" dependencies on those questions are moved to "Resolved
+  questions".
 
 ### 2026-09-24 — TASK-013: accept without merging; integration panel; push
 
@@ -301,7 +327,8 @@ screen. "Task" is always "task" (never issue or ticket). "Run" is always "run"
 | | merged by Moonbeam on request | Merged by Moonbeam | success |
 | | merge done by hand, detected (CONTRACT-001 M2) | Merged by hand | success |
 | | latest merge request refused; still not merged | Merge refused | danger |
-| | merged by hand, task record not in the repository (interim, CONTRACT-004 Q20) | Record not written | attention |
+| | merged by hand before acceptance (CONTRACT-001 M3) | Accepted by early merge | attention |
+| | merged by hand, task record not yet in the repository; it is written in the next Moonbeam merge in the project (CONTRACT-004 B9, Q20) | Record pending | attention |
 | Push (task: whether its merge is on the remote; project: last push) | remote's main contains the task's merge | Pushed | success |
 | | not yet on the remote | Not pushed | neutral |
 | | push in progress | Pushing | live |
@@ -591,10 +618,10 @@ section:
 - **Scope** — "Within declared paths" or "N outside declared paths".
 - **Pauses** — "N pauses during this attempt" (neutral), or "No pauses".
 - **Branch** — Up to date, Behind main (with the number of new main commits),
-  or Merge conflict (with the files). Accepting never merges (ADR-005
-  amendment), so neither status prevents accepting. Both are warnings in the
-  accept confirmation (Board C4; for a conflict, the interim reading of
-  CONTRACT-001 Q25). When any of the new main commits did not come from a
+  or Merge conflict (with the files). Behind main is a warning in the accept
+  confirmation (Board C4). A merge conflict refuses the accept by default;
+  the accept dialog offers Return or the "Accept anyway" override (A-1;
+  Board, 2026-09-25, CONTRACT-001 Q25). When any of the new main commits did not come from a
   Moonbeam merge, the line adds "Commits on main outside Moonbeam" (Board C3).
 - **Blocked** — present only when the task is blocked, with the blockers.
 - **Waiting on this task** — present only when other tasks have a path
@@ -752,12 +779,11 @@ sticky action bar at the bottom on narrow screens:
 
 Handoffs are accepted only when the branch merges cleanly into its target
 (CONTRACT-001 T6, Board A4). A merge conflict shown at review therefore means
-main moved after the handoff. Accepting does not merge (ADR-005 amendment), so
-a conflict no longer disables Accept. It is listed as a warning in the accept
-confirmation, which says that a merge requested after acceptance would be
-refused until the conflict is resolved, and that Return resolves it on the
-branch now (interim reading, CONTRACT-001 Q25). Until the TASK-013 revision, a
-conflict disabled Accept.
+main moved after the handoff. A known conflict refuses the accept by default
+(Board, 2026-09-25, CONTRACT-001 Q25). Accept stays enabled so that the dialog
+can offer the choice: Return, which resolves the conflict on the branch, or the
+"Accept anyway" override (A-1). Until the TASK-013 revision a conflict disabled
+Accept; between TASK-013 and TASK-014 it was only a warning.
 
 Merge into main and Push main are not review decisions. They appear in the
 integration panel of a completed task (RS-15).
@@ -806,7 +832,16 @@ attempt as a read-only record:
 
 - **Completed:** the header shows "Accepted by <person> at <time>", with the
   review waiver and its reason if any, and the integration panel (RS-15). No
-  review decision actions.
+  review decision actions. For a task accepted by early merge (CONTRACT-001
+  M3), the header instead reads "Accepted by early merge; review skipped",
+  with the hand merge's commit and detection time.
+- **Overrides:** every override recorded on the task (CONTRACT-001
+  "Overrides"; ADR-007) is listed on the completed surface and in the task
+  detail: who, when, what was bypassed, and the reason when given. Examples:
+  "Accepted anyway by <person> at <time> despite a merge conflict in <files>:
+  <reason>"; "Merged by hand by <git author> at <time>; Moonbeam merge step
+  bypassed". When the merge author is not the acceptor, "Merged by <person>,
+  accepted by <person>" is shown (CONTRACT-004 B8).
 - **Returned attempt:** shown when browsing earlier attempts: "Returned by
   <person> at <time>" with the return notes. The task's current state is linked.
 - **Cancelled:** "Cancelled by <person>: <reason>". States that the branch was
@@ -824,8 +859,10 @@ review surface and in the task detail. Subtasks have none; their surface says
   - Merged by Moonbeam: merge commit, who requested it, when, and the task
     record's path.
   - Merged by hand: "Merged by hand. Detected at <time> in main at <commit>."
-    Until CONTRACT-004 Q20 is decided, it adds "Record not written: the task
-    record is not in the repository."
+    Until the record is written, it adds "Record pending: the task record will
+    be written in the next merge Moonbeam performs in this project."
+    (CONTRACT-004 B9, Q20). For a task accepted by early merge it also shows
+    "Accepted by early merge; review skipped".
   - Merge refused: the latest refusal's message (A-8), who requested it, and
     when. The task is still not merged.
 - **While not merged:** mergeability with current main (with conflicting
@@ -837,8 +874,8 @@ review surface and in the task detail. Subtasks have none; their surface says
   panel opens, when the user chooses "Check again", and right before the merge
   confirmation. The server re-checks at the merge itself.
 - **Push status** for this task, and for the project "Main is N ahead of
-  <remote>", as of the time the remote state was last updated (CONTRACT-004
-  B16, Q23). The latest push outcome for the project is shown when it was a
+  <remote>", as of the time the remote state was last updated by a push or by
+  a person's fetch; Moonbeam never fetches (CONTRACT-004 B16, Q23). The latest push outcome for the project is shown when it was a
   rejection or failure.
 - **Actions:**
 
@@ -847,8 +884,11 @@ review surface and in the task detail. Subtasks have none; their surface says
 | **Merge into main** (A-8) | Completed top-level task whose work is not on main | A merge is in progress; the server currently reports a reason the merge would be refused (unsafe folder, conflict, or repository unavailable), with its message and fix |
 | **Push main** (A-9) | Main has commits the remote lacks, or main has no remote | Main has no remote ("Main has no remote to push to. Set one in <folder>."); a push is in progress |
 
-The panel is where the decision queue's "accepted, not merged" entries lead,
-if the board adds them (CONTRACT-001 Q24).
+The panel is where the decision queue's "Accepted, not merged" entries lead
+(Board, 2026-09-25, CONTRACT-001 Q24). In the decision queue these tasks form
+their own group, "Accepted, not merged", with tasks whose latest merge was
+refused listed first. Each entry shows the task, its integration status, and
+for a refused merge the refusal category.
 
 ### A — Actions
 
@@ -874,11 +914,20 @@ the project repository (ADR-005 amendment).
    step on the completed task." It lists any open warnings from the readiness
    summary: review verdict other than Pass, same-model review, failed or
    missing validation, out-of-scope files, handoff deviations or risks, branch
-   behind main, merge conflict with main (with the files, and "A merge
-   requested after acceptance would be refused until this is resolved. Return
-   resolves it on the branch now."; interim reading, CONTRACT-001 Q25), and
-   commits on main outside Moonbeam. Warnings
-   never block accepting (Board C4). If warnings are present, the user confirms
+   behind main, and commits on main outside Moonbeam. Warnings
+   never block accepting (Board C4).
+   **Known merge conflict (Board, 2026-09-25, CONTRACT-001 Q25).** When the
+   branch conflicts with main, the dialog says: "This task's branch conflicts
+   with <main branch> in <files>. Accepting is refused by default. Return
+   resolves the conflict on the branch." It offers Return (opening A-3) and an
+   **Accept anyway** override, which states: "A merge requested later will be
+   refused until the conflict is resolved. This override is recorded with your
+   name." Accept anyway has an optional **reason** field. The override (who,
+   when, the conflicting files, and the reason if given) is recorded with the
+   acceptance (CONTRACT-001 "Overrides") and shown on the task (RS-14). The
+   plain "Accept" button is not offered in this case. If the server reports a
+   conflict the screen did not know of, the accept is rejected with
+   `merge_conflict` and the dialog switches to this form. If warnings are present, the user confirms
    once that they have reviewed them ("I've reviewed these") before the final
    button is enabled. The confirmation is recorded with the acceptance
    (CONTRACT-001 T9).
@@ -891,8 +940,8 @@ the project repository (ADR-005 amendment).
 5. Success: the surface switches to its Completed form (RS-14), with the
    integration panel (RS-15) showing Not merged.
 6. Rejection: the CONTRACT-001 category and reason (for example `blocked`,
-   `validation`, `conflict`, or `repository_unavailable` when the changed files
-   cannot be determined). The task stays In review and nothing changes. Until
+   `validation`, `conflict`, `merge_conflict` without Accept anyway, or
+   `repository_unavailable` when the changed files cannot be determined). The task stays In review and nothing changes. Until
    the TASK-013 revision, a failed merge rejected the accept (Board A4); that
    failure now belongs to A-8.
 
@@ -982,8 +1031,8 @@ the runs contract and the runs UI.
      <folder> would be overwritten by the merge: <paths>. Move or remove them,
      then merge again."
    - `merge_conflict`: "Main has changed since this work was handed off, and N
-     files conflict: <paths>." Until CONTRACT-004 Q19 is decided, the next step
-     shown is: "You can merge the branch by hand in <folder> and resolve the
+     files conflict: <paths>." The next step shown (Board, 2026-09-25,
+     CONTRACT-004 Q19) is: "You can merge the branch by hand in <folder> and resolve the
      conflicts there. Moonbeam will detect the merge."
    - `repository_unavailable`: "Moonbeam can't read or write the project
      repository at <path>." When the folder is missing: "The project folder
@@ -1163,8 +1212,8 @@ artifacts says "This run produced no files, documents, or results."
 - For the project: the remote's name and address (or none), how far main is
   ahead of it and as of when, and the latest push outcome.
 
-**Integration panel** (RS-15) is a shared piece: the task detail and, if the
-board adds it, the decision queue (CONTRACT-001 Q24) reuse it.
+**Integration panel** (RS-15) is a shared piece: the task detail and the
+decision queue's "Accepted, not merged" group (CONTRACT-001 Q24) reuse it.
 
 ## UX expectations
 
@@ -1290,7 +1339,10 @@ The implementation is accepted against this contract when:
 | Review | Completed, merge refused (unsafe folder: changes, operation in progress, untracked files in the way) | Merge refused, the folder, the files or operation, the fix, "Main was not changed. Nothing in <folder> was touched." |
 | Review | Completed, merge refused (conflict) | Merge refused, conflicting files, the hand-merge next step |
 | Review | Completed, merged by Moonbeam | Merged by Moonbeam, commit, requester, record path, Push main |
-| Review | Completed, merged by hand | Merged by hand, detection time and commit, Record not written |
+| Review | Completed, merged by hand | Merged by hand, detection time and commit, Record pending, the override |
+| Review | Completed, accepted by early merge | "Accepted by early merge; review skipped", Merged by hand, Record pending, the override |
+| Review | In review, known merge conflict, Accept chosen | Dialog offers Return and Accept anyway (optional reason), no plain Accept; after Accept anyway the override is shown on the completed surface |
+| Decision queue | Completed tasks not on main | "Accepted, not merged" group, refused merges first |
 | Review | Completed, pushed | Pushed; project shows main not ahead |
 | Any | Push rejected or failed | Push rejected or Push failed with the remote's reason, the fix, "Nothing was changed" |
 | Any | Main has no remote | Push main disabled with its reason |
@@ -1315,26 +1367,36 @@ Every question from the first draft was answered by the board on 2026-09-24
 open remains open in the pauses workflow document and belongs to the pauses
 contract.
 
-The TASK-013 revision depends on questions owned by other contracts. They are
-**not decided**. This contract uses the interim display below until they are:
-
-- **CONTRACT-001 Q24 — Accepted but unmerged tasks in the decision queue
-  (ADR-005 amendment, open point 3).** Interim: they appear only in the task
-  detail and the integration panel (RS-15), not in the decision queue.
-- **CONTRACT-001 Q25 — A known conflict at acceptance.** Interim: a warning in
-  the accept confirmation (A-1, RS-4, RS-12). Accept is not disabled.
-- **CONTRACT-004 Q19 — A merge that conflicts after acceptance (open point
-  1).** Interim: the refusal message offers a hand merge in the project folder
-  (A-8).
-- **CONTRACT-004 Q20 — The task record after a hand merge (open point 2).**
-  Interim: "Record not written" (SV-3, RS-15). No action to write it.
-- **CONTRACT-004 Q21 — What counts as a safe project folder.** Interim: the
-  three refusal messages in A-8.
-- **CONTRACT-004 Q23 — Fetching from the remote.** Interim: "Main is N ahead
-  of <remote>" is shown with the time the remote state was last updated. There
-  is no "Check remote" action.
+This contract's display also depends on CONTRACT-001 Q26 (a hand merge before
+acceptance outside `in_review`; interim: a warning on the task, "reached main by
+hand before acceptance", with the override listed) and CONTRACT-004 Q26
+(marking an undetected hand merge; interim: no such action). Both are **not
+decided**.
 
 ## Resolved questions
+
+Dependencies on other contracts' questions, answered by the board on
+2026-09-25 (TASK-014):
+
+- **CONTRACT-001 Q24 — Accepted but unmerged tasks in the decision queue.**
+  Interim was: not in the decision queue. Board: their own group, "Accepted,
+  not merged", refused merges first. *Applied:* RS-15, shared pieces,
+  validation table.
+- **CONTRACT-001 Q25 — A known conflict at acceptance.** Interim was: a warning
+  only. Board: refused by default, with a recorded "Accept anyway" override.
+  *Applied:* RS-4, RS-12, A-1, RS-14, validation table.
+- **CONTRACT-004 Q19 — A merge that conflicts after acceptance.** Board: a hand
+  merge is always accepted as fact; before acceptance it counts as accepted by
+  early merge. *Applied:* SV-3, RS-14, RS-15, A-8.
+- **CONTRACT-004 Q20 — The task record after a hand merge.** Board: written in
+  the next Moonbeam merge. *Applied:* SV-3 ("Record pending"), RS-15.
+- **CONTRACT-004 Q21 — What counts as a safe project folder.** Interim
+  confirmed. *Applied:* A-8 unchanged.
+- **CONTRACT-004 Q22 — Merge author.** Whoever performs the merge; noted when
+  not the acceptor. *Applied:* RS-14.
+- **CONTRACT-004 Q23 — Fetching from the remote.** Moonbeam never fetches.
+  *Applied:* RS-15. No "Check remote" action.
+
 
 Every item below was answered "follow the recommendation" on the round 1
 answer sheet (`docs/contracts/BOARD-QUESTIONS-2026-09-24.md`).

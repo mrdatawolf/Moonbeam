@@ -195,8 +195,13 @@ The exact structure will evolve with the project.
 
 ### Task records
 
-When a board member accepts a task, Moonbeam writes the task file, with its
-handoff, review, and acceptance, into the repository as the permanent record.
+Accepting a task does not change the repository. When Moonbeam merges an
+accepted task into main at a board member's request, it writes the task file,
+with its handoff, review, and acceptance, into the repository as the permanent
+record, in the same merge commit. If a person merges a task by hand instead,
+the hand merge stands, and Moonbeam writes that task's record, with a note, in
+the next merge it performs. Any override of the process (for example "accept
+anyway" or a hand merge) is noted in the record.
 
 A task file that appears in a working checkout while a run is in progress is a
 read-only snapshot of the assignment. It is not the task's live state.
