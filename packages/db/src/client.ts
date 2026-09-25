@@ -6,6 +6,8 @@ import postgres from "postgres";
 import * as schema from "./schema/index.js";
 
 export type Database = PostgresJsDatabase<typeof schema>;
+/** A transaction handle from `Database.transaction`. */
+export type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
 
 export interface DatabaseClient {
   db: Database;
