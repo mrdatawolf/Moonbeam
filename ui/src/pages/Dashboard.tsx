@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchHealth } from "../api";
+import { fetchHealth } from "../api/client";
 
 function StatusDot({ tone }: { tone: "success" | "warning" | "danger" | "muted" }) {
   const color = {
@@ -29,7 +29,7 @@ export function Dashboard() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
+    <div className="mx-auto max-w-3xl">
       <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
       <p className="mt-1 text-sm text-muted-foreground">Moonbeam is running. Nothing to show yet.</p>
 
@@ -58,6 +58,6 @@ export function Dashboard() {
           <p className="mt-3 text-sm text-muted-foreground">{health.error.message}</p>
         )}
       </section>
-    </main>
+    </div>
   );
 }

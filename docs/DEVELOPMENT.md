@@ -218,6 +218,31 @@ reports mergeable, no changed files and integrated. Nothing sets a task's work
 "on main" yet, so tasks that depend on an accepted task keep waiting until a
 human moves the queue (D1) or the earlier task is cancelled.
 
+## Board UI (TASK-007)
+
+The UI in `ui/src/` is the phase-2 board surface built on the lifecycle API.
+
+```text
+ui/src/api/        client.ts (fetch, identity header, ApiRequestError), queries.ts (TanStack Query hooks), connection.ts
+ui/src/lib/        status.ts (CONTRACT-003 SV vocabulary), actions.ts (action availability), selection.ts, currentUser.tsx, format.ts, paths.ts
+ui/src/components/ StatusBadge (the shared status badge), Dialog (native <dialog>), TaskActions, MoveControl, TaskCard, Layout, common
+ui/src/pages/      Setup, Projects, Project (board and queue), ProposeTask, Task (detail), DecisionQueue, Dashboard (placeholder, TASK-008)
+```
+
+- **Identity.** The selected user lives in `localStorage` (`moonbeam.selectedUserId`) and is sent as
+  `X-Moonbeam-User` on every request. Anyone can view without a selection. Actions are disabled with
+  "Choose who you are to take this action". If the server answers `unidentified`, the selection is cleared.
+- **First-run setup.** While `GET /api/setup` reports `needsSetup`, the app shows only the setup screen.
+- **Action availability.** The API does not report which actions are allowed. `ui/src/lib/actions.ts`
+  mirrors the CONTRACT-001 preconditions for a human actor and gives a reason for each disabled action.
+  The server still decides, and a refusal is shown with its category. Keep that file in step with
+  `server/src/lifecycle/service.ts`. `actions.test.ts` covers each rule.
+- **Tokens.** Status tones (`--color-tone-<tone>-fg|bg|border`) and control utilities (`btn-*`,
+  `field-input`, `card`) are defined in `ui/src/index.css`. No shadcn or Radix primitives were added.
+  Dialogs use the native `<dialog>` element.
+- **Tests.** `pnpm --filter @moonbeam/ui test` runs Vitest in jsdom with Testing Library and axe-core
+  (the colour-contrast rule needs a real browser and is checked there).
+
 ## Security and privacy
 
 - Secrets go in environment variables or an untracked `.env`; never commit them.
