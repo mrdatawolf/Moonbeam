@@ -1,7 +1,7 @@
 # TASK-017: Fix TASK-006 review findings F1–F7; hide e-mail addresses from agents (N1)
 
 Owner role: Implementer
-Assigned agent:
+Assigned agent: general-purpose (Claude)
 Proposed by: Claude (planning session)
 Proposed date: 2026-09-25
 Approved by: Patrick
