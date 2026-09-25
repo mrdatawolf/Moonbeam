@@ -1055,6 +1055,9 @@ See also CONTRACT-001 Q26 (hand merges before acceptance outside
   project under the root). Options: (a) refuse the change while any registered
   project would fall outside; (b) allow it and mark those projects unavailable
   until relinked. **Proposed default:** (a).
+  **Board, 2026-09-25: proposed default adopted.** The body text is updated in
+  the next revision of the phase-3 contracts; until then this line is the
+  decision.
 - **Q26 — Marking an undetected hand merge.** A hand squash, rebase, or
   cherry-pick is not detected (B14). Should a board member be able to mark such
   a task as merged by hand (an override under ADR-007), so it stops holding
@@ -1062,6 +1065,9 @@ See also CONTRACT-001 Q26 (hand merges before acceptance outside
   task stays Not merged, and a board member can release waiting tasks by moving
   it in the queue (CONTRACT-001 D1). **Proposed default:** yes, human-only,
   recorded as an override.
+  **Board, 2026-09-25: proposed default adopted.** The body text is updated in
+  the next revision of the phase-3 contracts; until then this line is the
+  decision.
 
 ## Resolved questions
 

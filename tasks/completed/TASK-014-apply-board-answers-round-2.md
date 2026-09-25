@@ -141,4 +141,4 @@ Not reviewed.
 
 ## Human acceptance
 
-Pending.
+Accepted by Patrick, 2026-09-25 (instructed in planning session). Review waived.

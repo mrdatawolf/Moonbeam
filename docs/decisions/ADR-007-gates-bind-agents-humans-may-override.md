@@ -1,6 +1,8 @@
 # ADR-007: Gates bind agents; humans may override, and every override is recorded
 
-Status: Proposed
+Status: Approved
+Approved by: Patrick
+Approved date: 2026-09-25
 Date: 2026-09-25
 Decision owners: Board (principle drawn from Patrick's answers, 2026-09-25)
 Related tasks and contracts: CONTRACT-001, CONTRACT-004, ADR-003, ADR-005, ADR-006

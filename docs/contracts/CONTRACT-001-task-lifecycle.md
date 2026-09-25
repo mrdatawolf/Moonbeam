@@ -1557,6 +1557,8 @@ This was uncovered by the TASK-014 revision and is **not decided**.
   early merge at the branch head contained in main, ending any claim as for a
   cancelled run, and cancelling unfinished subtasks; (b) warning only; (c)
   resolve blockers and pause by the system, noting the early merge.
+  **Board, 2026-09-25: interim reading adopted as the decision** (warning plus a
+  recorded override, no state change; ADR-007).
 
 ## Resolved questions
 
