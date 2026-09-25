@@ -109,7 +109,44 @@ None.
 
 ## Implementation handoff
 
-Not started.
+contract-architect, 2026-09-25. CONTRACT-005 is `Proposed` and not approved.
+
+Changed:
+
+- `docs/contracts/CONTRACT-005-task-lifecycle.md`: new header (Proposed,
+  Supersedes CONTRACT-001). The four revision-history sections are replaced by
+  one "Lineage" section, which also covers the citation convention and says
+  CONTRACT-002/003/004 references now resolve here. Inline notes about earlier
+  revisions are removed from T9, M1, I18, the `merge_conflict` row, and
+  Concurrency. All IDs are kept.
+  - Fix 1: I9 is corrected. A parent that entered review by handoff after T14
+    has every subtask `cancelled`.
+  - Fix 2: new **T17 Edit proposed task** (human, or the authoring run; audit
+    `edited`) and new **I23** (approved content is fixed). Also updated: global
+    precondition 3, Author definition, Scope envelope, table, Interfaces, UX,
+    Failure behavior, and validation item 16.
+  - Readings: **R1** agent cancel/break-claim categories; **R2** human T7
+    `not_permitted`; **R3** one `returned` record; **R4** leaf return with
+    subtasks `invalid_transition`; **R5** user no-op `invalid_transition`;
+    **R6** out-of-range position `validation`; **R7** suspended-lease renewal
+    resets to full term; **R8** paths validated at T1, T11, T17, and T2.
+    Validation item 17 covers them.
+  - Q26: folded in as new system action **M4** (warning plus override, no
+    state change). M3 notes that blockers and pauses stay recorded. Q26 moved
+    to Resolved. Validation item 18.
+  - The audit intro "exactly one record per affected task" now lists the
+    exceptions T11 already required.
+  - New open question **Q27**: approving a task that was edited after the
+    approver viewed it.
+- `docs/contracts/CONTRACT-001-task-lifecycle.md`: only the status line
+  changed.
+- `docs/contracts/README.md`, `TEMPLATE/docs/contracts/README.md`: the
+  immutability and supersession rule.
+
+Flags for the board: see the final report (Q27; R5 belongs with CONTRACT-002;
+authorship is now per-run for T15 withdrawal; T17's audit keeps previous
+values; CONTRACT-001 is marked superseded before CONTRACT-005 is approved;
+I22 does not cover M4 followed by M3).
 
 ## Review
 

@@ -1,202 +1,71 @@
-# CONTRACT-001: Task lifecycle, claims, and splits
+# CONTRACT-005: Task lifecycle, claims, and splits
 
-Status: Approved
-Approved by: Patrick
-Approved date: 2026-09-24
-Revised: 2026-09-24 (TASK-004; TASK-012; TASK-013); 2026-09-25 (TASK-014), see
-"Revision history"
-Related tasks: TASK-002, TASK-004, TASK-012, TASK-013, TASK-014
+Status: Proposed
+Supersedes: CONTRACT-001
+Approved by:
+Approved date:
+Related tasks: TASK-015 (this contract); TASK-002, TASK-004, TASK-012,
+TASK-013, TASK-014 (CONTRACT-001 and its revisions); TASK-006 (implementation
+readings adopted here)
 Related ADRs: ADR-001, ADR-003, ADR-005 (as amended), ADR-006, ADR-007
-(Proposed) (context: ADR-004)
+(context: ADR-004)
 Related contracts: CONTRACT-002 (identity), CONTRACT-003 (run and review
 views), CONTRACT-004 (task branches, worktrees, and integration into main)
 
-## Revision history
+## Lineage
 
-### 2026-09-25 — TASK-014: board answers, round 2 (Q24, Q25, CONTRACT-004 Q19, Q20)
+An approved contract is never changed. A change is a new contract that
+supersedes the old one (`docs/contracts/README.md`). CONTRACT-005 supersedes
+CONTRACT-001, approved 2026-09-24 and revised by TASK-004, TASK-012, TASK-013,
+and TASK-014. It is complete on its own: a reader never needs CONTRACT-001.
 
-The board answered the questions TASK-013 raised on 2026-09-25. The principle
-behind the answers is ADR-007 (Proposed): gates bind agents, humans may
-override, and every override is recorded. This revision applies the answers
-that concern this contract. It does not change the approval.
+- **References:** every reference to CONTRACT-001 in CONTRACT-002,
+  CONTRACT-003, and CONTRACT-004, including references to its IDs (T, C, D, M,
+  I, and Q items), now resolves to CONTRACT-005. Every CONTRACT-001 ID is kept
+  here with the same meaning, except I9, which is corrected (below).
+- **Citations:** "Board A4" (or B1, C3, …) is an item on the answer sheet
+  `docs/contracts/BOARD-QUESTIONS-2026-09-24.md`. A bare "A4" is the answer to
+  this contract's own Q4 (see "Resolved questions"). "Board, 2026-09-25" is the
+  board's decisions of that date.
+- **Carried from CONTRACT-001 unchanged**, as last revised: TASK-004 (ADR-005
+  paths and path dependencies, human claims never expire, subtasks never
+  reopened, T13 retired), TASK-012 (plain paths, project queue, inherited and
+  sibling dependencies, mergeable handoffs, system integration blocker,
+  reviewer-run fix subtasks), TASK-013 (ADR-006 and the ADR-005 amendment:
+  acceptance does not merge, M1 and M2, sibling reordering), TASK-014 (the
+  "Accepted, not merged" group, "accept anyway", M3, records after hand
+  merges, overrides).
 
-- **Q24 (decision queue):** completed top-level tasks whose work is not on main
-  appear in the decision queue as their own group, "Accepted, not merged", with
-  refused merges first. *Changed:* UX expectations.
-- **Q25 (known conflict at acceptance):** refuses the accept with
-  `merge_conflict` by default. A human may use "accept anyway", which is
-  recorded as an override. *Changed:* transition table (T9), T9, Audit record,
-  Failure behavior, Interfaces, validation item 12.
-- **CONTRACT-004 Q19 (hand merges are fact):** a hand merge is always accepted
-  as fact. A hand merge made while a top-level task is `in_review` makes it
-  `completed` through the new system transition **M3 Accepted by early merge**,
-  with the note "accepted by early merge; review skipped". *Changed:*
-  Definitions (integration status), transition table (M3), M1, M2, new M3,
-  Audit record, I6, I22, Interfaces, validation item 15.
-- **CONTRACT-004 Q20 (record after a hand merge):** the hand merge stands; the
-  task record is written or updated, with a note, in the next merge Moonbeam
-  performs in that project. *Changed:* M1, M2.
-- **Overrides (ADR-007 point 4):** new "Overrides" subsection of the audit
-  record: who, when, what was bypassed, and the reason when one was given, on
-  the task and in its task record.
-- Q24 and Q25 moved to "Resolved questions". New open question Q26 (hand
-  merges before acceptance outside `in_review`).
+Changed in CONTRACT-005 (TASK-015; Board, 2026-09-25, on the TASK-006
+implementation questions):
 
-### 2026-09-24 — TASK-013: ADR-006, the ADR-005 amendment, Q22 and Q23
-
-The board approved ADR-006, amended ADR-005 so that acceptance and merge are
-separate human steps, and answered Q22 and Q23 when approving TASK-013. This
-revision applies them. It does not change the approval.
-
-Changed transitions and actions:
-
-- **T9 Accept:** no longer merges and no longer changes the repository. It
-  records the accepted commit. The Board A4 rule "if the merge fails at
-  acceptance, the accept is rejected and the task stays `in_review`" is removed
-  from T9 and re-expressed at merge time in M1: a merge that cannot be made is
-  refused, and the task stays `completed` with integration status "Merge
-  refused". A merge conflict known at acceptance is a warning, not a refusal
-  (interim reading, Q25; superseded by TASK-014, which restores the refusal
-  with an "accept anyway" override). T9 no longer raises `merge_conflict`; it raises
-  `repository_unavailable` only when the changed-file set cannot be
-  determined.
-- **New M1 Merge into main:** human only, for a completed top-level task whose
-  work is not on main. Refused with `merge_conflict`, `working_folder_unsafe`
-  (new, ADR-006 decision 4), or `repository_unavailable`. The permanent record
-  is written as part of the merge.
-- **New M2 Merge by hand detected:** system. Records that a completed task's
-  work reached main by hand.
-- **Path dependencies (ADR-005 amendment):** a queue or inherited dependency on
-  a top-level task is finished when that task is cancelled or its work is on
-  main, not when it is completed. Completed tasks stay in the queue until their
-  work is on main.
-- **D1 (Board Q22):** a human may also move a subtask among its siblings.
-  Sibling order starts as creation order.
-- **T2 (Board Q23):** the interim reading is confirmed. There is no separate
-  "changes no files" declaration.
-- Pushing main is a human-only action defined by CONTRACT-004 B16. It has no
-  lifecycle effect.
-
-Other changes:
-
-- States (`completed`), Definitions (project queue, sibling order, path
-  dependency, accepted commit, on main, integration status), Actors (system),
-  Audit record, Failure behavior, Concurrency, Interfaces, UX, and validation
-  items 2, 11, 12, 14, and 15.
-- Invariants: I2, I17, I18, and I19 reworded; new I21 (acceptance leaves the
-  repository unchanged) and I22 (merges follow acceptance).
-- Q22 and Q23 moved to "Resolved questions". Q17's resolution carries a
-  supersession note. New open questions Q24 (ADR-005 amendment, open point 3)
-  and Q25. The amendment's other two open points are CONTRACT-004 Q19 and Q20.
-
-### 2026-09-24 — TASK-012: board answers, round 1 sheet
-
-The board answered `docs/contracts/BOARD-QUESTIONS-2026-09-24.md`, following
-every recommendation. This revision applies the answers that concern this
-contract and aligns it with CONTRACT-002, CONTRACT-003, and CONTRACT-004. It
-does not change the approval.
-
-Citation convention: **"Board A4"** (or B1, C3, …) refers to an item on that
-answer sheet. A bare **"A4"** still refers to the answer to this contract's own
-Q4 (TASK-004 revision).
-
-Changed transitions and conditions:
-
-- **T2 Approve:** a task that changes files must declare paths. Paths are plain
-  file and directory paths, with no globs. Approval places the task at the end
-  of its project's queue (Board A1, A3).
-- **T3 Claim:** path dependencies now include those inherited from the parent
-  and those on earlier sibling subtasks (Board A2). Branch creation can reject a
-  claim (CONTRACT-004).
-- **T5:** a run ends as finished, failed, or stopped (Board C5).
-- **T6 Hand off:** the branch must merge cleanly into its integration target.
-  A split parent that has a completed subtask cannot be handed off (Board A4,
-  A5).
-- **T7 Record review:** a reviewer run of a subtask may add fix subtasks to the
-  parent in the same atomic step, when its review has findings (Board A6). "Same
-  model" is defined (Board C6).
-- **T8:** completion integrates the subtask into the parent's branch. An
-  integration failure raises a system blocker on the parent (Board A4).
-- **T9 Accept:** the review requirement is keyed to how the task entered review.
-  Out-of-scope files need a written reason. The merge and the permanent record
-  succeed or fail together with acceptance; a failed merge rejects the accept
-  and the task stays `in_review` (Board A4, C3, C4).
-- **T10 Return:** a split parent returned without new subtasks goes to
-  `approved`, and its claimant may only add subtasks (Board A5).
-- **T11:** eligible agent runs confirmed; reviewer runs added (Board A6).
-- **T15 Cancel:** an agent may cancel only a subtask its own run created, and
-  only while the subtask has never been claimed (Board A6).
-- **C1 Blocked:** the system may add one kind of blocker, for subtask
-  integration failure (Board A4). The scope of unblocking is confirmed (Board
-  A7).
-- **D1:** pairwise reordering of a dependency is replaced by moving a task's
-  position in the per-project queue (Board A3).
-
-Other changes:
-
-- Definitions: overlap and path syntax are decided (Board A1); new terms
-  "project queue", "inherited" and "sibling" path dependencies.
-- The "Path dependencies" section is rewritten around the queue (Board A2, A3).
-- Failure behavior lists `unidentified` (CONTRACT-002) and the repository
-  categories of CONTRACT-004, and states the order in which checks apply (Board
-  A8).
-- Audit records carry the identity mode `selected` for human actors (Board A8).
-  The acceptance record carries the out-of-scope reason and the warnings
-  confirmation (Board C4).
-- Invariants: I2, I13, I17, and I18 reworded; new I19 (queue order) and I20
-  (returned split parents are not worked directly).
-- Q14–Q21 moved to "Resolved questions". New open questions Q22 and Q23.
-
-### 2026-09-24 — TASK-004: board answers A1–A13 and ADR-005
-
-The board approved this contract and answered its open questions (now under
-"Resolved questions"). ADR-005 was approved after the contract was written. This
-revision brings the body into line with both. It does not change the approval.
-
-Changed transitions:
-
-- **T3 Claim:** now requires that no earlier-approved task with overlapping
-  paths is unfinished (ADR-005). Only agent-run claims get an expiry deadline
-  (A1).
-- **T5 Claim ends automatically:** the expiry trigger applies only to agent-run
-  claims. Human claims never expire (A1).
-- **T7 Record review:** if the reviewer uses the same model as the implementing
-  run, the review is flagged. A different model is recommended but not required
-  (A11).
-- **T8 Subtask completes on review:** confirmed as final. A subtask is done once
-  its agent review is recorded, and it is never reopened. Findings are handled
-  through new subtasks (A2).
-- **T9 Accept:** now includes merging the task's work. Merge mechanics are in
-  CONTRACT-004 (ADR-005). A top-level leaf task still needs an agent review, and
-  a human may waive it with a reason (A5).
-- **T10 Return:** a returned leaf goes to `approved`, unclaimed, with return
-  notes (A4). A returned split parent gets new subtasks instead of reopened ones
-  (A2, A3).
-- **T11 Split:** agents may add subtasks to a split parent within its scope
-  envelope without human involvement (A10). Only top-level tasks split (A6).
-  Narrowing now covers paths (ADR-005).
-- **T12 Parent enters review:** can now be triggered by an agent cancelling a
-  subtask (A7).
-- **T13 Reopen subtask:** removed (A2, A3). The ID is retired and will not be
-  reused.
-- **T15 Cancel:** agents may cancel subtasks they created (A7).
-- **C1 Blocked:** unblocking a parent unblocks its subtasks (A9). Claim-expiry
-  suspension now applies only to agent-run leases (A1).
-- **C2 Paused:** expiry suspension now applies only to agent-run leases (A1).
-- **New action — reorder path dependency:** human only (ADR-005).
-
-Other changes:
-
-- Scope envelope includes paths. Path dependencies are recorded at approval and
-  shown on both tasks (ADR-005). The envelope stays fixed after approval (A8).
-- Invariants: I2 no longer mentions reopening, I12 has no exception, and I13 is
-  reworded. New invariants: I17 (path dependency) and I18 (main branch holds only
-  accepted work).
-- Audit: claim renewals and non-authority rejections are not recorded (A12).
-  Same-model reviews and path dependencies are recorded.
-- Identity dependency confirmed (A13).
-- New open questions Q14–Q21 cover points this revision uncovered but could not
-  decide.
+- **I9 corrected.** It no longer contradicts T14: a split parent whose
+  subtasks were all cancelled may be worked directly and enter review by
+  handoff with no completed subtask.
+- **New T17 Edit proposed task**, and new invariant **I23** (nothing is edited
+  after approval). Global precondition 3, Definitions (author), Scope
+  envelope, transition table, Audit record, Interfaces, UX, and validation
+  item 16 follow.
+- **New readings R1–R8**, recorded in the sections they govern:
+  - R1: agent cancel and break-claim failure categories (Failure behavior).
+  - R2: a human recording a review is `not_permitted` (T7).
+  - R3: a return that adds subtasks writes one `returned` record on the parent
+    (T10, Audit record).
+  - R4: returning a leaf with new subtasks is rejected (T10).
+  - R5: deactivating an inactive user, or reactivating an active one, is
+    `invalid_transition` (Failure behavior).
+  - R6: an out-of-range queue position is `validation` (D1).
+  - R7: renewing a suspended lease resets it to the full term (Claim expiry).
+  - R8: paths are validated at create, split, and edit, as well as at approval
+    (T1, T11, T17, Scope envelope).
+- **Q26 decided and folded in** as new system action **M4** (hand merge before
+  acceptance outside `in_review`: warning plus recorded override, no state
+  change). M3 no longer points to an open question.
+- The audit rule "one record per affected task" now states its exceptions,
+  which T11 already required. Inline history notes about earlier revisions
+  were removed from the body. ADR-007 is cited as approved.
+- New open question Q27 (approving a task edited after the approver viewed
+  it). Validation items 16–18 are new.
 
 ## Purpose
 
@@ -249,8 +118,9 @@ and never accept (ADR-003). It is specified here as an invariant.
   nothing in the repository, and that the merge into main (with the permanent
   record) is a separate human action on a completed task (M1), as boundaries
   with CONTRACT-004.
-- Detection of a completed task's work reaching main by hand (M2), and its
-  effect on path dependencies.
+- Detection of a task's work reaching main by hand (M2, M3, M4), and its
+  effect on state and path dependencies.
+- Editing a task while it is `proposed` (T17).
 - Failure behavior: illegal transitions, authority violations, concurrent races,
   and the order in which identity, lifecycle, and repository checks apply.
 
@@ -288,7 +158,7 @@ and never accept (ADR-003). It is specified here as an invariant.
   that interface to report actor *kind* reliably (A13) and to reject
   unidentified requests before any rule here applies.
 - Handoff and review document content, beyond their existence as records.
-- Scope-envelope editing workflows beyond what is stated in "Scope envelope".
+- Editing workflows beyond T17 and what is stated in "Scope envelope".
 - Visual design of the dashboard and decision queue.
 
 ## Actors
@@ -311,14 +181,15 @@ Rules for actor kind:
   subtask approval is derived from a human approval of the parent and is
   recorded as such. The only blocker it adds is the subtask integration blocker
   (C1), and it never resolves blockers. Its only action toward main is
-  detecting a merge done by hand (M2).
+  detecting a merge done by hand (M2, M3, M4).
 
 Roles referenced below:
 
 - **Claimant**: the human or agent run that holds the active claim on a task.
 - **Author**: the actor that created a task. For a subtask, this is the actor
-  that performed the split or added the subtask. For a subtask added by an agent,
-  the author is that specific run.
+  that performed the split or added the subtask. For any task created or added
+  by an agent, the author is that specific run; a later run of the same agent
+  or role is not the author.
 - **Reviewer**: an agent run that records a review of a handed-off task. It
   must not be the claimant whose work it reviews.
 - **Implementing run**: the agent run whose handoff is under review. There is
@@ -414,7 +285,9 @@ Global preconditions for any action:
      subtasks to that subtask's parent (T7, T11);
    - a run bound to the parent or to one of its subtasks may cancel a subtask
      that this same run created, while that subtask has never been claimed
-     (T15).
+     (T15);
+   - the run that authored a `proposed` task may edit it (T17) or withdraw it
+     (T15) while it is `proposed`.
 
    Runs are started only by a human action. There are no scheduled or
    self-waking agents.
@@ -462,12 +335,14 @@ otherwise.
 | T14 | Parent falls back | `in_progress` → `approved` (split parent) | System | All subtasks are `cancelled`. |
 | T15 | Cancel | any non-terminal → `cancelled` | Human; Agent only for a `proposed` task it authored or a never-claimed subtask its run created | Reason given. Cascades to subtasks (T16). |
 | T16 | Cascade cancel | any non-terminal → `cancelled` (subtask) | System | Parent was cancelled. |
+| T17 | Edit proposed task | `proposed` → `proposed` | Human; Agent only as the run that authored the task | Top-level task in `proposed`; edited fields pass the same validation as at create, including paths (R8). |
 | C1 | Block / unblock | condition only | Human; Agent only on the task its run is bound to; System (adds the integration blocker only) | See C1. |
 | C2 | Pause / resume | condition only | Defined by the pauses contract | See C2. |
 | D1 | Move task in project queue, or subtask among its siblings | no state change | **Human only** | Top-level task in the queue, or a subtask (Board Q22); no started task gains an unfinished path dependency. See "Project queue and path dependencies". |
 | M1 | Merge into main | no state change (`completed`) | **Human only** | Top-level `completed` task whose work is not on main; project folder safe; merges cleanly. See M1. |
 | M2 | Merge by hand detected | no state change (`completed`) | System | Main contains the accepted commit of a completed top-level task that has no Moonbeam merge. See M2. |
 | M3 | Accepted by early merge | `in_review` → `completed` | System | Main contains the review commit of a top-level `in_review` task, merged by hand before acceptance (CONTRACT-004 Q19). See M3. |
+| M4 | Merge by hand before acceptance, outside review | no state change | System | Main contains work of a task's branch that has not been accepted, in a case M3 does not cover. Warning and override only. See M4. |
 
 Any (state, action) pair not in this table is an illegal transition and is
 rejected (see "Failure behavior").
@@ -477,6 +352,10 @@ rejected (see "Failure behavior").
 - **Actors:** Human; Agent acting in a run.
 - **Preconditions:** A title and a desired outcome are required. The draft
   scope envelope and acceptance criteria may be incomplete.
+- **Paths at create (R8):** any paths given are validated as at approval (T2):
+  a glob, an absolute path, or a path that leaves the repository root is
+  rejected with `validation`. A task can therefore never hold a path that
+  would make it impossible to approve.
 - **Postconditions:** A new top-level task exists in `proposed` with its author
   recorded. It has no claim. Subtasks are never created through T1, only
   through T11.
@@ -608,6 +487,9 @@ rejected (see "Failure behavior").
 ### T7 Record review
 
 - **Actors:** An agent acting in a reviewer run.
+- **Human attempt (R2):** a human may not record a review. Recording a review is
+  not a human-only action, so the attempt is rejected with `not_permitted`
+  (not `authority_violation`) and is not audited.
 - **Preconditions:** State `in_review`. The reviewer run is not the run whose
   handoff is under review. When a human claimed the work, any agent reviewer
   run qualifies. For a split parent in review, an optional integration review
@@ -686,9 +568,8 @@ rejected (see "Failure behavior").
     human gives a written reason. For a task with no paths, every changed file
     is outside its paths. A missing reason is rejected with `validation`.
   - **No merge (ADR-005 amendment).** Accepting does not merge and does not
-    change the project repository. Until the TASK-013 revision, T9 included
-    the merge, and a failed merge rejected the accept (Board A4). That rule now
-    applies to the merge action (M1). The out-of-scope check needs the task's
+    change the project repository. A merge that cannot be made is refused at
+    merge time (M1, Board A4). The out-of-scope check needs the task's
     changed-file set (CONTRACT-004). If it cannot be determined, the accept is
     rejected with `repository_unavailable`.
   - **Known conflict (Board, 2026-09-25, Q25).** If the task branch is known
@@ -699,8 +580,7 @@ rejected (see "Failure behavior").
     anyway"**, an explicit override (ADR-007 point 3): the accept then
     proceeds, the override is recorded (see "Overrides" under Audit record),
     and a merge requested later is refused until the conflict is resolved
-    (CONTRACT-004 B7). The interim reading (conflict as a warning only) is
-    withdrawn.
+    (CONTRACT-004 B7).
   - Main having moved since the handoff or review does not prevent acceptance.
     It is shown as a warning (Board C4, CONTRACT-003).
 - **Postconditions:**
@@ -733,9 +613,17 @@ rejected (see "Failure behavior").
     return notes, or release it. It may not be worked directly and cannot be
     handed off (T6). No parent-level review is needed afterwards, because each
     new subtask gets its own review.
+- **Leaf with new subtasks (R4):** a return that adds subtasks to a leaf task
+  is rejected with `invalid_transition`; T10 adds subtasks only to split
+  parents. The human returns the leaf without subtasks, and it can then be
+  split (T11).
 - A return merges nothing into the main branch. The returned work continues on
   its task branch (CONTRACT-004 B10, ADR-005).
 - **Audit:** `returned`, human actor, reason, and the list of new subtasks.
+  **R3:** a return that adds subtasks writes one record on the parent,
+  `returned`, listing the new subtasks. It does not also write `split` on the
+  parent. Each new subtask gets `created_by_split` and `auto_approved`, as in
+  T11.
 
 ### T11 Split / add subtasks
 
@@ -761,7 +649,8 @@ rejected (see "Failure behavior").
   - Agent actor: the parent is not blocked.
   - At least one subtask is defined. Each has a title, a desired outcome,
     acceptance criteria, and a scope envelope that satisfies the narrowing
-    rules (see "Scope envelope").
+    rules (see "Scope envelope"). Its paths are validated as at T2 (R8): a
+    glob, absolute, or escaping path is rejected with `validation`.
   - If the parent has no task branch yet, one can be created (CONTRACT-004 B2).
 - **Postconditions:**
   - Each subtask exists, linked to the parent, in state `approved`. T11
@@ -855,6 +744,35 @@ illegal transition (`invalid_transition`).
   operation as the parent's cancellation.
 - **Audit:** `cancelled_by_parent`, system actor, parent cancellation reference.
 
+### T17 Edit proposed task (Board, 2026-09-25)
+
+- **Actors:**
+  - Any human.
+  - An agent, only as the run that authored the task (see "Author"), while
+    that run is active. Any other agent run is rejected with `not_permitted`.
+- **Preconditions:**
+  - State `proposed`. Subtasks are never `proposed`, so only top-level tasks
+    are edited. Editing a task in any other state is rejected with
+    `invalid_transition`: after approval nothing is editable, and a scope
+    change means cancelling and re-proposing (Board A8, I23).
+  - At least one field is changed.
+  - The edited task meets the requirements of T1: a title and a desired
+    outcome are present.
+  - **Paths (R8):** edited paths are validated as at create and approval: a
+    glob, absolute, or escaping path is rejected with `validation`.
+- **Editable fields:** title; description, including the desired outcome;
+  scope envelope (inclusions, exclusions, paths, linked contracts,
+  constraints); acceptance criteria. Nothing else, including the author, can
+  be edited.
+- **Postconditions:**
+  - State stays `proposed`. The task has no claim, queue position, or path
+    dependency, so none changes.
+  - A later approval (T2) approves the task as it stands when T2 is applied
+    (see Q27).
+- **Audit:** `edited`, actor (human with identity mode, or agent, model, and
+  run), and each changed field with its previous and new value. Every edit
+  produces its own record.
+
 ### M1 Merge into main (ADR-005 amendment, ADR-006)
 
 - **Actors:** Human only. Moonbeam performs the merge. An agent attempt is
@@ -881,9 +799,8 @@ illegal transition (`invalid_transition`).
   - Integration status is Merged by Moonbeam.
   - The task leaves the project queue, and path dependencies on it are
     finished.
-- **Refusal (Board A4, re-expressed at merge time):** before the ADR-005
-  amendment, a failed merge rejected the accept and the task stayed
-  `in_review`. Now the merge itself is refused. Main, the project folder, and
+- **Refusal (Board A4, applied at merge time):** a merge that cannot be made
+  is refused. Main, the project folder, and
   the task are unchanged. The task stays `completed`, and its integration
   status shows Merge refused, with the category and details, until the next
   request. That status is informational: it is not a lifecycle state or
@@ -928,8 +845,9 @@ If it happens before acceptance, the task is treated as accepted.
 - **Trigger:** Moonbeam observes that main contains the review commit of a
   top-level task in `in_review`: the handoff commit of its latest handoff
   (T6), or, for a split parent that entered review by T12, its branch head
-  recorded at that entry (CONTRACT-004 B14). Whether this also applies to
-  tasks in other states is open (Q26).
+  recorded at that entry (CONTRACT-004 B14). M3 fires only for top-level
+  `in_review` tasks, whether or not they are blocked or paused. Every other
+  hand merge before acceptance is M4 (Board, 2026-09-25, Q26).
 - **Preconditions:** none beyond the trigger. The hand merge is fact, so the
   T9 preconditions (review requirement, out-of-scope reason, known conflict)
   are not checked. Their absence is recorded in the override.
@@ -945,6 +863,27 @@ If it happens before acceptance, the task is treated as accepted.
 - **Audit:** `accepted_by_early_merge`, system actor, from-state `in_review`,
   to-state `completed`, the main commit, the review commit, and the override.
   It stands in place of both `accepted` and `merge_detected` for this task.
+- Open blockers and any open pause stay recorded as they were; M3 does not
+  resolve them (Board, 2026-09-25, Q26).
+
+### M4 Merge by hand before acceptance, outside review (Board, 2026-09-25, Q26)
+
+- **Actor:** System.
+- **Trigger:** Moonbeam observes that main contains work from a task's branch
+  before that task was accepted, in any case M3 does not cover. Examples: the
+  task is `approved` (for example after a return) or `in_progress` (with or
+  without an active run), a split parent has non-done subtasks, or the branch
+  is a subtask's branch (subtasks never merge into main through Moonbeam)
+  (CONTRACT-004 B14).
+- **Postconditions:**
+  - **No state change.** The lifecycle state, claim, subtasks, blockers,
+    pause, queue position, and path dependencies are unchanged.
+  - The task shows the warning "reached main by hand before acceptance".
+  - The hand merge stands (ADR-007 point 2). Moonbeam never reverts it.
+  - The hand merge is recorded as an override (see "Overrides" under Audit
+    record): the human acceptance and the Moonbeam merge step were bypassed.
+- **Audit:** `early_merge_detected`, system actor, from-state and to-state
+  equal, the main commit, and the override.
 
 ### C1 Blocked condition
 
@@ -1034,18 +973,23 @@ For lifecycle purposes:
   and view treats the claim as expired, even if the `claim_expired` audit
   record is written slightly later. That record carries the deadline as its
   effective time.
+- **Renewal while suspended (R7):** a lease may be renewed while it is
+  suspended. The renewal resets its remaining time to the full lease term (30
+  minutes), which then resumes when the suspension ends.
 - The lease deadline of an agent-run claim is visible wherever the claim is
   shown. Only the latest renewal time is kept visible. Renewals are not audited
   (A12).
 
 ### Scope envelope
 
-- The envelope is set while the task is `proposed` and is fixed at approval.
-  After approval, nobody can widen or edit it, including its paths. A human who
-  needs a different scope cancels the task and proposes a new one (A8). A pause
-  answer cannot widen it either.
+- The envelope is set while the task is `proposed`, at creation (T1) and
+  through edits (T17), and is fixed at approval. After approval, nobody can
+  widen or edit it, including its paths (I23). A human who needs a different
+  scope cancels the task and proposes a new one (A8). A pause answer cannot
+  widen it either.
 - Paths follow the syntax in "Definitions": plain file and directory paths, no
-  globs (Board A1).
+  globs (Board A1). They are validated wherever they are set: at create (T1),
+  edit (T17), split (T11), and approval (T2) (R8).
 - A subtask inherits its parent's envelope and may only narrow it:
   - It includes every parent exclusion, and may add more.
   - It includes every parent constraint, and may add more.
@@ -1121,6 +1065,8 @@ For lifecycle purposes:
   - **Sibling order (Board Q22):** a human may likewise move a subtask to a new
     position among its siblings. The same constraint applies to siblings that
     are `in_progress` or `in_review`. A move never changes a subtask's parent.
+  - **Position out of range (R6):** a requested position outside the queue,
+    or outside the sibling list, is rejected with `validation`.
   - Audit: `queue_reordered` on the moved task, with its old and new position
     (in the queue, or among its siblings),
     and `path_dependencies_changed` on every other task whose dependencies
@@ -1128,13 +1074,18 @@ For lifecycle purposes:
 
 ### Audit record
 
-Every successful transition, condition change, queue move, merge (M1),
-detected hand merge (M2), and acceptance by early merge (M3) produces exactly one audit record per affected task. A split or cascade produces one per task
-touched. Each record contains:
+Every successful transition, edit (T17), condition change, queue move, merge
+(M1), detected hand merge (M2, M4), and acceptance by early merge (M3) produces
+one audit record per affected task, with these exceptions: a subtask created
+by T11 (including through T7 or T10) gets two, `created_by_split` and
+`auto_approved`; and D1 adds `path_dependencies_changed` on other tasks. A
+split or cascade produces records on every task touched. A return that adds
+subtasks writes only `returned` on the parent (R3). Each record contains:
 
 - project and task identifiers, and the parent identifier for subtasks
 - the action identifier (the names used above)
-- from-state and to-state (equal for condition changes, T7, D1, M1, and M2)
+- from-state and to-state (equal for condition changes, T7, T17, D1, M1, M2,
+  and M4)
 - actor kind: human, agent, or system
 - actor identity: the selected user and the identity mode (`selected` in V1,
   CONTRACT-002, Board A8); or the agent, model, and run; or, for the system,
@@ -1155,7 +1106,8 @@ Rejected authority violations are also recorded, as rejected attempts, with the
 same actor information. These are agent attempts to approve, accept, return,
 move a task in the queue, merge into main, push main, break another's claim,
 or cancel beyond what T15 allows (and any other human-only action in
-CONTRACT-002).
+CONTRACT-002). For breaking a claim and cancelling, only attempts within the
+run's binding are authority violations (R1).
 
 Two things are **not** recorded (A12):
 
@@ -1165,10 +1117,11 @@ Two things are **not** recorded (A12):
 #### Overrides (ADR-007 point 4; Board, 2026-09-25)
 
 An override is a human action that bypasses a gate: inside Moonbeam, "accept
-anyway" (T9); outside Moonbeam, a hand merge detected by M2 or M3. Moonbeam
-never blocks or reverts an override made outside it (ADR-007 point 2). Every
-override is recorded, as part of the audit record of the action that carries
-it (`accepted`, `merge_detected`, or `accepted_by_early_merge`), with:
+anyway" (T9); outside Moonbeam, a hand merge detected by M2, M3, or M4.
+Moonbeam never blocks or reverts an override made outside it (ADR-007 point
+2). Every override is recorded, as part of the audit record of the action
+that carries it (`accepted`, `merge_detected`, `accepted_by_early_merge`, or
+`early_merge_detected`), with:
 
 - **who:** for "accept anyway", the selected user; for a hand merge, the merge
   commit's author and committer as git records them, matched to a registry user
@@ -1176,7 +1129,8 @@ it (`accepted`, `merge_detected`, or `accepted_by_early_merge`), with:
 - **when:** the server time of the action or detection, and for a hand merge
   also the merge commit's time
 - **what was bypassed:** the known conflict and its files; the Moonbeam merge
-  step (and any earlier refused merge); or, for M3, human acceptance and review
+  step (and any earlier refused merge); for M3, human acceptance and review;
+  or, for M4, human acceptance and the Moonbeam merge step
 - **the reason**, when one was given. "Accept anyway" offers an optional reason
   field. A hand merge carries no reason; its commit message is kept.
 
@@ -1214,8 +1168,11 @@ These hold after every action, at every observable moment.
 - **I7 — Subtask review.** Every `completed` subtask has an agent review against
   its latest handoff, recorded by a reviewer other than its claimant.
 - **I8 — Subtasks are born approved.** No subtask is ever in `proposed`.
-- **I9 — Parent review readiness.** A split parent in `in_review` has every
-  subtask done and at least one `completed`.
+- **I9 — Parent review readiness** (corrected in CONTRACT-005). A split parent
+  in `in_review` has every subtask done. If it entered review by subtasks
+  (T12), at least one subtask is `completed`. If it entered review by handoff
+  (T6), which is possible only after it fell back (T14), every subtask is
+  `cancelled`.
 - **I10 — Parent completion.** A `completed` or `cancelled` parent has no
   non-done subtask.
 - **I11 — Envelope narrowing.** Every subtask's envelope, including its paths,
@@ -1243,8 +1200,8 @@ These hold after every action, at every observable moment.
   puts a task's work on the project's main branch only through M1 on that
   task, or on its top-level parent if it is a subtask, after that task was
   accepted (T9), and only together with its permanent record. T6, T8, T9, T10,
-  T15, and T16 never merge into main. (Before the TASK-013 revision, the merge
-  was part of T9.) Commits and merges a person makes to main by hand, outside
+  T15, and T16 never merge into main. Commits and merges a person makes to
+  main by hand, outside
   Moonbeam, are outside this invariant and are shown as a warning
   (CONTRACT-004, Board C3).
 - **I19 — Queue order.** Each project's queue is a single total order of its
@@ -1259,6 +1216,11 @@ These hold after every action, at every observable moment.
 - **I22 — Merges follow acceptance.** Every successful M1 is on a `completed`
   top-level task, and a task has at most one of: a Moonbeam merge (M1), a
   detected hand merge (M2), or an acceptance by early merge (M3).
+- **I23 — Approved content is fixed.** A task's title, description, scope
+  envelope (including paths), and acceptance criteria change only through T1
+  and T17, and only while it is `proposed`. No action changes them once the
+  task has been approved. Every change made with T17 has an `edited` audit
+  record.
 
 ## Failure behavior
 
@@ -1272,18 +1234,18 @@ Lifecycle and identity categories:
 |---|---|
 | `unidentified` | The actor cannot be resolved (CONTRACT-002): no selected user, an inactive user, or an invalid, expired, or ended-run agent credential. Evaluated before anything else. Not audited. |
 | `not_found` | The task, project, run, or referenced subtask does not exist. |
-| `authority_violation` | An agent attempts a human-only action (CONTRACT-002 list): approve, accept (including a review waiver), return, move a task in the queue, merge into main, push main, break another's claim, or cancel beyond what T15 allows. Always audited as a rejected attempt. |
-| `not_permitted` | The actor kind is allowed, but the actor lacks the required relationship: not the claimant, run not bound to this task (or, where T7, T11, or T15 allow, to a sibling subtask), not the blocker's author, not the subtask's creating run, or the subtask has been claimed. |
-| `invalid_transition` | The action is not defined for the task's current state or kind. Examples: accepting a subtask, claiming a `completed` task, approving an `approved` task, reopening any terminal task, splitting a subtask, handing off a split parent that has a completed subtask, a queue move that would give a started task a new unfinished path dependency, merging a task that is not `completed`, is a subtask, or is already on main. |
+| `authority_violation` | An agent attempts a human-only action (CONTRACT-002 list): approve, accept (including a review waiver), return, move a task in the queue, merge into main, push main, break another's claim, or cancel beyond what T15 allows. For breaking a claim and cancelling, only within the run's binding (R1). Always audited as a rejected attempt. |
+| `not_permitted` | The actor kind is allowed, but the actor lacks the required relationship: not the claimant, run not bound to this task (or, where T7, T11, T15, or T17 allow, to a sibling subtask or an authored proposed task), not the blocker's author, not the subtask's creating run, not the proposed task's authoring run, or the subtask has been claimed. Also a human recording a review (T7, R2). Not audited. |
+| `invalid_transition` | The action is not defined for the task's current state or kind. Examples: accepting a subtask, claiming a `completed` task, approving an `approved` task, editing a task that is not `proposed`, reopening any terminal task, splitting a subtask, returning a leaf with new subtasks (R4), handing off a split parent that has a completed subtask, a queue move that would give a started task a new unfinished path dependency, merging a task that is not `completed`, is a subtask, or is already on main. |
 | `conflict` | Another action changed the task first. Examples: concurrent claims, accept racing cancel, handoff racing lease expiry, adding a subtask racing the parent's entry into review. The response states the current state and claimant. |
 | `blocked` | The action is disallowed while the task is blocked, effectively blocked, or paused, or (for T3) while it has an unfinished path dependency of any kind. The response lists the open blockers, the pause, or the unfinished dependencies. |
-| `validation` | Required input is missing or invalid. Examples: a missing reason, a missing handoff record, an envelope or path that fails narrowing, a glob or absolute path, approval without acceptance criteria, acceptance with out-of-scope files and no reason, a reviewer's subtask addition with a review that has no findings. The response identifies each failing rule. |
+| `validation` | Required input is missing or invalid. Examples: a missing reason, a missing handoff record, an envelope or path that fails narrowing, a glob or absolute path, approval without acceptance criteria, acceptance with out-of-scope files and no reason, a reviewer's subtask addition with a review that has no findings, an invalid path at create, edit, or split (R8), a queue or sibling position out of range (R6), an edit that changes nothing or removes the title or desired outcome. The response identifies each failing rule. |
 
 Repository categories (defined by CONTRACT-004, raised by lifecycle actions):
 
 | Category | Raised by | When |
 |---|---|---|
-| `merge_conflict` | T6, T9, M1 | The branch does not merge cleanly into its integration target. The conflicting files are named. For T9, only when the conflict with main is known and "accept anyway" was not used (Q25; T9 raised it until the TASK-013 revision, not at all between TASK-013 and TASK-014, and again since). |
+| `merge_conflict` | T6, T9, M1 | The branch does not merge cleanly into its integration target. The conflicting files are named. For T9, only when the conflict with main is known and "accept anyway" was not used (Q25). |
 | `working_folder_unsafe` | M1 | Main is checked out in a folder that is not safe to update: uncommitted changes, an operation in progress, or untracked files in the merge's way (CONTRACT-004 B15, ADR-006). The folder and what to fix are named. |
 | `repository_unavailable` | T3, T6, T9, T11, M1 | The project repository cannot be read or written when the action needs it (for T9, to determine the changed-file set), or its registered folder is missing. |
 | `branch_name_taken` | T3, T11 | The task's branch name exists without a Moonbeam record for this task. |
@@ -1292,10 +1254,30 @@ Repository categories (defined by CONTRACT-004, raised by lifecycle actions):
 Order of evaluation (Board A8, CONTRACT-002): identity (`unidentified`), then
 permission (`authority_violation`, and `not_permitted` for targets outside an
 agent run's binding), then the lifecycle rules of this contract, then the
-repository step. An agent attempt at a human-only action is therefore always
+repository step. An agent attempt at a fixed human-only action (approve,
+accept, return, move in the queue, merge into main, push main, and the other
+human-only actions CONTRACT-002 lists) is therefore always
 `authority_violation`, whatever the task's state and even if the task does not
 exist. A repository failure is reported only when every lifecycle precondition
 holds.
+
+**R1 — Agent cancel and break claim (Board, 2026-09-25).** Cancelling (T15)
+and breaking another's claim (T4) are human-only depending on the target, so
+the run's binding (global precondition 3, with its exceptions) is checked
+first:
+
+- Target outside the run's binding: `not_permitted`, not audited.
+- Target within the binding, but the action is one no agent may ever take on
+  it: `authority_violation`, audited. This covers breaking another claimant's
+  claim, and cancelling a top-level task other than a `proposed` task the run
+  authored.
+- Target within the binding, and T15 would allow it except for the
+  relationship (a subtask created by another run, or one that has been
+  claimed): `not_permitted`, not audited.
+
+**R5 — User registry no-ops (boundary with CONTRACT-002).** Deactivating a
+user who is already inactive, or reactivating a user who is already active, is
+rejected with `invalid_transition` and changes nothing.
 
 Rejections other than `authority_violation` are returned to the caller but not
 audited (A12).
@@ -1309,9 +1291,10 @@ Concurrency rules:
 - Accept vs. cancel, return vs. accept, handoff vs. expiry, and add subtask vs.
   parent entering review: the first action applied wins. The other receives
   `conflict`, or `invalid_transition` if the state has already changed when it
-  is evaluated. (Before the TASK-013 revision, an acceptance whose merge had
-  landed on main won over a concurrent return or cancel. Acceptance no longer
-  merges, so first-applied-wins applies.)
+  is evaluated.
+- Edit vs. approve or cancel: the first action applied wins. An edit applied
+  after approval or cancellation is `invalid_transition`. An approval applied
+  after an edit approves the edited task (Q27).
 - Merges (M1) into one project's main branch are applied one at a time
   (CONTRACT-004 B7). Of concurrent merge requests for the same task, exactly
   one succeeds; the others receive `conflict` or `invalid_transition`. A merge
@@ -1334,6 +1317,7 @@ validators are implementation choices.
 | Action | Transition(s) |
 |---|---|
 | create task | T1 |
+| edit proposed task | T17 |
 | approve task | T2 (joins the project queue) |
 | claim task | T3 |
 | release claim / break claim | T4 |
@@ -1351,7 +1335,7 @@ validators are implementation choices.
 Pushing main is a project action defined by CONTRACT-004 B16. It has no
 lifecycle effect.
 
-No client can request a system transition (T5, T8, T12, T14, T16, M2, M3) or add
+No client can request a system transition (T5, T8, T12, T14, T16, M2, M3, M4) or add
 the integration blocker. There is no reopen action (T13 removed).
 
 Every task view exposes:
@@ -1395,6 +1379,11 @@ overlapping tasks.
   exactly what to fix and that nothing changed.
 - Approving a task that declares no paths states that it is approved as a task
   that changes no files (Board A1).
+- A `proposed` task offers an edit action (T17) to humans. Its history shows
+  each edit with who made it and what changed. Approved and later tasks offer
+  no edit; a scope change is offered as cancel and re-propose.
+- A task that reached main by hand before acceptance, outside review (M4),
+  shows the warning "reached main by hand before acceptance" and its override.
 - A split parent in review shows every subtask's handoff, review verdict,
   findings, and same-model flag in one place. The return action lets the human
   add new subtasks. It offers no subtask reopening. Returning without new
@@ -1523,42 +1512,52 @@ following:
     - Each task's state matches its latest state-changing record (I15).
     - Claim renewals and non-authority rejections produce no audit records
       (A12).
-14. **Invariants I1–I22** are checked after each step of a randomized sequence
+14. **Invariants I1–I23** are checked after each step of a randomized sequence
     of actions. A property-style test is recommended but not required.
+16. **Edit proposed task (T17, I23):**
+    - A human, or the authoring run while active, edits title, description,
+      scope envelope, and acceptance criteria of a `proposed` task. Each edit
+      writes one `edited` record with the changed fields.
+    - Another agent run is rejected with `not_permitted`. Editing a task in any
+      other state is rejected with `invalid_transition`. Invalid paths are
+      rejected with `validation`.
+17. **Recorded readings (R1–R8):**
+    - Agent cancel and break claim: outside the binding `not_permitted`, not
+      audited; a fixed human-only case within the binding
+      `authority_violation`, audited (R1).
+    - A human recording a review gets `not_permitted` (R2).
+    - A return with new subtasks writes exactly one `returned` record on the
+      parent and no `split` (R3). A return adding subtasks to a leaf is
+      `invalid_transition` (R4).
+    - Deactivating an inactive user or reactivating an active one is
+      `invalid_transition` (R5). An out-of-range queue or sibling position is
+      `validation` (R6).
+    - Renewing a suspended lease resets it to the full term (R7).
+    - Glob, absolute, and escaping paths are rejected at T1, T11, and T17 as at
+      T2 (R8).
+18. **Fallen-back parent and early hand merges:**
+    - A split parent whose subtasks were all cancelled can be claimed, handed
+      off, and enter `in_review` with no completed subtask, and I9 holds (T14,
+      T6).
+    - A hand merge before acceptance outside `in_review` (M4) changes no state,
+      shows the warning, and records the override. M3 fires for blocked or
+      paused `in_review` tasks and leaves their blockers recorded.
 
-Board review of this contract was the validation for TASK-002. Board review of
-the 2026-09-24 revision diffs is the validation for TASK-004, TASK-012, and
-TASK-013, and of the 2026-09-25 revision diff for TASK-014.
+Board review of this contract, with a diff against CONTRACT-001, is the
+validation for TASK-015.
 
 ## Open questions
 
-This was uncovered by the TASK-014 revision and is **not decided**.
+This was uncovered while writing T17 and is **not decided**.
 
-- **Q26 — A hand merge before acceptance, outside `in_review`.** The board said
-  a hand merge before acceptance makes the task accepted ("accepted by early
-  merge; review skipped"). M3 applies this to a top-level task in `in_review`,
-  where the merged commit is the one under review. Not decided:
-  - (a) A task branch that reaches main by hand while the task is `approved`
-    (for example after a return), `in_progress` (possibly with an active run
-    holding the claim), or has non-done subtasks. Which commit counts as
-    accepted, and what happens to an active claim or run and to unfinished
-    subtasks?
-  - (b) A subtask branch merged into main by hand. Subtasks never merge into
-    main through Moonbeam.
-  - (c) A task that is blocked or paused when M3 fires. M3 as written does not
-    wait for either; what happens to its open blockers or pause on
-    `completed`?
-
-  Interim reading: M3 fires only for top-level `in_review` tasks, whether or
-  not they are blocked or paused, and open blockers stay recorded as they were.
-  In every other case Moonbeam shows the warning "reached main by hand before
-  acceptance" on the task (CONTRACT-004 B14), records the override, and
-  changes no state. **Proposed default:** (a) treat the task as accepted by
-  early merge at the branch head contained in main, ending any claim as for a
-  cancelled run, and cancelling unfinished subtasks; (b) warning only; (c)
-  resolve blockers and pause by the system, noting the early merge.
-  **Board, 2026-09-25: interim reading adopted as the decision** (warning plus a
-  recorded override, no state change; ADR-007).
+- **Q27 — Approving a task edited after the approver viewed it.** T17 lets the
+  authoring run or another human edit a `proposed` task while a human is
+  reviewing it for approval. Interim reading (as written in T2, T17, and
+  Concurrency): approval approves the task as it stands when T2 is applied,
+  and the `approved` record follows the `edited` records in the task's
+  history. **Proposed default:** T2 names the version the approver saw, and is
+  rejected with `conflict` if the task was edited since, so a human never
+  approves content they did not see. Alternative: keep the interim reading.
 
 ## Resolved questions
 
@@ -1771,3 +1770,17 @@ clarified, both versions are kept.
   *Applied (TASK-014):* transition table (T9), T9, Audit record (Overrides),
   Failure behavior, Interfaces, validation item 12; CONTRACT-003,
   CONTRACT-004 UX expectations.
+- **Q26 — A hand merge before acceptance, outside `in_review`.** M3 treats a
+  hand merge of an `in_review` task's review commit as acceptance. Asked: (a)
+  a task branch reaching main by hand while the task is `approved`,
+  `in_progress`, or has non-done subtasks; (b) a subtask branch merged into
+  main by hand; (c) a task blocked or paused when M3 fires. The interim
+  reading was: M3 only for top-level `in_review` tasks, blocked or paused or
+  not, with open blockers left recorded; in every other case a warning
+  "reached main by hand before acceptance", a recorded override, and no state
+  change. The proposed default (accept at the branch head, end claims, cancel
+  unfinished subtasks, resolve blockers) was not adopted.
+  Board, 2026-09-25: interim reading adopted as the decision (warning plus a
+  recorded override, no state change; ADR-007).
+  *Applied (TASK-015):* M3, new M4, transition table, Audit record
+  (Overrides), Interfaces, UX, validation item 18.
