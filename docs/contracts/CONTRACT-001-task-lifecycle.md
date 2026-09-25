@@ -1,6 +1,6 @@
 # CONTRACT-001: Task lifecycle, claims, and splits
 
-Status: Approved (to be superseded by CONTRACT-005 once CONTRACT-005 is approved)
+Status: Superseded by CONTRACT-005 (2026-09-25)
 Approved by: Patrick
 Approved date: 2026-09-24
 Revised: 2026-09-24 (TASK-004; TASK-012; TASK-013); 2026-09-25 (TASK-014), see

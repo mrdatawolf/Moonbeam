@@ -1,9 +1,9 @@
 # CONTRACT-005: Task lifecycle, claims, and splits
 
-Status: Proposed
+Status: Approved
 Supersedes: CONTRACT-001
-Approved by:
-Approved date:
+Approved by: Patrick
+Approved date: 2026-09-25
 Related tasks: TASK-015 (this contract); TASK-002, TASK-004, TASK-012,
 TASK-013, TASK-014 (CONTRACT-001 and its revisions); TASK-006 (implementation
 readings adopted here)
