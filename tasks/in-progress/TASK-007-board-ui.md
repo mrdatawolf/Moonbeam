@@ -260,4 +260,32 @@ Not reviewed.
 
 ## Human acceptance
 
-Pending.
+Changes requested by Patrick, 2026-09-25. Returned to `in-progress/`.
+
+**Build user management after first-run setup.** Today only the users entered
+at setup can ever exist. Anyone must be able to add themselves as a user
+later.
+
+- Build the full user management that CONTRACT-002 describes: add, edit,
+  deactivate, and reactivate users. Inactive users are listed separately, and
+  e-mail addresses are shown there (CONTRACT-002 UX expectations).
+- Keep CONTRACT-002's rule that adding a user needs a selected user, because
+  every registry change records who made it. A newcomer chooses any existing
+  user, then adds themselves. The board chose not to change the contract for
+  self-registration from the picker.
+- Make the way to add a user easy to find from the header user select, for
+  example an "Add a user" link next to it.
+- Follow CONTRACT-002 validation: unique display names among active users, a
+  valid e-mail address, and the last active user can't be deactivated.
+- Add UI tests and screenshots for the new screens.
+
+**Board answers to the handoff questions:**
+
+1. Allowed actions from the API: yes. Added to TASK-016. Don't change it here.
+2. "Subtask findings" and "Fell back" groups: yes. Added to TASK-016. Don't
+   change it here.
+3. A board UI for adding subtasks: later, as its own task.
+
+Paths are unchanged (`ui/`, `packages/shared/`). The user-management API
+already exists from TASK-006, so no `server/` changes are expected. If one is
+needed, stop and ask, because TASK-017 owns `server/`.
