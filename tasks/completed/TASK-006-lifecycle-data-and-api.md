@@ -399,7 +399,278 @@ phase-3 boundary), and security notes.
 
 ## Review
 
-Not reviewed.
+# Review Report
+
+Task: TASK-006 Lifecycle data model and API (implementation commit b0ad16c)
+Reviewer: QualityAssurance (Claude), independent reviewer
+Date: 2026-09-25
+Outcome: Changes required
+
+Lifecycle note: this file was moved from `tasks/review/` to `tasks/completed/`
+in commit 9652bcd, before any review had been recorded. Acceptance is the
+board's decision, so the board should confirm whether that move was
+intentional. Given this outcome, the recommended state is `in-progress`.
+
+## Contract and acceptance review
+
+Reviewed against CONTRACT-001 and CONTRACT-002 (Approved). I treated these as
+intended behaviour, as the board instructed: the I9 correction (the T14
+fall-back case) and handoff questions 2–5 and 7–9. Questions 6 and 10 were not
+covered by that instruction and are listed under "Human decisions required".
+
+Acceptance criteria:
+
+- **Each transition has passing tests for allowed and rejected actors:** met
+  for the transitions in scope. The suites cover T1–T12, T14–T16, C1, C2 (data
+  only) and D1. There is no full state × action × actor matrix (CONTRACT-001
+  validation item 1). The tests use representative cells instead.
+- **Agents cannot approve, accept or return, and the attempt is audited:** met.
+  I verified this by reading the code and by the identity suite.
+  - `LifecycleService.run` (`server/src/lifecycle/service.ts:145`) rejects
+    fixed human-only actions for agents before it looks up the target.
+  - The registry routes apply the same rule in `RegistryService.guard`
+    (`server/src/registry.ts:64`).
+  - A rejected attempt is written after the transaction rolls back
+    (`recordViolation`, `service.ts:97`), so the record survives.
+- **Concurrent claims have exactly one winner:** met. The project row is locked
+  with `SELECT … FOR UPDATE` (`service.ts:171-176`), and partial unique indexes
+  back this up (`claims_one_active_per_task_uq`, `claims_one_active_per_run_uq`).
+  The concurrency suite shows 13 simultaneous claimants produce one winner.
+
+Verified by reading the code:
+
+- **Order of checks:**
+  - Actor resolution (`unidentified`) runs before permission.
+  - Permission runs before lifecycle rules.
+  - Request bodies are parsed last. Invalid JSON is deferred through
+    `INVALID_JSON`, so an agent sending a malformed body to accept still gets
+    403.
+  - An agent attempt at a human-only action on a missing task is
+    `authority_violation`.
+- **R2 and R3:** any `Authorization` header makes the request an agent
+  request, and the `X-Moonbeam-User` header is then ignored. A malformed,
+  unknown, ended or expired credential is `unidentified` and is never retried
+  as a human (`server/src/identity/actor.ts:64-92`).
+- **System actor:** no header or body field can set the actor kind. The system
+  actor is only built inside the server (`systemActor`). User ids must be UUIDs.
+- **Credential secrecy (ID9):**
+  - Only the SHA-256 hash is stored (`run_credentials.token_hash`).
+  - The value is returned only by `POST /api/dev/runs`.
+  - No view, audit record or log line includes it. The unhandled-error log
+    prints the error, not the request headers.
+- **Audit append-only:** a trigger refuses UPDATE, DELETE and TRUNCATE
+  (`packages/db/migrations/0001_audit_append_only.sql`).
+- **Identity mode and overrides:** human records carry `identity_mode =
+  selected`. "Accept anyway" records an override with who, when, what was
+  bypassed and the reason (`service.ts:848-854`).
+- **Agent binding:** agents are held to their own project for reads and writes
+  (`registry.getProject`, `readProject`, `run()`).
+
+## Validation reviewed or performed
+
+Run by me in `/home/patrick/Documents/Github/Moonbeam`:
+
+- `pnpm typecheck`: passes in all four packages.
+- `pnpm test`: passes (db 6, shared 8, server 131).
+- `pnpm build`: completed; every package reported Done.
+- Probe tests: I wrote four scratch tests in the session scratchpad, outside
+  the repository. They reuse `server/src/test/harness.ts` and ran through a
+  scratch Vitest config against the isolated test Postgres. No repository file
+  was changed. Results:
+  - **P1:** confirmed finding F1.
+  - **P2:** confirmed finding F2.
+  - **P3:** confirmed finding F3.
+  - **P4 and P5:** confirmed findings F4 and F5.
+  - **P8:** confirmed note N1.
+- No server was started. I did not repeat the implementer's manual curl
+  exercise; for that I rely on the handoff's record.
+- Leftover processes: none. Only the system Postgres was running afterwards.
+
+## Findings
+
+**F1 — major. I7 and I13: a subtask can complete without a review of its
+latest handoff.**
+
+- **Where:**
+  - `LifecycleService.returnTask` (`server/src/lifecycle/service.ts:906`) does
+    not clear `pendingCompletionReviewId`.
+  - `handoff` (`service.ts:707`) does not clear it either.
+  - `releaseDeferredCompletions` (`service.ts:398-406`) later completes the
+    subtask with that stale review id.
+- **Scenario (confirmed by probe P1):**
+  1. Subtask S1 is handed off.
+  2. A human blocks the parent.
+  3. A reviewer run records a review, so T8 is deferred.
+  4. A human returns S1. Return is allowed while blocked (C1).
+  5. The parent's blocker is resolved.
+  6. S1 is claimed and handed off again.
+  7. Any blocker is later added to S1 and resolved.
+  8. S1 becomes `completed`, citing the old review. There are 0 reviews
+     against its latest handoff.
+- **Expected:** a subtask completes only through a review recorded against its
+  latest handoff (I7, T8). A return must not leave a deferred completion
+  pending.
+- **Resolution:** clear `pendingCompletionReviewId` whenever a subtask leaves
+  `in_review` (T10), and whenever a new handoff is recorded. Add a regression
+  test. The randomized invariant test checks I7 but never reached this path.
+
+**F2 — major. Concurrency rule and CONTRACT-001 precondition 3: an agent
+action can be applied after its run has ended.**
+
+- **Where:** the actor is resolved before the action's transaction starts
+  (`routes.ts:58`, `actor.ts:72-83`). The run's status is not checked again
+  once the project lock is held (`service.ts:171-195`).
+- **Scenario (confirmed by probe P2, which reproduces the interleaving
+  directly):**
+  1. An agent's claim request resolves its actor while the run is active.
+  2. The run is ended.
+  3. The claim then takes the lock and succeeds.
+  4. The task is left `in_progress`, with a claim held by an ended run. T5
+     "run ended" has already happened, so nothing ends this claim until its
+     lease expires. If the task is blocked, the lease is suspended and the
+     claim is held indefinitely.
+- **Why it matters:** this outcome matches no sequential order of the two
+  actions. The same gap applies to every agent action, including handoff,
+  review and add-subtasks.
+- **Expected:** an agent action is evaluated against whether its run is active
+  at the moment it is applied.
+- **Resolution:** inside `run()`, after taking the project lock, re-check that
+  the agent's run is active and its credential is not revoked or expired.
+  Reject with `unidentified` (or `conflict`) otherwise. Add a test.
+
+**F3 — minor. C2 and "Claim expiry": a lease can stay suspended after its
+pause has ended.**
+
+- **Where:** `devEndRun` in the no-claim branch (`service.ts:1264-1269`)
+  closes the run's pauses but does not call `refreshLeases` for that task.
+- **Scenario (confirmed by probe P3):**
+  1. Run A claims a task.
+  2. Run B, bound to the same task, opens a pause, which suspends A's lease.
+  3. B ends. The task is no longer paused, but A's lease stays suspended.
+  4. Two hours later, the claim is still active.
+- **Scope:** the path is development-only today, but it is the T5 and C2 logic
+  the runs contract will build on.
+- **Resolution:** call `refreshLeases` for the tasks whose pauses were closed.
+
+**F4 — minor. Idempotence and audit: a no-op D1 move succeeds and is
+audited.**
+
+- **Where:** `move` (`service.ts:1124-1163`).
+- **Scenario (probe P4):** moving a task to the position it already holds
+  returns 200 and writes a `queue_reordered` record, although nothing changed.
+- **Resolution:** reject a move to the current position with
+  `invalid_transition`, or skip the audit record.
+
+**F5 — minor. Failure category: repeating an agent's withdrawal is reported as
+an authority violation.**
+
+- **Where:** `cancel` (`service.ts:958-964`).
+- **Scenario (probe P5):** an agent withdraws its own proposal, then repeats
+  the request. The second request gets 403 `authority_violation`, and a
+  spurious violation lands in the decision queue. The idempotence rule calls
+  for `invalid_transition`.
+- **Resolution:** check whether the task is terminal before the
+  cancel-beyond-allowance gate, but only when the task is one the agent could
+  otherwise cancel.
+
+**F6 — minor. ADR-006 and CONTRACT-004 Q25(a): changing the projects root can
+race with project registration.**
+
+- **Where:** `registerProject` reads and checks the root before taking
+  `PROJECTS_LOCK` (`registry.ts:299-305`, lock at `:318`). `setProjectsRoot`
+  checks the registered projects under that lock.
+- **Scenario:** both actions run at once. The new root commits between the
+  registration's check and its insert. A project is then registered outside
+  the current root.
+- **Evidence:** reasoning from the code only; not reproduced.
+- **Resolution:** read and check the root inside the locked transaction.
+
+**F7 — minor. Test coverage: gaps behind F1 and F2.**
+
+- There is no test of return or re-handoff after a deferred T8.
+- There is no test of an agent action racing the end of its run.
+- There is no systematic state × action × actor matrix (CONTRACT-001
+  validation item 1). Coverage is by representative cases.
+- **Resolution:** add targeted tests, and consider a table-driven matrix.
+
+**N1 — note. Agents can read every user's e-mail address.**
+
+- `GET /api/users` answers an agent credential with every user and e-mail
+  address (probe P8).
+- CONTRACT-002 lists "any human, and any viewer" as callers and limits agents
+  to their own project. User records are not part of any project.
+- This is low risk on the LAN, but it should be an explicit decision.
+
+**N2 — note. Agents can add blockers to their own handoff as "reviewer".**
+
+- `addBlocker` treats any bound agent on an `in_review` task as a reviewer
+  (`service.ts:1038`). That includes the implementing run whose handoff is
+  under review.
+- This is low impact, because the blocker is visible and a human can resolve
+  it.
+
+**N3 — note. Performance of views.**
+
+- `ViewData.load` reads every user and every run in all projects on each view
+  (`views.ts:60-61`), including `auditRecords` for every action response.
+- This is acceptable at V1 scale.
+
+**N4 — note. The dev pause endpoints use the wrong permission name.**
+
+- `devOpenPause` and `devClosePause` pass the action name `end_run` to `run()`
+  (`service.ts:1278`, `:1303`).
+- It works, because humans are checked earlier, but it is misleading.
+
+## Regression and security assessment
+
+- **Authority boundary:** holds for every request that carries an agent
+  credential.
+  - Fixed human-only actions are gated before the target is loaded and are
+    audited: approve, accept including waiver and accept-anyway, return, move,
+    start run, user management, projects root, and project registration.
+  - Target-dependent actions (breaking a claim, cancelling beyond the agent
+    allowance) are checked after binding, as the accepted Q3 reading says.
+  - I found no path by which an agent reaches a human-only effect.
+  - Merge, push, relink and answering a pause have no routes yet, as the
+    handoff says.
+- **Binding escape:** none found. Agents cannot claim tasks other than their
+  bound task. Actions on other projects are `not_permitted`. Cancelling a
+  subtask checks the author run, the binding and whether the subtask was ever
+  claimed.
+- **Actor timing:** F2 is the one gap. An actor resolved before the lock is
+  not re-validated.
+- **System-actor spoofing:** not possible from client input (identity test and
+  code review).
+- **Credential leakage:** none found in responses, audit records or logs.
+- **Reads that write:** GET requests run the lease sweep, as the handoff
+  records. This is acceptable.
+- **Not verified:**
+  - Behaviour under real phase-3 repository operations. The stub is always
+    mergeable.
+  - Performance with large projects.
+  - The manual curl exercise, which I did not re-run.
+  - Contention between the 15-second sweep and heavy action traffic.
+
+## Recommendations
+
+- Fix F1 and F2, with regression tests, before acceptance.
+- Fix F3–F6, which are small. They can be deferred if the board prefers.
+- Consider re-validating the actor inside the lock as a general rule. This
+  fixes F2 and hardens the seam for the runs contract.
+- The phase-3 risk the implementer recorded stands: repository calls happen
+  while the project lock is held.
+
+## Human decisions required
+
+- **Handoff Q6:** paths are validated at T1 creation. That is stricter than
+  T1's "draft may be incomplete". It is reasonable without an edit action, but
+  it is a deviation.
+- **Handoff Q10:** D1 can move a task ahead of accepted but unmerged
+  overlapping work. That matches the literal D1 constraint, but it lets
+  overlapping work proceed before the earlier work is on main.
+- **N1:** should agents be able to list users and their e-mail addresses?
+- **Lifecycle:** the task file is in `tasks/completed/` without a review.
+  Recommended transition: back to `in-progress` for F1 and F2.
 
 ## Human acceptance
 
