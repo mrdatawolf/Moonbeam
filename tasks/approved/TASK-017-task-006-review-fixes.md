@@ -4,8 +4,8 @@ Owner role: Implementer
 Assigned agent:
 Proposed by: Claude (planning session)
 Proposed date: 2026-09-25
-Approved by:
-Approved date:
+Approved by: Patrick
+Approved date: 2026-09-25
 Related contracts: CONTRACT-005 (supersedes CONTRACT-001), CONTRACT-002
 Related ADRs: ADR-003, ADR-006, ADR-007
 Dependencies: TASK-006 (completed; this task fixes its review findings). Must
