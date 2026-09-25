@@ -1,6 +1,7 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
 import { afterEach } from "vitest";
+import { chooseSelectedUserId } from "../lib/selection";
 
 // jsdom does not implement modal dialogs; model the parts the UI relies on.
 if (typeof HTMLDialogElement !== "undefined" && !HTMLDialogElement.prototype.showModal) {
@@ -14,5 +15,6 @@ if (typeof HTMLDialogElement !== "undefined" && !HTMLDialogElement.prototype.sho
 
 afterEach(() => {
   cleanup();
+  chooseSelectedUserId(null);
   localStorage.clear();
 });

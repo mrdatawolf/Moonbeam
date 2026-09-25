@@ -3,9 +3,9 @@
 // active user is reported as invalid; the UI asks the person to choose again
 // and never switches to someone else silently.
 import type { User } from "@moonbeam/shared";
-import { createContext, useContext, useMemo, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, type ReactNode } from "react";
 import { useUsers } from "../api/queries";
-import { useSelectedUserId, writeSelectedUserId } from "./selection";
+import { chooseSelectedUserId, invalidateSelection, readSelectedUserId, useSelectedUserId, useSelectionInvalidated } from "./selection";
 
 interface CurrentUser {
   /** The selected, active user; null when none is selected or the selection is invalid. */
@@ -19,15 +19,21 @@ const Ctx = createContext<CurrentUser>({ user: null, selectionInvalid: false, se
 
 export function CurrentUserProvider({ children }: { children: ReactNode }) {
   const selectedId = useSelectedUserId();
+  const invalidated = useSelectionInvalidated();
   const users = useUsers();
+  useEffect(() => {
+    if (selectedId && users.isSuccess && !users.data.some((u) => u.id === selectedId && u.active) && readSelectedUserId() === selectedId) {
+      invalidateSelection();
+    }
+  }, [selectedId, users.isSuccess, users.data]);
   const value = useMemo<CurrentUser>(() => {
     const user = users.data?.find((u) => u.id === selectedId && u.active) ?? null;
     return {
       user,
-      selectionInvalid: selectedId !== null && users.isSuccess && user === null,
-      select: writeSelectedUserId,
+      selectionInvalid: invalidated || (selectedId !== null && users.isSuccess && user === null),
+      select: chooseSelectedUserId,
     };
-  }, [selectedId, users.data, users.isSuccess]);
+  }, [selectedId, invalidated, users.data, users.isSuccess]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 

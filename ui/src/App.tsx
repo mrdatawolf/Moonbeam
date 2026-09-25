@@ -13,6 +13,7 @@ import { ProjectsPage } from "./pages/Projects";
 import { ProposeTaskPage } from "./pages/ProposeTask";
 import { SetupPage } from "./pages/Setup";
 import { TaskPage } from "./pages/Task";
+import { UsersPage } from "./pages/Users";
 
 export function App() {
   const setup = useSetupStatus();
@@ -41,6 +42,7 @@ export function App() {
           <Route path="projects/:projectId" element={<ProjectPage />} />
           <Route path="projects/:projectId/tasks/new" element={<ProposeTaskPage />} />
           <Route path="tasks/:taskId" element={<TaskPage />} />
+          <Route path="users" element={<UsersPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>

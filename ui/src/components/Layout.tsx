@@ -1,17 +1,18 @@
 // App shell: header with navigation and the user select, which is always
 // visible and always one step away (CONTRACT-002 UX), and the connection
 // banner (CONTRACT-003 "Failure behavior").
-import { NavLink, Outlet } from "react-router";
+import { Link, NavLink, Outlet } from "react-router";
 import { useConnectionLost } from "../api/connection";
 import { useUsers } from "../api/queries";
 import { USER_PICKER_ID, useCurrentUser } from "../lib/currentUser";
+import { ADD_USER_ANCHOR } from "../pages/Users";
 
 export function UserPicker() {
   const { user, selectionInvalid, select } = useCurrentUser();
   const users = useUsers();
   const active = (users.data ?? []).filter((u) => u.active).sort((a, b) => a.displayName.localeCompare(b.displayName));
   return (
-    <div className="flex items-center gap-2 text-sm">
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
       <label htmlFor={USER_PICKER_ID} className="text-muted-foreground">
         Acting as
       </label>
@@ -29,6 +30,10 @@ export function UserPicker() {
           </option>
         ))}
       </select>
+      {/* Not in the list? Adding a user needs someone selected; the add form explains it (CONTRACT-002). */}
+      <Link to={`/users#${ADD_USER_ANCHOR}`} className="text-primary underline underline-offset-2">
+        Add a user
+      </Link>
       {selectionInvalid ? (
         <span id="user-picker-note" role="alert" className="text-tone-attention-fg">
           The user chosen in this browser is no longer active. Choose who you are.
@@ -71,6 +76,11 @@ export function Layout() {
                 <li>
                   <NavLink to="/projects" className={navClass}>
                     Projects
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink to="/users" className={navClass}>
+                    Users
                   </NavLink>
                 </li>
               </ul>

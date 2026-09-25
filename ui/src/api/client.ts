@@ -11,7 +11,7 @@ import {
   type HealthResponse,
 } from "@moonbeam/shared";
 import type { z } from "zod";
-import { readSelectedUserId } from "../lib/selection";
+import { invalidateSelection, readSelectedUserId } from "../lib/selection";
 import { connection } from "./connection";
 
 /** `connection` is not a server category: the request never reached Moonbeam. */
@@ -56,6 +56,13 @@ export async function request<S extends z.ZodType>(method: Method, path: string,
     const parsed = apiErrorSchema.safeParse(json);
     if (parsed.success) {
       const { category, message, details } = parsed.data.error;
+      // The selected user can't act any more (deactivated elsewhere, CONTRACT-002):
+      // clear the selection and ask again. Viewing needs no selection, so a read
+      // is retried once as a viewer instead of failing the page.
+      if (category === "unidentified" && userId && readSelectedUserId() === userId) {
+        invalidateSelection();
+        if (method === "GET") return request(method, path, schema, body);
+      }
       throw new ApiRequestError(category, message, res.status, details);
     }
     throw new ApiRequestError("unexpected", `Unexpected response from Moonbeam (HTTP ${res.status}).`, res.status);

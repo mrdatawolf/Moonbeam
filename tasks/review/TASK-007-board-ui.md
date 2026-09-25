@@ -1,7 +1,7 @@
 # TASK-007: Board UI: user select, projects, task board, decision queue
 
 Owner role: UX specialist
-Assigned agent: interface-designer
+Assigned agent: interface-designer (original build); rework 2026-09-25: openai-coder (Codex), continuing partial work by interface-designer
 Proposed by: Claude (planning session)
 Proposed date: 2026-09-24
 Approved by: Patrick
@@ -253,6 +253,161 @@ disclosure), and no code was copied.
 2. Should the decision queue also show the "Subtask findings" and "Fell back" groups that the API already
    returns (CONTRACT-001 UX)? The dispatch clarification listed only five groups.
 3. Should adding subtasks (split, and new subtasks on return) get a board UI, and under which task?
+
+### Rework handoff (2026-09-25)
+
+Task: TASK-007
+
+Implementer: openai-coder (Codex), completing prior partial work
+
+Date: 2026-09-25
+
+#### Changes made
+
+Reviewed the existing UI diff, new user-management files, CONTRACT-002, and
+screenshots 16–22. The prior partial implementation supplied `/users`, the header
+"Add a user" link, add/edit/deactivate/reactivate dialogs, separate alphabetized
+active/inactive lists with e-mail addresses, client validation, categorized
+server refusals, explicit switch-after-add, registry hooks, and nine UI tests.
+It also supplied the seven screenshots listed below, without a handoff.
+
+This continuation closes identity and test gaps:
+
+- Successful self-deactivation clears the selection immediately, without waiting
+  for refetch. A stored selection missing from the active list is also cleared,
+  so later reactivation cannot silently restore it. The picker asks for a new
+  selection; no other user is automatically selected.
+- A delayed `unidentified` response for an old selection does not clear a newer
+  explicit choice. Refused reads retry as a viewer; mutations never retry.
+- An explicit selection from another tab clears the invalid-selection notice.
+- Tests now cover successful reactivation and picker refresh, all registry
+  controls without a selection, active-user editing, server last-active-user
+  refusal, stale selection, cross-tab selection, and request races. Test cleanup
+  resets the selection notice as well as storage.
+- Removed the partial work's unused export of `ActionButton`; TaskActions has
+  no remaining diff. Updated only the Board UI section of DEVELOPMENT.md.
+
+Exact files with retained rework changes (relative to the shared checkout):
+
+- Prior partial work retained unchanged by this continuation:
+  `ui/src/App.tsx`, `ui/src/components/Layout.tsx`,
+  `ui/src/components/common.tsx`, `ui/src/pages/Users.tsx`.
+- Prior partial work extended by this continuation:
+  `ui/src/api/client.ts`, `ui/src/api/queries.ts`,
+  `ui/src/lib/currentUser.tsx`, `ui/src/lib/selection.ts`,
+  `ui/src/pages/users.test.tsx`.
+- Added/updated in this continuation:
+  `ui/src/api/client.test.ts`, `ui/src/test/setup.ts`,
+  `docs/DEVELOPMENT.md` (Board UI section only),
+  `tasks/in-progress/TASK-007-board-ui.md` (this handoff; existing assignment
+  attribution preserved).
+- Prior screenshots retained unchanged:
+  `ui/screenshots/TASK-007/16-users-newcomer-no-user-selected.png`,
+  `ui/screenshots/TASK-007/17-users-add-validation.png`,
+  `ui/screenshots/TASK-007/18-users-added-switch-offered.png`,
+  `ui/screenshots/TASK-007/19-deactivate-dialog.png`,
+  `ui/screenshots/TASK-007/20-inactive-listed-reactivate-name-taken.png`,
+  `ui/screenshots/TASK-007/21-edit-inactive-user.png`,
+  `ui/screenshots/TASK-007/22-deactivate-yourself-dialog.png`.
+
+The original handoff above remains historical; its statement that user
+management was not built is superseded by this rework. No allowed-actions API,
+extra decision-queue groups, or subtask UI was implemented. No server/shared
+source or TASK-017 file was edited. Concurrent DEVELOPMENT.md changes outside
+its UI section were preserved. No git writes, branch/worktree creation, or
+lifecycle moves were performed; the task remains in-progress as instructed.
+
+#### Validation performed
+
+Every validation command run in this continuation is recorded below. The first
+attempts could not find pnpm; subsequent commands used Node 24 by prepending
+`/home/patrick/.nvm/versions/node/v24.16.0/bin` to PATH.
+
+| Command | Result |
+| --- | --- |
+| `pnpm --filter @moonbeam/ui typecheck` (initial PATH) | Not run: `pnpm: command not found`. |
+| `pnpm --filter @moonbeam/ui test` (initial PATH) | Not run: `pnpm: command not found`. |
+| `pnpm --filter @moonbeam/ui typecheck` (Node 24; twice) | Passed both times, no diagnostics. |
+| `pnpm --filter @moonbeam/ui test` (baseline) | `Test Files  4 passed (4)`; `Tests  29 passed (29)`. |
+| `pnpm --filter @moonbeam/ui test` (expanded) | `Test Files  5 passed (5)`; `Tests  35 passed (35)`. |
+| `pnpm typecheck` (root, final code) | Exit 0; shared, db, server, UI reported Done. |
+| `pnpm test` (root, final code) | Exit 0; all packages reported Done, but nested output omitted counts/errors. **Not evidence of a passing server suite**; see direct result below. |
+| `pnpm build` (root, final code) | Exit 0; all packages reported Done; UI transformed 263 modules. |
+| `pnpm -r --stream run test` | Exit 0, still only package Done summaries; direct package commands below were needed for counts. |
+| `pnpm --filter @moonbeam/ui test` (final) | `Test Files  5 passed (5)`; `Tests  36 passed (36)`. |
+| `pnpm --filter @moonbeam/shared test` | `Test Files  2 passed (2)`; `Tests  8 passed (8)`. |
+| `pnpm --filter @moonbeam/db test` | `Test Files  1 passed (1)`; `Tests  6 passed (6)`. |
+| `pnpm --filter @moonbeam/server test` | **Blocked by sandbox**: `No test files found, exiting with code 1`, followed by `Error: listen EPERM: operation not permitted 127.0.0.1`. No pass/fail test counts were produced. The command wrapper reported exit 0 despite that output. No server tests are claimed passing. |
+| `git diff --check -- ui/ docs/DEVELOPMENT.md tasks/in-progress/TASK-007-board-ui.md` | Initial code checks passed. The first handoff check found two trailing-space lines; corrected them and the final check passed. |
+| `ss -ltn` | Could not inspect sockets: `Cannot open netlink socket: Operation not permitted`. |
+| Read `/proc/net/tcp` and `/proc/net/tcp6`; Python check for LISTEN entries on 3100/5180/54330 | `Listening task ports: []`; `Ports 3100/5180/54330 free: True`. |
+
+No dev servers were started in this continuation. Existing screenshots were
+opened and visually reviewed; no new capture was needed. There are no task
+servers to stop. The observed namespace has no listeners on 3100, 5180, or
+54330. No development MOONBEAM_HOME was used.
+
+#### Acceptance criteria evidence
+
+- Add/edit/deactivate/reactivate use the existing registry API and selected-user
+  header. The 13 user-management UI tests exercise the management operations,
+  invalid inputs/refusals, sorting/e-mail display, selection requirements,
+  last-active-user protection, and explicit switching.
+- Screenshot 16 shows newcomer instructions and disabled actions with no
+  selection; 17 shows duplicate-name and invalid-email errors; 18 shows the
+  optional switch after add; 19 shows deactivation confirmation; 20 shows the
+  separate inactive list, e-mail, and a blocked duplicate-name reactivation;
+  21 shows editing the inactive user; 22 shows reactivation success behind the
+  self-deactivation warning dialog.
+- Three request-client tests cover viewer retry, no mutation retry, and a delayed
+  refusal not replacing a new selection. The management tests cover clearing
+  the deactivated selection and asking again.
+- The user-list test runs axe in jsdom with color contrast disabled and asserts
+  no serious/critical violations. No new real-browser accessibility, mobile,
+  zoom, or keyboard-only pass is claimed.
+
+#### Assumptions and deviations
+
+- Registry changes continue to require a selected human. Newcomers choose an
+  existing user before adding themselves; this is not unauthenticated
+  self-registration. The server remains authoritative for races and refusals.
+- Human/viewer user responses retain e-mail addresses. The concurrent TASK-017
+  shared change adds a separate agent response shape; the browser still uses
+  the full human user schema and sends no agent credential.
+- Existing screenshot evidence is reused; successful final self-deactivation
+  and last-active-user refusal are covered by tests rather than new captures.
+
+#### Unresolved risks, gaps, and questions
+
+- Server integration tests must be rerun where loopback listeners are permitted.
+  The root runner's exit 0/Done summary masked this setup error. This is an
+  environment validation gap, not a server/shared change request.
+- External deactivation is discovered on user-list refresh (60-second interval)
+  or an `unidentified` response. Self-deactivation is handled immediately.
+- Existing screenshots precede the identity-race fixes, which do not change
+  the photographed layouts. This continuation did not repeat a live API
+  walkthrough or independently verify the prior capture process's cleanup.
+- No product or contract questions remain. Independent review and human
+  acceptance remain outstanding; this implementation does not mark itself
+  accepted.
+
+#### Documentation updated
+
+- `docs/DEVELOPMENT.md`: Board UI user-management route, validation, selection,
+  and test behavior.
+- This dated rework handoff, preserving the original implementation handoff.
+
+### Dispatcher validation (2026-09-25)
+
+Run by the dispatcher (Claude) in the shared checkout, after TASK-017 was
+committed:
+
+- `pnpm typecheck`: all four packages pass.
+- `pnpm test`: db 6, shared 8, ui 36, server 163 — **213 passed**, 0 failed.
+- `pnpm build`: all four packages pass.
+- Screenshots 16–22 were taken by the interface-designer agent before Codex
+  changed deactivation to clear the selection immediately. They may not show
+  that final behavior. No new live walkthrough was done.
 
 ## Review
 

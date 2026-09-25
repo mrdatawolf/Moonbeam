@@ -1,7 +1,7 @@
 // Small shared pieces: timestamps, task references, empty and loading states,
 // refusal messages, and form fields. One component per job (Paperclip
 // DESIGN.md principle 1).
-import { useId, type ReactNode } from "react";
+import { useId, type ReactNode, type Ref } from "react";
 import { Link } from "react-router";
 import { ApiRequestError } from "../api/client";
 import { absoluteTime, CATEGORY_LABEL, relativeTime } from "../lib/format";
@@ -132,11 +132,17 @@ interface FieldProps {
   mono?: boolean;
   autoFocus?: boolean;
   type?: string;
+  /** A client-side check that failed; shown under the field and linked to it. */
+  error?: string | null;
+  autoComplete?: string;
+  inputRef?: Ref<HTMLInputElement>;
 }
 
-export function Field({ label, hint, required, value, onChange, multiline, rows = 3, placeholder, mono, autoFocus, type = "text" }: FieldProps) {
+export function Field({ label, hint, required, value, onChange, multiline, rows = 3, placeholder, mono, autoFocus, type = "text", error, autoComplete, inputRef }: FieldProps) {
   const id = useId();
   const hintId = `${id}-hint`;
+  const errorId = `${id}-error`;
+  const describedBy = [hint ? hintId : null, error ? errorId : null].filter(Boolean).join(" ") || undefined;
   const cls = `field-input ${mono ? "font-mono" : ""}`;
   return (
     <div className="space-y-1">
@@ -157,7 +163,8 @@ export function Field({ label, hint, required, value, onChange, multiline, rows 
           value={value}
           required={required}
           placeholder={placeholder}
-          aria-describedby={hint ? hintId : undefined}
+          aria-describedby={describedBy}
+          aria-invalid={error ? true : undefined}
           autoFocus={autoFocus}
           onChange={(e) => onChange(e.target.value)}
         />
@@ -169,11 +176,19 @@ export function Field({ label, hint, required, value, onChange, multiline, rows 
           value={value}
           required={required}
           placeholder={placeholder}
-          aria-describedby={hint ? hintId : undefined}
+          aria-describedby={describedBy}
+          aria-invalid={error ? true : undefined}
           autoFocus={autoFocus}
+          autoComplete={autoComplete}
+          ref={inputRef}
           onChange={(e) => onChange(e.target.value)}
         />
       )}
+      {error ? (
+        <p id={errorId} className="text-xs text-tone-danger-fg">
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }

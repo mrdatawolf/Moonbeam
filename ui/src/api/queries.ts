@@ -16,7 +16,7 @@ import {
 } from "@moonbeam/shared";
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { writeSelectedUserId } from "../lib/selection";
+import { invalidateSelection, readSelectedUserId } from "../lib/selection";
 import { ApiRequestError, request } from "./client";
 
 const LIVE = 10_000;
@@ -24,6 +24,8 @@ const LIVE = 10_000;
 export const keys = {
   setup: ["setup"] as const,
   users: ["users"] as const,
+  /** Active and inactive users, for user management. Invalidating `users` refreshes both. */
+  allUsers: ["users", "all"] as const,
   projects: ["projects"] as const,
   projectsRoot: ["projects-root"] as const,
   project: (id: string) => ["project", id] as const,
@@ -38,6 +40,13 @@ export const useUsers = () =>
   useQuery({
     queryKey: keys.users,
     queryFn: () => request("GET", "/users", z.object({ users: z.array(userSchema) })).then((r) => r.users),
+    refetchInterval: 60_000,
+  });
+
+export const useAllUsers = () =>
+  useQuery({
+    queryKey: keys.allUsers,
+    queryFn: () => request("GET", "/users?includeInactive=true", z.object({ users: z.array(userSchema) })).then((r) => r.users),
     refetchInterval: 60_000,
   });
 
@@ -79,16 +88,14 @@ export function refreshLifecycle(qc: QueryClient) {
 
 /**
  * Handle rejections every action shares: `unidentified` means the selected
- * user can no longer act, so the selection is cleared and the person is asked
- * to choose again (CONTRACT-002); `conflict` refreshes the view to the
+ * user can no longer act; the client cleared the selection and the header asks
+ * the person to choose again (CONTRACT-002); `conflict` refreshes the view to the
  * current state (CONTRACT-003 A).
  */
 export function onActionError(qc: QueryClient, error: unknown) {
   if (error instanceof ApiRequestError) {
-    if (error.category === "unidentified") {
-      writeSelectedUserId(null);
-      void qc.invalidateQueries({ queryKey: keys.users });
-    }
+    // The client has already cleared the selection and flagged it (see client.ts).
+    if (error.category === "unidentified") void qc.invalidateQueries({ queryKey: keys.users });
     if (error.category === "conflict" || error.category === "invalid_transition" || error.category === "blocked") refreshLifecycle(qc);
   }
 }
@@ -159,5 +166,44 @@ export function useRegisterProject() {
     mutationFn: (body) => request("POST", "/projects", projectSchema, body),
     onSuccess: () => void qc.invalidateQueries({ queryKey: keys.projects }),
     onError: (e) => onActionError(qc, e),
+  });
+}
+
+// ---- user registry (CONTRACT-002 "User registry") -------------------------
+// Every change needs a selected user, who is recorded as the actor. After a
+// change both user lists refresh, so a deactivated selection is noticed at once
+// and the header asks the person to choose again.
+
+export type UserChange =
+  | { kind: "add"; body: { displayName: string; email: string } }
+  | { kind: "edit"; id: string; body: { displayName?: string; email?: string } }
+  | { kind: "deactivate"; id: string }
+  | { kind: "reactivate"; id: string };
+
+export function useUserChange() {
+  const qc = useQueryClient();
+  return useMutation<z.infer<typeof userSchema>, ApiRequestError, UserChange>({
+    mutationFn: (c) => {
+      switch (c.kind) {
+        case "add":
+          return request("POST", "/users", userSchema, c.body);
+        case "edit":
+          return request("PATCH", `/users/${c.id}`, userSchema, c.body);
+        case "deactivate":
+        case "reactivate":
+          return request("POST", `/users/${c.id}/${c.kind}`, userSchema, {});
+      }
+    },
+    onSuccess: (u) => {
+      if (!u.active && readSelectedUserId() === u.id) invalidateSelection();
+      void qc.invalidateQueries({ queryKey: keys.users });
+      // Past records show a user's current name (CONTRACT-002 ID7).
+      refreshLifecycle(qc);
+    },
+    onError: (e) => {
+      onActionError(qc, e);
+      // A refusal may mean the list is stale (another browser changed it).
+      void qc.invalidateQueries({ queryKey: keys.users });
+    },
   });
 }

@@ -26,10 +26,35 @@ export function writeSelectedUserId(id: string | null): void {
   for (const l of listeners) l();
 }
 
+// Set when the server said the stored selection can't act (`unidentified`: the
+// user was deactivated or no longer exists). The selection is cleared so reads
+// keep working, and the header asks the person to choose again until they do.
+// It is never replaced by another user.
+let invalidated = false;
+
+export function readSelectionInvalidated(): boolean {
+  return invalidated;
+}
+
+/** The stored selection was refused: clear it and ask the person to choose again. */
+export function invalidateSelection(): void {
+  invalidated = true;
+  writeSelectedUserId(null);
+}
+
+/** The person chose (or chose nobody) themselves. */
+export function chooseSelectedUserId(id: string | null): void {
+  invalidated = false;
+  writeSelectedUserId(id);
+}
+
 function subscribe(l: () => void) {
   listeners.add(l);
   const onStorage = (e: StorageEvent) => {
-    if (e.key === SELECTION_KEY) l();
+    if (e.key === SELECTION_KEY || e.key === null) {
+      if (e.newValue) invalidated = false;
+      l();
+    }
   };
   window.addEventListener("storage", onStorage);
   return () => {
@@ -40,4 +65,8 @@ function subscribe(l: () => void) {
 
 export function useSelectedUserId(): string | null {
   return useSyncExternalStore(subscribe, readSelectedUserId, () => null);
+}
+
+export function useSelectionInvalidated(): boolean {
+  return useSyncExternalStore(subscribe, readSelectionInvalidated, () => false);
 }
