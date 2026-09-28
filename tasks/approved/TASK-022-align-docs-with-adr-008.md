@@ -4,8 +4,8 @@ Owner role: Librarian
 Assigned agent: librarian
 Proposed by: Claude (planning session)
 Proposed date: 2026-09-28
-Approved by:
-Approved date:
+Approved by: Patrick
+Approved date: 2026-09-28
 Related contracts: CONTRACT-002, CONTRACT-003, CONTRACT-004, CONTRACT-005,
 CONTRACT-006
 Related ADRs: ADR-001, ADR-003, ADR-004, ADR-005, ADR-006, ADR-008, ADR-009
