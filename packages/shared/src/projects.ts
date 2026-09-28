@@ -27,3 +27,16 @@ export const projectQueueResponseSchema = z.object({
   project: projectSchema,
   queue: z.array(queueEntrySchema),
 });
+
+/** Discovery is a GET with no request parameters; registration reuses registerProjectInputSchema. */
+export const discoveredRepositorySchema = z.object({
+  path: z.string(),
+  relativePath: z.string(),
+  suggestedName: z.string(),
+  suggestedMainBranch: z.string(),
+});
+export const projectDiscoverySchema = z.object({
+  repositories: z.array(discoveredRepositorySchema),
+  truncated: z.boolean(),
+});
+export type ProjectDiscovery = z.infer<typeof projectDiscoverySchema>;

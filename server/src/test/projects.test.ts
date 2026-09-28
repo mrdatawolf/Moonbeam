@@ -2,7 +2,8 @@
 import { mkdirSync, symlinkSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { createHarness, expectOk, expectRejected, gitInit, type Harness } from "./harness.js";
+import { schema } from "@moonbeam/db";
+import { approvedTask, startRun, world, createHarness, expectOk, expectRejected, gitInit, type Harness } from "./harness.js";
 
 let h: Harness;
 afterEach(async () => h?.close());
@@ -83,5 +84,36 @@ describe("Project registration", () => {
     for (const path of [outside, join(h.dirs.root, "link-out"), plain, join(repo, "sub"), repo, h.dirs.root]) {
       expectRejected(await h.req("POST", "/projects", { as, body: { path } }), "validation", 422);
     }
+  });
+});
+
+
+describe("Project discovery API", () => {
+  it("allows viewers and humans, excludes registered repositories, and keeps one audit per registration", async () => {
+    h = await createHarness();
+    const as = await setupUser();
+    expectRejected(await h.req("GET", "/projects/discover"), "validation", 422);
+    expectOk(await h.req("PUT", "/settings/projects-root", { as, body: { path: h.dirs.root } }));
+    const paths = [gitInit(join(h.dirs.root, "one")), gitInit(join(h.dirs.root, "team", "two"))];
+    const before = await h.db.select().from(schema.auditRecords);
+    for (const identity of [undefined, as]) {
+      const found = await h.req("GET", "/projects/discover", { as: identity });
+      expectOk(found);
+      expect(found.body.repositories.map((r: { path: string }) => r.path)).toEqual(paths);
+      expect(found.body.truncated).toBe(false);
+    }
+    expect(await h.db.select().from(schema.auditRecords)).toEqual(before);
+    for (const path of paths) expectOk(await h.req("POST", "/projects", { as, body: { path } }), 201);
+    expect((await h.req("GET", "/projects/discover")).body.repositories).toEqual([]);
+    const audit = (await h.db.select().from(schema.auditRecords)).filter((r) => r.action === "project_registered");
+    expect(audit).toHaveLength(2);
+    expect(audit.every((r) => r.actorUserId === as.user && r.identityMode === "selected")).toBe(true);
+  });
+  it("refuses a valid agent even with a human header; invalid credentials never fall back", async () => {
+    const w = await world(); h = w.h;
+    const task = await approvedTask(w);
+    const agent = await startRun(w, task.id);
+    expectRejected(await h.req("GET", "/projects/discover", { as: { ...w.A, ...agent.as } }), "not_permitted", 403);
+    expectRejected(await h.req("GET", "/projects/discover", { as: { ...w.A, token: "invalid" } }), "unidentified", 401);
   });
 });

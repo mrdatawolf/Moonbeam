@@ -196,6 +196,7 @@ for a task that does not exist and even with an invalid body.
 | `PATCH /api/users/:id`, `POST /api/users/:id/deactivate`, `POST /api/users/:id/reactivate` | edit, deactivate, reactivate (no delete) |
 | `GET/PUT /api/settings/projects-root` | read, set or change the projects root |
 | `GET /api/projects`, `POST /api/projects` | list, register an existing git repository under the root |
+| `GET /api/projects/discover` | read-only discovery of unregistered repositories under the projects root |
 | `GET /api/projects/:id` | project with its queue in order |
 | `GET /api/projects/:id/tasks[?state=a,b]` | task summaries, optionally by state |
 | `POST /api/projects/:id/tasks` | T1 create |
@@ -363,3 +364,40 @@ ui/src/pages/      Setup, Users, Projects, Project (board and queue), ProposeTas
 - Human identity is honor-system in V1 (ADR-003): anyone on the LAN can send any
   `X-Moonbeam-User` header.
 - The server binds to `127.0.0.1` by default.
+
+
+### Repository discovery (TASK-019)
+
+`GET /api/projects/discover` takes no parameters and returns
+`{ repositories: [{ path, relativePath, suggestedName, suggestedMainBranch }], truncated }`.
+Humans and anonymous viewers may search. Valid agent credentials are refused
+with `not_permitted`; invalid credentials remain `unidentified`. An unset,
+missing or inaccessible root is `validation`.
+
+Discovery reads the root's real directory tree. A folder containing `.git`
+(directory or file) is a repository; traversal stops there, including for
+registered repositories. The root itself is not offered (registration requires
+a repository below it). Hidden directories and `node_modules` are skipped.
+Directory symlinks are skipped, including in-root aliases: their targets are
+visited through their real directory tree, avoiding duplicates, cycles and
+escapes outside the root. Real locations are rechecked before descent.
+Registered canonical paths are excluded. Results are sorted by relative path.
+
+Limits are 32 levels below the root, 10,000 visited folders (including the root),
+and a 10-second traversal budget. Directory entries are streamed; git reads
+have at most a one-second timeout each, reduced near the deadline. Hitting a
+limit or encountering an unreadable/disappearing subtree returns available
+results with `truncated: true`. Ordinary filesystem calls still depend on host
+filesystem responsiveness. Discovery never writes files or audit records.
+
+Names default to the folder name. Branch suggestions prefer local `main`, then
+local `master`, then the symbolic current branch (including unborn branches).
+Detached HEAD or unreadable git metadata with neither preferred branch yields
+an empty suggestion for the human to fill in. Discovery does not replace
+registration validation.
+
+The Projects page supports selection, editing each name/branch, Search again,
+and per-repository registration results. Each selected row calls the existing
+`POST /api/projects` action, with one audit record per successful registration;
+a failure does not stop the others. Discovery and registered projects refresh
+after registration. Manual entry is available under Add by path.

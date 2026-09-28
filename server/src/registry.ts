@@ -1,5 +1,5 @@
 // CONTRACT-002 user registry and first-run setup; ADR-006 / CONTRACT-004 B13
-// projects root and project registration (minimal: no scanning, no relink).
+// projects root and project registration (registration and discovery; no relink).
 import { execFile } from "node:child_process";
 import { realpath, stat } from "node:fs/promises";
 import { basename, isAbsolute, relative, sep } from "node:path";
@@ -17,6 +17,8 @@ import { writeAudit } from "./audit.js";
 import { ActionError, AuthorityViolation, parseInput, reject } from "./errors.js";
 import type { Actor, AnyActor } from "./identity/actor.js";
 import { checkPermission, type ActionName } from "./identity/permission.js";
+
+import { discoverRepositories } from "./discovery.js";
 
 const run = promisify(execFile);
 
@@ -274,6 +276,13 @@ export class RegistryService {
   }
 
   // ---- projects ----------------------------------------------------------
+
+  async discoverProjects(actor: Actor | null) {
+    if (actor?.kind === "agent") reject("not_permitted", "Agents cannot discover repositories outside their project.");
+    const root = await this.projectsRoot();
+    const projects = await this.db.select({ repoPath: schema.projects.repoPath }).from(schema.projects);
+    return discoverRepositories(root, projects.map((p) => p.repoPath));
+  }
 
   async listProjects(actor: Actor | null) {
     const rows = await this.db.select().from(schema.projects);

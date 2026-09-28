@@ -5,6 +5,7 @@ import {
   actionResultSchema,
   decisionQueueSchema,
   projectListResponseSchema,
+  projectDiscoverySchema,
   projectQueueResponseSchema,
   projectSchema,
   projectsRootResponseSchema,
@@ -61,6 +62,15 @@ export const useProjectsRoot = () =>
   useQuery({
     queryKey: keys.projectsRoot,
     queryFn: () => request("GET", "/settings/projects-root", projectsRootResponseSchema).then((r) => r.projectsRoot),
+  });
+
+export const useProjectDiscovery = (root: string | null | undefined) =>
+  useQuery({
+    queryKey: ["project-discovery", root],
+    queryFn: () => request("GET", "/projects/discover", projectDiscoverySchema),
+    enabled: !!root,
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
   });
 
 export const useProject = (id: string) =>
@@ -169,7 +179,10 @@ export function useRegisterProject() {
   const qc = useQueryClient();
   return useMutation<z.infer<typeof projectSchema>, ApiRequestError, { path: string; name?: string; mainBranch?: string }>({
     mutationFn: (body) => request("POST", "/projects", projectSchema, body),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: keys.projects }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: keys.projects });
+      void qc.invalidateQueries({ queryKey: ["project-discovery"] });
+    },
     onError: (e) => onActionError(qc, e),
   });
 }

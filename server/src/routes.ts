@@ -10,6 +10,7 @@ import {
   decisionQueueSchema,
   devStartRunResponseSchema,
   projectListResponseSchema,
+  projectDiscoverySchema,
   projectQueueResponseSchema,
   projectSchema,
   projectsRootResponseSchema,
@@ -130,6 +131,10 @@ export function apiRoutes(services: Services): Router {
 
   router.post("/projects", async (req, res) => {
     res.status(201).json(projectView(await registry.registerProject(requireActor(await resolve(req)), req.body)));
+  });
+
+  router.get("/projects/discover", async (req, res) => {
+    res.json(projectDiscoverySchema.parse(await registry.discoverProjects(await resolve(req))));
   });
 
   /** A project with its queue in order (CONTRACT-005 "Interfaces"). */

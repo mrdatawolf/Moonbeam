@@ -3,7 +3,7 @@
 // Setting the root and registering are human-only actions.
 import { useState } from "react";
 import { Link } from "react-router";
-import { useProjects, useProjectsRoot, useRegisterProject, useSetProjectsRoot } from "../api/queries";
+import { useProjectDiscovery, useProjects, useProjectsRoot, useRegisterProject, useSetProjectsRoot } from "../api/queries";
 import { useConnectionLost } from "../api/connection";
 import { EmptyState, Field, LoadError, Mono, Refusal, SectionHeading, Skeleton, Time } from "../components/common";
 import { CHOOSE_USER, CONNECTION_LOST } from "../lib/actionPresentation";
@@ -154,6 +154,69 @@ function RegisterProject({ hasRoot }: { hasRoot: boolean }) {
   );
 }
 
+function DiscoveredProjects({ root }: { root: string | null | undefined }) {
+  const discovery = useProjectDiscovery(root);
+  const register = useRegisterProject();
+  const { user } = useCurrentUser();
+  const reason = useActReason();
+  const [drafts, setDrafts] = useState<Record<string, { selected: boolean; name: string; mainBranch: string }>>({});
+  const [results, setResults] = useState<Record<string, { name: string; error?: unknown }>>({});
+  const [busy, setBusy] = useState(false);
+  const rows = (discovery.data?.repositories ?? []).map((repo) => ({ ...repo,
+    ...(drafts[repo.path] ?? { selected: false, name: repo.suggestedName, mainBranch: repo.suggestedMainBranch }),
+  }));
+  const selected = rows.filter((row) => row.selected);
+  const update = (row: typeof rows[number], change: Partial<typeof drafts[string]>) =>
+    setDrafts((old) => ({ ...old, [row.path]: { selected: row.selected, name: row.name, mainBranch: row.mainBranch, ...change } }));
+  return (
+    <section aria-labelledby="discovery-h" className="card space-y-3 p-4">
+      <SectionHeading id="discovery-h">Found in the projects root</SectionHeading>
+      {!root ? <p>Set the projects root before searching for repositories.</p> : null}
+      {root && discovery.isPending ? <Skeleton lines={2} /> : null}
+      {discovery.isError ? <LoadError error={discovery.error} notFound="" /> : null}
+      {discovery.data?.truncated ? <p role="status">Search incomplete: a search limit or unreadable folder was encountered. You can also add a repository by path.</p> : null}
+      {discovery.isSuccess && rows.length === 0 ? <p>No unregistered repositories found.</p> : null}
+      <button type="button" className="btn-secondary" disabled={!root || busy || discovery.isFetching} onClick={() => void discovery.refetch()}>Search again</button>
+      {rows.length > 0 ? <>
+        <label className="flex gap-2"><input type="checkbox" disabled={busy} checked={rows.every((row) => row.selected)} onChange={(e) => {
+          const checked = e.target.checked;
+          setDrafts(Object.fromEntries(rows.map((row) => [row.path, { selected: checked, name: row.name, mainBranch: row.mainBranch }])));
+        }} />Select all</label>
+        {rows.map((row) => <div key={row.path} className="space-y-2 border-b border-border py-3">
+          <label className="flex gap-2"><input type="checkbox" disabled={busy} checked={row.selected} onChange={(e) => update(row, { selected: e.target.checked })} />{row.relativePath}</label>
+          <Mono>{row.path}</Mono>
+          <fieldset disabled={busy} className="grid gap-3 sm:grid-cols-2">
+            <Field label={`Name for ${row.relativePath}`} value={row.name} onChange={(name) => update(row, { name })} />
+            <Field label={`Main branch for ${row.relativePath}`} mono value={row.mainBranch} onChange={(mainBranch) => update(row, { mainBranch })} />
+          </fieldset>
+        </div>)}
+        <button type="button" className="btn-primary" disabled={!!reason || busy || selected.length === 0} onClick={async () => {
+          if (reason || busy || !user) return;
+          setBusy(true);
+          setResults({});
+          // Start all requests under the selection displayed at this click. Each uses the existing action.
+          await Promise.all(selected.map(async (row) => {
+            try {
+              await register.mutateAsync({ path: row.path, name: row.name.trim(), mainBranch: row.mainBranch.trim() });
+              setResults((old) => ({ ...old, [row.path]: { name: row.name } }));
+              update(row, { selected: false });
+            } catch (error) {
+              setResults((old) => ({ ...old, [row.path]: { name: row.name, error } }));
+            }
+          }));
+          await discovery.refetch();
+          setBusy(false);
+        }}>{user ? `Register selected as ${user.displayName}` : "Register selected"}</button>
+        {reason ? <DisabledReason reason={reason} /> : null}
+      </> : null}
+      {Object.entries(results).map(([path, result]) => <div key={path}>
+        <p role="status">{result.error ? `Could not register ${result.name}` : `Registered ${result.name}`}: <Mono>{path}</Mono></p>
+        {result.error ? <Refusal error={result.error} /> : null}
+      </div>)}
+    </section>
+  );
+}
+
 export function ProjectsPage() {
   const projects = useProjects();
   const root = useProjectsRoot();
@@ -205,8 +268,9 @@ export function ProjectsPage() {
           </div>
         )}
       </section>
+      <DiscoveredProjects key={root.data ?? ""} root={root.data} />
       <div className="grid gap-6 lg:grid-cols-2">
-        <RegisterProject hasRoot={!!root.data} />
+        <details><summary className="cursor-pointer">Add by path</summary><RegisterProject hasRoot={!!root.data} /></details>
         <ProjectsRootSection />
       </div>
     </div>
