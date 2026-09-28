@@ -1,6 +1,6 @@
 # ADR-006: Projects live in a user-defined projects root; V1 runs on one host
 
-Status: Approved
+Status: Approved; superseded by ADR-008 (2026-09-28), see the amendment at the end
 Approved by: Patrick
 Approved date: 2026-09-24
 Date: 2026-09-24
@@ -89,3 +89,19 @@ deciding it should.
   merge and push actions, and the merge-refused message (ADR-005 amendment).
 - Update `docs/PROJECT.md` constraints: single host in V1, and the projects
   root.
+
+## Amendment — 2026-09-28: superseded by ADR-008
+
+Recorded by TASK-022. The decision text above is left as approved. ADR-008
+(Approved, 2026-09-28) supersedes this ADR:
+
+- **GitHub replaces the projects root as the reference** (ADR-008 decision 5).
+  Moonbeam reads each project's GitHub repository by polling with a read-only
+  token. Project registration is re-pointed from local repositories under a
+  projects root to GitHub repositories.
+- **The single host, worktrees in `MOONBEAM_HOME`, and the merge and push
+  actions no longer apply.** Lead developers work in their own clones with
+  their own tools.
+- **The intent that nothing is published without a human holds more strongly.**
+  Moonbeam does not write to repositories or to GitHub at all (ADR-008
+  decision 6).

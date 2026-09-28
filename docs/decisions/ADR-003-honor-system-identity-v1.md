@@ -1,6 +1,6 @@
 # ADR-003: Honor-system identity and full board authority in V1
 
-Status: Approved
+Status: Approved; superseded in part by ADR-008 (2026-09-28), see the amendment at the end
 Date: 2026-09-24
 Decision owners: Board
 Related tasks and contracts: none yet
@@ -47,3 +47,18 @@ later be integrated through an API.
 
 - A contract for the identity and permission interface.
 - A future ADR for global login integration and roles.
+
+## Amendment — 2026-09-28: superseded in part by ADR-008
+
+Recorded by TASK-022. The decision text above is left as approved. ADR-008
+(Approved, 2026-09-28) amends this ADR:
+
+- **Decision 1 stands.** Honor-system identity and the user select stay.
+- **Decision 2 no longer describes Moonbeam actions.** Under ADR-008, board
+  members propose, approve, and accept in the project repository, not in
+  Moonbeam. Moonbeam is read-only toward repositories. Actions inside Moonbeam
+  (registering a project, assigning a lead developer, managing identities,
+  dismissing a flag) still need a selected user (CONTRACT-006).
+- **Decision 3 no longer has an object.** Agents do not use Moonbeam at all, so
+  there are no agent credentials for the server to refuse.
+- **Decision 4 stands.** The identity seam is kept (CONTRACT-002, kept parts).

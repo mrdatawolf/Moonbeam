@@ -1,6 +1,6 @@
 # ADR-004: The Moonbeam DbC variant lives in Moonbeam's TEMPLATE folder
 
-Status: Approved
+Status: Approved; superseded in part by ADR-008 (2026-09-28), see the amendment at the end
 Date: 2026-09-24
 Decision owners: Board
 Related tasks and contracts: ADR-001
@@ -49,3 +49,19 @@ remain the standalone, folder-based system.
 
 - A task to create `TEMPLATE/` from the current DbC files with the ADR-001
   adjustments.
+
+## Amendment — 2026-09-28: superseded in part by ADR-008
+
+Recorded by TASK-022. The decision text above is left as approved. ADR-008
+(Approved, 2026-09-28) supersedes this ADR in part:
+
+- **The Moonbeam variant no longer applies.** It was built for Moonbeam-held
+  task state (ADR-001), which ADR-008 reverses.
+- **Decisions 1 and 2 are superseded.** The board resolved ADR-008 decision 8
+  as alternative A: the DbC changes Moonbeam needs are made in the upstream
+  Project Template DbC, and Moonbeam's `TEMPLATE/` is retired. TASK-022
+  removed the folder. Git history keeps it. CONTRACT-006 reads a named version
+  of the upstream template ("DbC task v1").
+- **Decision 3 stands.** This repository uses the classic folder-based DbC.
+- The cost "improvements to upstream DbC must be ported by hand" no longer
+  applies, because there is one DbC.

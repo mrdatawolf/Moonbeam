@@ -1,6 +1,6 @@
 # CONTRACT-002: Identity and permission interface
 
-Status: Approved
+Status: Approved; superseded in part by ADR-008 (2026-09-28): user registry, user select, and replacement seam kept
 Approved by: Patrick
 Approved date: 2026-09-24
 Revised: 2026-09-24 (TASK-012; TASK-013); 2026-09-25 (TASK-014), see "Revision

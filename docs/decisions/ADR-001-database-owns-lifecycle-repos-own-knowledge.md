@@ -1,6 +1,6 @@
 # ADR-001: Database owns the lifecycle; repositories own durable knowledge
 
-Status: Approved
+Status: Approved; superseded by ADR-008 (2026-09-28), see the amendment at the end
 Date: 2026-09-24
 Decision owners: Board
 Related tasks and contracts: none yet
@@ -89,3 +89,20 @@ amendment records how its open consequence was settled.
   the task by hand (CONTRACT-004 Q20).
 - The first follow-up is CONTRACT-001. The second ("a contract for repository
   write-back") is covered by CONTRACT-004.
+
+## Amendment — 2026-09-28: superseded by ADR-008
+
+Recorded by TASK-022. The decision text above is left as approved. ADR-008
+(Approved, 2026-09-28) supersedes this ADR:
+
+- **Decisions 1 and 3 are reversed.** Moonbeam's database no longer owns
+  lifecycle state, and the lifecycle directories are back. A task's state is
+  the `tasks/` directory holding it, as in upstream DbC. Moonbeam derives what
+  it knows from each project's main branch on GitHub (ADR-008 decision 2,
+  CONTRACT-006). Moonbeam writes nothing to a repository, so there is no
+  write-back of task records.
+- **Decision 2 stands** and now covers task state too.
+- **Decision 4 stands:** Moonbeam links to contracts and ADRs rather than
+  copying them.
+- The first amendment above no longer applies. CONTRACT-004, which it relies
+  on, is shelved by ADR-008.

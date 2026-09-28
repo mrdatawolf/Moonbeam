@@ -1,6 +1,6 @@
 # CONTRACT-003: Run view and review surface
 
-Status: Approved
+Status: Shelved by ADR-008 (2026-09-28)
 Approved by: Patrick
 Approved date: 2026-09-24
 Revised: 2026-09-24 (TASK-012; TASK-013); 2026-09-25 (TASK-014), see "Revision

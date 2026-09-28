@@ -1,189 +1,189 @@
 # Project Definition
 
-Status: Draft — pending board approval of this document (ADR-001 to ADR-004 approved 2026-09-24).
+Status: Draft — pending board approval of this document. Rewritten on
+2026-09-28 (TASK-022) for ADR-008, which is approved, together with ADR-009 and
+CONTRACT-006. Where this document and an approved ADR or contract differ, the
+ADR or contract governs.
 
 ## Purpose
 
-Moonbeam is a LAN-hosted control plane for a small software team that develops
-with specialist AI agents under human governance.
+Moonbeam is a LAN-hosted, read-only, top-down observer of software projects
+that follow Design by Contract (DbC), the upstream Project Template DbC
+workflow.
 
-It keeps the discipline of the DbC development system (design before code,
-behavioral contracts, independent review, human approval and acceptance) and
-adds the operational surface that system lacks: one place to see every
-project's work, who or what is doing it, what it costs, and what needs a human
-decision.
+DbC does the work inside each project: design before code, behavioral
+contracts, independent review, and human approval and acceptance. A task's
+state is the `tasks/` directory that holds it. Moonbeam does not replace any of
+that. It reads each project's main branch on GitHub and shows the board what is
+proposed, what is approved, what has been accepted, and where the recorded
+process looks wrong (ADR-008).
 
-Moonbeam deliberately does **not** pursue agent autonomy. Agents never run on
-unattended schedules, never approve work, and never accept work. The board
-decides; agents propose, implement, review, and report.
+Moonbeam deliberately does **not** manage work. It keeps no task state, runs no
+agents, and never writes to a repository or to GitHub. It detects problems and
+flags them for review. It does not enforce gates (ADR-008 decisions 6 and 7,
+ADR-007).
 
 ## Users and stakeholders
 
-- **Board members** — the whole team: the owner, the office manager, two primary
-  developers, and two part-time developers. In V1 every board member has full
-  authority (see ADR-003); roles and abilities will be formalized later.
-- **Agents** — specialist AI workers (Jarvis, contract designer, implementer, UX,
-  reviewer) running on frontier models (Claude Code, Codex) on a dev box, or on
-  local models served by llama.cpp on LAN machines.
-- **Managed projects** — the software repositories Moonbeam governs. Each one
-  carries the Moonbeam variant of DbC from `TEMPLATE/`.
+- **Board members** — the whole team: the owner, the office manager, two
+  primary developers, and two part-time developers. In V1 every board member
+  may act as stakeholder, lead developer, or both, and has full authority in
+  Moonbeam (ADR-003, ADR-008 decision 1).
+- **Lead developer** — the one board member who takes a project and becomes
+  its lead developer and primary stakeholder. They clone it from GitHub and
+  work it locally with their own AI tools, under DbC. They act in the
+  repository, not in Moonbeam.
+- **Agents** — AI tools that the lead developer runs locally inside a project.
+  They do not use Moonbeam. Moonbeam sees their work only as commits on main.
+- **Projects** — DbC repositories on GitHub that are registered in Moonbeam.
 
 ## Desired outcomes
 
-1. Every managed project's tasks, runs, pauses, and decisions are visible from
-   one dashboard.
-2. The gates are enforced by the server, not by convention: work runs only when
-   the task is approved, and only a human accepts work.
-3. Mid-run agent questions (pauses) are captured, categorized, and reviewed so
-   that recurring gaps are closed up front in templates, contracts, and project
-   guidance. Success is measured as fewer pauses per task over time.
-4. Each model's actual capability per specialist role is measured from real
-   outcomes (accepted versus returned work), so local models can take on work
-   as they earn a track record.
-5. The durable knowledge (contracts, ADRs, accepted task records) stays in each
-   project's repository and remains useful without Moonbeam.
+1. DbC stays authoritative in each project. A project works the same whether or
+   not Moonbeam is running.
+2. The board sees each project's state from the top down: proposals waiting
+   for discussion, approved work not yet accepted, recently accepted work, and
+   activity over time.
+3. The board sees the same summary across all projects in one place.
+4. Deviations from the recorded process on main are flagged with evidence, so
+   the board can review them. Flags never block anything.
+5. Every part of the process stays checkable after the fact from main's
+   history alone.
 
 ## Scope
 
 ### Included (V1)
 
-- Multi-project control plane: projects, tasks, splits, claims, runs, pauses,
-  reviews, approvals, and acceptance, stored in PostgreSQL.
-- Task lifecycle enforced by the server:
-  `proposed → approved → in_progress → in_review → completed`.
-- Claiming: an approved task is picked up by one claimant (a person or an agent
-  run) at a time.
-- Splitting: agents may split a task into subtasks bounded by the parent's
-  scope envelope. Splits of an approved task are approved automatically.
-- Runners that launch Claude Code or Codex on the Moonbeam host, and that call
-  local models over llama.cpp's OpenAI-compatible API.
-- A pause log with categories, resolutions, and a periodic pause review surface.
-- Track records per model and role, derived from review and acceptance outcomes.
-- UI focused first on the **dashboard** and the **run view**, following
-  Paperclip's layered disclosure (summary → artifacts → raw logs).
-- A review surface where the board sees each task's actual result (rendered
-  documents, diff, validation, previews). Each task works on its own branch.
-  Accepting a task is a decision and does not merge it. Merging accepted work
-  into main, and pushing main to a remote, are separate steps that only a board
-  member takes (ADR-005 as amended, ADR-006).
-- Simple user select to set who is acting. No login in V1 (ADR-003).
-- Cost visibility per run, task, project, and model. There are no budgets and
-  no enforcement in V1.
-- Writing durable artifacts (task records, contracts, ADRs) back into project
-  repositories.
-- `TEMPLATE/` — the drop-in files that make a new project follow Moonbeam
-  principles (ADR-004).
+- Registering a project by its GitHub repository, with a tracked branch
+  (`main` by default), a lead developer, and a baseline commit (CONTRACT-006
+  S1).
+- Polling each project's GitHub repository with a read-only token
+  (CONTRACT-006 S).
+- Reading task files in the "DbC task v1" format of the upstream Project
+  Template DbC, and tolerating older or malformed files (CONTRACT-006 P).
+- Deriving each task's history from the commits on main (CONTRACT-006 H).
+- Flags FL-1 to FL-11, with evidence, and dismissal or reopening with a note
+  (CONTRACT-006 FL, FG). Flags and notes live only in Moonbeam (ADR-009).
+- A per-project view, including read-only rendered contracts, ADRs, and
+  `docs/PROJECT.md` (CONTRACT-006 D, R).
+- A cross-project dashboard. It needs its own task.
+- A simple user select to set who is acting. No login in V1 (ADR-003).
+- Git e-mails, GitHub logins, and name aliases per board member, to attribute
+  commits (CONTRACT-006 I).
 
 ### Excluded (V1)
 
-- Scheduled or self-waking agents (Paperclip-style heartbeats).
-- Agents approving tasks or accepting work.
+- Any write to a repository or to GitHub, including comments, statuses,
+  checks, and labels (ADR-008 decision 6).
+- Approving, accepting, merging, or any other lifecycle action from Moonbeam.
+- Enforcing gates. Moonbeam flags, it does not block (ADR-008 decision 7).
+- Running agents, or giving agents credentials for Moonbeam.
+- Tracking branches other than the tracked branch, pull requests, issues, and
+  tags. Work in `in-progress/` and `review/` on the lead developer's branch is
+  not tracked.
+- GitHub webhooks. Polling is used, because webhooks cannot reach a LAN host.
 - Authentication, RBAC, and roles. A global login system will be integrated
   through an API later.
 - Access from outside the LAN, mobile-specific UI, and multi-tenant isolation.
-- Runners and project repositories on machines other than the Moonbeam host
-  (V2, ADR-006).
-- Hiring, org charts, and agent-to-agent delegation hierarchies.
-- Cost budgets and spend enforcement.
-- Replacing git hosting, pull-request review, or CI.
+- Scheduled or self-waking agents, agent hierarchies, and agent self-approval
+  (Paperclip-style autonomy).
+
+### Deferred (ADR-008 decision 9)
+
+- Agent runs in Moonbeam. The earlier phase 3 plan is on hold.
+- Pauses and pause review. These may be dropped.
+- Costs and model track records. The `tools/model-eval` harness is kept for
+  now but is not wired in.
+- Sub-projects, and several lead developers on one project.
 
 ## Constraints
 
-- Runs on the office LAN. Local models are reached at llama.cpp endpoints on
-  various LAN machines (for example `192.168.203.117`, currently serving
-  DeepSeek-Coder-V2-Lite Q4 on port 8080).
+- Runs on the office LAN. It needs network access to GitHub.
+- Reads GitHub only, with a token that grants repository contents read and
+  metadata read. Tokens are configured on the server and never reach the
+  browser (CONTRACT-006 S4, Q11).
 - Stack follows Paperclip's (ADR-002) so its UI patterns and components can be
   borrowed under its MIT license. PGlite is explicitly not used.
-- **Single host in V1 (ADR-006).** Moonbeam, its runners (including the
-  frontier-model agents Claude Code and Codex), and every project repository
-  are on one machine, currently `192.168.203.117`. That host does all file and
-  git work. The team uses Moonbeam's web interface from their own machines over
-  the LAN. Local-model endpoints on other LAN machines are still called over
-  HTTP. Runners and repositories on other machines are deferred to V2.
-- **Projects root (ADR-006).** At first run, Moonbeam asks for the directory
-  where projects live. It must be outside Moonbeam's install directory and its
-  data directory (`MOONBEAM_HOME`, default `~/.moonbeam`). Moonbeam never holds
-  project repositories: it registers existing git repositories found under the
-  root, and works task branches in git worktrees in its data directory, so
-  people's folders are unchanged until a board member merges accepted work.
-- **No push without a human (ADR-006).** Moonbeam pushes to a remote only when
-  a board member asks, and never force-pushes.
-- Managed projects must stay workable by hand (plain markdown DbC docs) if
-  Moonbeam is unavailable.
+- Reads a named version of the upstream Project Template DbC ("DbC task v1").
+  The changes that define it are made upstream by a separate task
+  (ADR-008 decision 8, alternative A; CONTRACT-006 U).
+- Projects must stay fully workable without Moonbeam. Nothing in a project
+  depends on Moonbeam.
 
 ## Domain language
 
 - **Board** — the humans who govern work. In V1, every user is a board member.
-- **Projects root** — the directory, chosen at first-run setup, where the
-  team's project repositories live (ADR-006).
-- **Project** — a governed git repository under the projects root, registered
-  in Moonbeam. That repository is canonical; Moonbeam holds no copy of it.
-- **Task** — a unit of work with a desired outcome, scope, and acceptance
-  criteria. Its lifecycle state lives in Moonbeam's database (ADR-001).
-- **Scope envelope** — a task's inclusions, exclusions, paths (the files it may
-  change), linked contracts, and constraints. Subtasks inherit it and may only narrow it.
-- **Split** — dividing a task into subtasks within its scope envelope.
-  Subtasks are approved automatically and each gets an independent agent
-  review. Human acceptance happens once, on the parent task.
-- **Claim** — the exclusive right of one person or run to work an approved
-  task.
-- **Run** — one execution of an agent against a task, with its transcript,
-  artifacts, cost, and outcome.
-- **Runner** — the process that starts and observes runs (for frontier agents,
-  or as a caller to a llama.cpp endpoint). In V1 every runner is on the
-  Moonbeam host (ADR-006).
-- **Model endpoint** — a configured model an agent can use, for example a
-  frontier CLI or a llama.cpp server on the LAN.
-- **Pause** — a run stopping to ask a human a question. It is logged with a
-  category and a resolution.
-- **Pause review** — periodic analysis of pauses to find what could have been
-  answered before the run started.
-- **Handoff** — the implementer's report of what changed, what was validated,
-  deviations, and risks.
-- **Review** — the independent specialist assessment of a handoff. Findings
-  always go to a human.
-- **Acceptance** — a board member's decision that the work is complete. It does
-  not change the repository.
-- **Merge** — bringing an accepted task's branch into the main branch, a
-  separate step that only a board member takes, through Moonbeam or by hand
-  (ADR-005 as amended). Pushing main to a remote is a further human step.
-- **Track record** — outcome statistics per model and specialist role.
-- **Contract / ADR** — as defined by DbC; they live in the project repository.
+- **Lead developer** — the one board member assigned to a project, who works
+  it locally under DbC (ADR-008 decision 1).
+- **Project** — a DbC repository on GitHub, registered in Moonbeam. The
+  repository is canonical. Moonbeam holds no task state for it.
+- **Tracked branch (main)** — the branch Moonbeam reads, `main` by default.
+- **Task** — a DbC unit of work with a desired outcome, scope, and acceptance
+  criteria. Its state is the `tasks/` directory that holds it on main.
+- **DbC task v1** — the task file format Moonbeam parses, defined in
+  CONTRACT-006.
+- **Paths** — the files and directories a task declares it may change.
+  Moonbeam compares them with what the task's merge actually changed.
+- **Proposal** — a task committed to `tasks/proposed/` on main and pushed, so
+  the board can discuss it.
+- **Approval** — a human moving a task to `tasks/approved/` on main and
+  pushing.
+- **Acceptance** — a human accepting a task. The task moves to
+  `tasks/completed/` on its branch, and the merge commit that brings that move
+  to main is the acceptance. Its author is the acceptor (ADR-008 decision 4
+  and its amendment).
+- **Poll** — one read of a project's GitHub repository by Moonbeam.
+- **Baseline** — the commit chosen at registration. Event flags are raised only
+  for newer commits.
+- **Flag** — a record that something on main does not match the process, with
+  its evidence. A flag never blocks anything.
+- **Dismissal** — a board member closing a flag with a note, recorded only in
+  Moonbeam (ADR-009).
+- **Contract / ADR** — as defined by DbC. They live in the project repository,
+  and Moonbeam renders them read-only.
 
 ## Delivery phases (proposed)
 
-Status as of 2026-09-28 is shown after each phase.
+The earlier phase plan (foundation, board surface, runs, pauses, local models,
+hardening) was built for ADR-001 and is superseded by ADR-008. Its phases 1
+and 2 were built. What that code keeps, re-points, or shelves is in
+`docs/ARCHITECTURE.md`.
 
-1. **Foundation**: the Moonbeam DbC variant and `TEMPLATE/`, the monorepo
-   scaffold, the core data model, and a lifecycle contract. *Done.*
-2. **Board surface**: projects (including discovery under the projects root),
-   tasks, the decision queue, the dashboard, user select, and approval and
-   acceptance actions. *Done.*
-3. **Runs**: the runner for Claude Code and Codex on the Moonbeam host, the run
-   view, handoffs, review, and write-back to the repository. *Contracts
-   approved (CONTRACT-003, CONTRACT-004). Planning started. Built first as a
-   thin end-to-end slice (see "Resolved questions").*
-4. **Pauses**: in-run questions, the pause log, pause review, and override
-   review (ADR-007). *Not started. No contract yet.*
-5. **Local models**: llama.cpp endpoints, low-risk roles (summaries, pause
-   triage, handoff drafts), and track records. *Early evaluation harness only
-   (`tools/model-eval`).*
-6. **Hardening**: roles and permissions, global login integration, and cost
-   budgets. *Deferred.*
+The work that follows from ADR-008 is listed below. The board sets the order.
+TASK-023 is planning the code rework.
+
+1. **Contract:** what Moonbeam reads from a DbC project (CONTRACT-006).
+2. **Upstream template:** the DbC changes that define DbC task v1, made in the
+   upstream Project Template DbC (CONTRACT-006 U).
+3. **Code rework:**
+   - re-point project registration at GitHub
+   - build the GitHub poller and the parser to CONTRACT-006
+   - build the per-project view
+   - remove the shelved code
+4. **Cross-project dashboard**, under its own task.
+5. **Hardening:** roles and permissions, and global login integration.
 
 ## Resolved questions
 
-- **Subtask acceptance (2026-09-24):** the parent task is the unit of human
-  approval and acceptance. Subtasks are the means of getting it done. They are
-  approved automatically and reviewed by an agent, but they are not accepted
-  individually. The parent enters review when all its subtasks are done, and a
-  board member accepts it or returns it. A subtask is done once its agent
-  review is recorded and is never reopened. If a problem is found, the fix is a
-  new subtask (CONTRACT-001).
-- **Budgets (2026-09-24):** V1 shows costs but does not budget or enforce them.
+- **Subtask acceptance (2026-09-24).** *Superseded by ADR-008.* Moonbeam no
+  longer runs a task lifecycle, so it has no subtasks or splits. Original
+  answer: the parent task is the unit of human approval and acceptance.
+  Subtasks are approved automatically and reviewed by an agent, but not
+  accepted individually. A subtask is done once its agent review is recorded,
+  and a fix is a new subtask (CONTRACT-001).
+- **Budgets (2026-09-24).** *Superseded by ADR-008.* Costs are deferred.
+  Original answer: V1 shows costs but does not budget or enforce them.
 - **DbC presentation material (2026-09-24):** removed from this repository.
-- **Phase 3 approach (2026-09-28):** build runs as a thin end-to-end slice
-  first, then deepen it. The slice: a board member starts a run on an
-  approved task, it works on the task branch in a Moonbeam worktree, it hands
-  off, and the board reviews and accepts. The pause contract is not needed
-  before the first runs ship.
+- **Phase 3 approach (2026-09-28).** *Superseded by ADR-008.* Agent runs in
+  Moonbeam are on hold. Original answer: build runs as a thin end-to-end slice
+  first, then deepen it. A board member starts a run on an approved task, it
+  works on the task branch in a Moonbeam worktree, it hands off, and the board
+  reviews and accepts.
+- **Where the DbC changes live (2026-09-28).** In the upstream Project Template
+  DbC. Moonbeam's `TEMPLATE/` is retired (ADR-008 decision 8, alternative A,
+  resolved in its amendment).
+- **Acceptance record (2026-09-28).** Task files have no acceptance section or
+  fields. Git records acceptance through the merge commit and its author
+  (ADR-008 amendment, CONTRACT-006 U2).
+- **Where flags and dismissals live (2026-09-28).** Only in Moonbeam, never in
+  the repository (ADR-009).

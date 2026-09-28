@@ -121,7 +121,55 @@ None.
 
 ## Implementation handoff
 
-Not started.
+Done by the librarian. The dispatcher deleted `TEMPLATE/`, because the
+librarian had no delete tool.
+
+**Changed:**
+
+- `README.md`: goals only, with seven ADR-008 goals.
+- `CLAUDE.md`: the `TEMPLATE/` section is replaced by "This repository and
+  the DbC template". Nothing else changed.
+- `docs/PROJECT.md`: rewritten for ADR-008. Its status is still Draft. The
+  delivery phases are marked proposed. Obsolete resolved questions are marked
+  superseded, and three approved resolutions are added.
+- `docs/ARCHITECTURE.md`: "As built", with each part marked Kept, Re-pointed,
+  or Shelved, plus "Direction (not yet built)". The GitHub access method is
+  left open, pending TASK-023.
+- ADR-001, 003, 004, 005, and 006: a dated amendment at the end, plus the
+  Status line.
+- CONTRACT-002, 003, 004, and 005: Status line only.
+- `TEMPLATE/`: deleted (24 files).
+
+**Validated by the dispatcher:**
+
+- `git diff -U0`: the contracts changed only their Status line. Each ADR
+  changed only line 3 (Status) plus an appended section. No decision text
+  changed.
+- The librarian's grep: every hit for "TEMPLATE/", "enforce", "review
+  surface", "pause", and "run view" is historical, negative, deferred, or in a
+  superseded or shelved document. The one exception is `docs/DEVELOPMENT.md`,
+  which the task excludes.
+
+**Deviations and assumptions, for the board:**
+
+1. The ADR Status lines were changed too, for example "Approved; superseded
+   by ADR-008 (2026-09-28), see the amendment at the end", so that each ADR
+   "says so at its top". ADR-007's earlier amendment left its Status line
+   as it was.
+2. ADR-003 decision 2: the amendment says approving and accepting now happen
+   in the repository, and actions inside Moonbeam still need a selected user.
+3. ARCHITECTURE marks first-run setup "Re-pointed", because it records the
+   projects root. It marks `server/src/repository.ts` "Shelved".
+4. PROJECT.md carries "Hardening" (roles and login) into the proposed phases.
+
+**Follow-ups found, outside this task's paths:**
+
+- `tools/model-eval/README.md` and
+  `tools/model-eval/fixtures/categorize/cases.json` refer to
+  `TEMPLATE/docs/workflow/pauses.md`, which no longer exists.
+- `docs/contracts/README.md` doesn't define the "Shelved" status.
+- CONTRACT-006's "Approved date: 2026-09-25" looks like a typo for
+  2026-09-28.
 
 ## Review
 

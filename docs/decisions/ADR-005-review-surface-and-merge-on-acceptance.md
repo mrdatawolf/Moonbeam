@@ -1,6 +1,6 @@
 # ADR-005: Branch per run, review in Moonbeam, merge on acceptance
 
-Status: Approved
+Status: Approved; superseded by ADR-008 (2026-09-28), see the amendment at the end
 Date: 2026-09-24
 Decision owners: Board (direction chosen by Patrick, 2026-09-24)
 Related tasks and contracts: CONTRACT-001, ADR-001
@@ -164,3 +164,21 @@ Recorded by TASK-014. The text above is left as approved.
   task is written in the next merge Moonbeam performs (CONTRACT-004 Q20);
   accepted but unmerged tasks appear in the decision queue as their own group
   (CONTRACT-001 Q24). See those contracts' resolved questions.
+
+## Amendment — 2026-09-28: superseded by ADR-008
+
+Recorded by TASK-022. The decision text and earlier amendments above are left
+as they were. ADR-008 (Approved, 2026-09-28) supersedes this ADR:
+
+- **No Moonbeam-managed branches or review.** Moonbeam has no task branch,
+  review surface, overlap queue, or merge action. The lead developer works
+  each task on a branch in their own clone, under DbC (ADR-008 decisions 1 and
+  4).
+- **"Merging is acceptance" returns in DbC form.** Original decision 3 comes
+  back as ADR-008 decision 4: on main, the merge commit that moves a task from
+  `approved/` to `completed/` is the acceptance.
+- **The amendments separating acceptance from merging lapse**, including the
+  integration status and the merge and push steps they describe.
+- **Declared paths remain useful.** Moonbeam flags a completed task that
+  changed files outside its declared paths, after the fact (ADR-008 decision
+  7, CONTRACT-006 FL-4). It does not queue tasks by path overlap.

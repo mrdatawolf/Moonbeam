@@ -1,6 +1,6 @@
 # CONTRACT-005: Task lifecycle, claims, and splits
 
-Status: Approved
+Status: Shelved by ADR-008 (2026-09-28)
 Supersedes: CONTRACT-001
 Approved by: Patrick
 Approved date: 2026-09-25
