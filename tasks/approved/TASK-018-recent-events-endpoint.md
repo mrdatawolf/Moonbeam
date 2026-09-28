@@ -4,8 +4,8 @@ Owner role: Implementer
 Assigned agent:
 Proposed by: Claude (planning session)
 Proposed date: 2026-09-28
-Approved by:
-Approved date:
+Approved by: Patrick
+Approved date: 2026-09-28
 Related contracts: CONTRACT-002 (read rules, agent e-mail rule), CONTRACT-005 (audit records)
 Related ADRs: ADR-002
 Dependencies: TASK-008 (completed; this replaces its per-task audit reads)
