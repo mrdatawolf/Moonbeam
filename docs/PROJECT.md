@@ -152,17 +152,24 @@ decides; agents propose, implement, review, and report.
 
 ## Delivery phases (proposed)
 
-1. **Foundation** — the Moonbeam DbC variant and `TEMPLATE/`; the monorepo
-   scaffold; the core data model and a lifecycle contract.
-2. **Board surface** — projects, tasks, the decision queue, the dashboard, user
-   select, and approval and acceptance actions.
-3. **Runs** — the runner for Claude Code and Codex on a dev box, the run view,
-   handoffs, review, and write-back to the repository.
-4. **Pauses** — in-run questions, the pause log, and pause review.
-5. **Local models** — llama.cpp endpoints, low-risk roles (summaries, pause
-   triage, handoff drafts), and track records.
-6. **Hardening** — roles and permissions, global login integration, and cost
-   budgets.
+Status as of 2026-09-28 is shown after each phase.
+
+1. **Foundation**: the Moonbeam DbC variant and `TEMPLATE/`, the monorepo
+   scaffold, the core data model, and a lifecycle contract. *Done.*
+2. **Board surface**: projects (including discovery under the projects root),
+   tasks, the decision queue, the dashboard, user select, and approval and
+   acceptance actions. *Done.*
+3. **Runs**: the runner for Claude Code and Codex on the Moonbeam host, the run
+   view, handoffs, review, and write-back to the repository. *Contracts
+   approved (CONTRACT-003, CONTRACT-004). Planning started. Built first as a
+   thin end-to-end slice (see "Resolved questions").*
+4. **Pauses**: in-run questions, the pause log, pause review, and override
+   review (ADR-007). *Not started. No contract yet.*
+5. **Local models**: llama.cpp endpoints, low-risk roles (summaries, pause
+   triage, handoff drafts), and track records. *Early evaluation harness only
+   (`tools/model-eval`).*
+6. **Hardening**: roles and permissions, global login integration, and cost
+   budgets. *Deferred.*
 
 ## Resolved questions
 
@@ -175,3 +182,8 @@ decides; agents propose, implement, review, and report.
   new subtask (CONTRACT-001).
 - **Budgets (2026-09-24):** V1 shows costs but does not budget or enforce them.
 - **DbC presentation material (2026-09-24):** removed from this repository.
+- **Phase 3 approach (2026-09-28):** build runs as a thin end-to-end slice
+  first, then deepen it. The slice: a board member starts a run on an
+  approved task, it works on the task branch in a Moonbeam worktree, it hands
+  off, and the board reviews and accepts. The pause contract is not needed
+  before the first runs ship.
