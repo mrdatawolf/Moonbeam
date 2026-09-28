@@ -4,8 +4,8 @@ Owner role: Implementer
 Assigned agent:
 Proposed by: Claude (planning session)
 Proposed date: 2026-09-28
-Approved by:
-Approved date:
+Approved by: Patrick
+Approved date: 2026-09-28
 Related contracts: CONTRACT-004 (B13 registration), CONTRACT-002 (human-only actions)
 Related ADRs: ADR-006 (decision 2)
 Dependencies: TASK-006 and TASK-007 (completed; registration API and Projects page)
