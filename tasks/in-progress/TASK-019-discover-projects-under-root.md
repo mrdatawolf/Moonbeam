@@ -1,7 +1,7 @@
 # TASK-019: Offer the repositories found under the projects root for registration
 
 Owner role: Implementer
-Assigned agent:
+Assigned agent: Codex (direct, write-capable)
 Proposed by: Claude (planning session)
 Proposed date: 2026-09-28
 Approved by: Patrick
