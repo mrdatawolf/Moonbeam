@@ -390,12 +390,12 @@ Not reviewed.
 
 Board answers to the five decisions (Patrick, 2026-09-28):
 
-1. **How Moonbeam reads GitHub:** neither the mirror nor the API for now.
-   Moonbeam reads local repository folders that the user maintains and points
-   it at. It never fetches or pulls. Having Moonbeam do the pulls may be
-   revisited later.
-2. **Tokens:** deferred ("back burner"). With decision 1 there is no GitHub
-   access yet, so none are needed.
+1. **How Moonbeam reads GitHub:** option C as recommended: a local bare
+   mirror plus the REST API, recorded in ADR-010 (TASK-024). The board first
+   chose to read the user's own local folders, then reversed that the same
+   day: "we can do token, ... we would be there later anyway".
+2. **Tokens:** option B as recommended, a JSON token file in
+   `$MOONBEAM_HOME`.
 3. **Remove the shelved code first and drop its tables:** agreed.
 4. **Adopt the task format now and the main-branch rules later
    (TASK-025, then TASK-041):** agreed, as a trial.
