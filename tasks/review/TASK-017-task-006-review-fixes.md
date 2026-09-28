@@ -265,6 +265,37 @@ identity, locked agent revalidation, fresh-review requirements after return,
 no-op rejection behavior, pause/lease resumption, root-registration locking and
 new regression/matrix coverage.
 
+### Dispatcher testing (2026-09-28)
+
+**Mutation check.** Each fix was removed on its own, and its tests were run
+(`review-fixes.test.ts -t <finding>`), then the file was restored:
+
+| Fix removed | Result |
+|---|---|
+| F1: clear the deferred completion on return | 1 test fails |
+| F1: clear the deferred completion on a new handoff | **no test fails** |
+| F2: re-check the run under the lock | 3 tests fail |
+| F3: refresh leases when an ended run's pauses close | 1 test fails |
+| F4: reject a move to the current position | 1 test fails |
+| F5: repeated withdrawal is `invalid_transition` | 1 test fails |
+| F6: re-check the root under the lock | 1 test fails |
+| N1: agent user list without e-mail addresses | 2 tests fail |
+
+The handoff half of F1 is untested. As far as the dispatcher can tell, it is
+also unreachable today: a subtask can leave `in_review` only through return,
+which already clears the field. So it is a defensive duplicate, not a gap in
+behavior. QA may want to confirm.
+
+**Live API probe.** On a running server with a temporary database and a dev
+agent run:
+
+- With the agent's credential, the user list (including inactive users, and
+  with a user header also sent) has no `email` field. Who-am-I and the project,
+  task, task-list, decision-queue and settings reads contain no e-mail address.
+- People and anonymous viewers still get e-mail addresses from the user list.
+- After the run ended, its credential returned `unidentified` for who-am-I and
+  for a claim.
+
 ## Review
 
 Not reviewed.

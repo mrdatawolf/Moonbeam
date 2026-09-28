@@ -409,6 +409,31 @@ committed:
   changed deactivation to clear the selection immediately. They may not show
   that final behavior. No new live walkthrough was done.
 
+### Dispatcher testing (2026-09-28)
+
+A browser walkthrough (Playwright, Chromium) against `pnpm dev` from this
+commit, with a temporary data folder, on ports 3200 and 5280. **18 of 18
+checks passed:**
+
+- First-run setup with one user. The header "Add a user" link opens `/users`.
+- A newcomer with no user selected is told to choose one first. The Add
+  button is disabled, and a forced click adds no one.
+- After choosing Patrick, a duplicate name (" patrick ") and a bad e-mail
+  address are both rejected, with clear messages.
+- Alice is added, and "Switch to Alice" makes her the acting user.
+- Editing Alice to Alicia updates the list and the header.
+- Deactivating Patrick moves him to Inactive users, with his e-mail address.
+  Deactivate is then disabled for the last active user, with a reason.
+- In Patrick's own browser, a reload shows "The user chosen in this browser is
+  no longer active. Choose who you are." It does not switch user silently.
+- Reactivating Patrick works. Deactivating yourself clears your own selection.
+- At 390 px in dark mode there is no horizontal scroll. There were no page
+  errors.
+
+Observation, not a defect: finishing first-run setup does not select the person
+who did the setup. They start as "Nobody (view only)" and must choose
+themselves.
+
 ## Review
 
 Not reviewed.
