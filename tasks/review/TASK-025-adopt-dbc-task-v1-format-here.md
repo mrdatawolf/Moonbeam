@@ -89,7 +89,31 @@ None.
 
 ## Implementation handoff
 
-Not started.
+Done by the librarian.
+
+**Changed:**
+
+- `docs/templates/task.md`: `Format: DbC task v1` is the first header line
+  (U1). A U3 guidance paragraph is added under `### Paths`, as prose.
+- `tasks/README.md`: new "Task format: DbC task v1" section with the U4 field
+  formats, and an "Older task files" section: pre-v1 files are not rewritten,
+  and Moonbeam reports them under FL-7.
+
+**Validated:**
+
+- A hand check of a filled-in sample against P1 to P7 found no FL-2 or FL-7.
+  The sample was reasoned through only; no file was created. There is no
+  machine check until TASK-027's parser exists.
+- The dispatcher confirmed with `git status` that only the two files changed.
+
+**Deviations:**
+
+- The Paths guidance is prose, not a bulleted list. P7 reads every list item
+  under `### Paths` as a path pattern.
+- U8's "`in-progress/` and `review/` don't appear on main" is left to
+  TASK-041, which the Excluded list assigns the main-branch rules to.
+- Existing task files are not given `Format:` lines. That includes TASK-026
+  onward, which were written before this template.
 
 ## Review
 
