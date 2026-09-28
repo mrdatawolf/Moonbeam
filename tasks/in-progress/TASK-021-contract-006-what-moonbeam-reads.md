@@ -100,7 +100,8 @@ as a worked example.
 
 ## Blocker
 
-Waiting on ADR-008 approval.
+None. ADR-008 was approved on 2026-09-28, with decision 8 resolved as
+alternative A (upstream DbC template).
 
 ## Implementation handoff
 
