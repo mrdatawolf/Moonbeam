@@ -5,7 +5,7 @@ Approved by:
 Approved date:
 Related tasks: TASK-021
 Related ADRs: ADR-008 (governing, with its 2026-09-28 amendment: decision 8 =
-alternative A), ADR-007, ADR-003 (context: ADR-002, ADR-004, ADR-005)
+alternative A), ADR-009, ADR-007, ADR-003 (context: ADR-002, ADR-004, ADR-005)
 Related contracts: CONTRACT-002 (kept parts: user registry and user select);
 CONTRACT-003, CONTRACT-004, CONTRACT-005 are shelved and not used here
 Reads: upstream Project Template DbC, task format "DbC task v1" (defined in
@@ -470,9 +470,9 @@ regardless of the baseline. Every flag can be dismissed with a note (FG4).
 - **FG6 Never blocking.** No flag prevents, delays, or changes anything, in
   Moonbeam or in the repository.
 - **FG7 Where records live.** Flags, dismissals, and notes are Moonbeam data in
-  its audit trail. They are not written to the repository. This departs from
-  ADR-007 decision 4 ("noted in the task record written to the repository"),
-  which ADR-008 decision 6 makes impossible.
+  its audit trail. They are not written to the repository, and Moonbeam does
+  not read dismissals from it (ADR-009, which rejects the repository clause of
+  ADR-007 decision 4).
 
 ### Identity (I)
 
@@ -726,26 +726,17 @@ v1. This contract does not edit upstream.
 
 ## Open questions
 
-- **Q17 Dismissals and ADR-007 decision 4.** FG7 keeps flags, dismissals, and
-  notes only in Moonbeam. ADR-007 decision 4 requires every override to be
-  noted in the task record in the repository, which ADR-008 decision 6
-  (read-only) rules out. The board (2026-09-28) wants either a formal
-  rejection of that part of ADR-007, or a different way to record it. Options:
-  - **A.** A new ADR superseding ADR-007 decision 4 for Moonbeam: detection
-    records live only in Moonbeam, and the repository is never written.
-  - **B.** Dismissal in the repository: the lead developer explains a flag by
-    committing a note, for example a line under `## Board notes` in the task
-    file naming the flag. Moonbeam reads it and treats the flag as dismissed.
-    The explanation then lives with the project, as ADR-007 intended, and
-    Moonbeam stays read-only. Flags without a task, such as FL-3 on a direct
-    commit, would still need Moonbeam-side dismissal, or a project-level notes
-    file.
-  - Not decided here. The board decides before approval.
+None.
 
 ## Resolved questions
 
-The board accepted every recommendation below on 2026-09-28. They are now part
-of this contract as written.
+The board accepted every recommendation in Q1 to Q16 on 2026-09-28. They are
+now part of this contract as written.
+
+- **Q17 Dismissals and ADR-007 decision 4.** Resolved 2026-09-28: the board
+  formally rejected the repository clause of ADR-007 decision 4 (ADR-009).
+  Flags, dismissals, and notes live only in Moonbeam (FG7). Dismissing a flag
+  by committing a note in the repository was considered and not adopted.
 
 - **Q1 Staleness threshold.** Recommendation: 14 days from the most recent
   entry into `approved/`, overridable per project, and a dismissal lasting one
