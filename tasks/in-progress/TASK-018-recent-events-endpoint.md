@@ -1,7 +1,7 @@
 # TASK-018: A read-only "recent events" endpoint for the dashboard
 
 Owner role: Implementer
-Assigned agent:
+Assigned agent: openai-coder (Codex)
 Proposed by: Claude (planning session)
 Proposed date: 2026-09-28
 Approved by: Patrick
