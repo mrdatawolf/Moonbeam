@@ -1,7 +1,7 @@
 # TASK-016: Implement the CONTRACT-005 changes (edit a proposed task)
 
 Owner role: Implementer
-Assigned agent:
+Assigned agent: openai-coder (Codex)
 Proposed by: Claude (planning session)
 Proposed date: 2026-09-25
 Approved by: Patrick
