@@ -170,7 +170,45 @@ None.
 
 ## Implementation handoff
 
-Not started.
+**Changed:** `docs/decisions/ADR-008-moonbeam-observes-dbc-through-github.md`
+(new, status Proposed). No other file changed.
+
+**What it records:**
+
+- Decisions 1–7 carry the planning-session direction:
+  - the lead developer
+  - DbC as the interface
+  - proposals and approvals committed to main
+  - the branch merge as acceptance
+  - GitHub polling
+  - a read-only Moonbeam
+  - detection with an initial list of five flags
+- Decision 8 presents the template location as alternatives A and B, and
+  recommends A.
+- Decision 9 lists what is deferred.
+- Tables set out the effect on ADR-001 to ADR-007 and CONTRACT-001 to 005, and
+  what happens to the current code.
+
+**Validated:** read-through against ADR-001 to ADR-007, the contract status
+lines, and the upstream DbC `docs/workflow/lifecycle.md`. Every point under
+"Context" appears as a decision.
+
+**Deviations:**
+
+- Drafted by Claude directly, not dispatched to jarvis. The planning context
+  was already in the session.
+- The ADR also:
+  - classifies ADR-003 as amended, because its decision 3 has no object once
+    agents don't use Moonbeam
+  - names CONTRACT-002 as superseded in part
+  - adds a risk about duplicate task IDs allocated on main
+  - defines "shelved" for contracts
+
+**For the board to decide at review:**
+
+- decision 8: template alternative A or B
+- whether "shelved" is the right status for CONTRACT-003, 004, and 005, or
+  whether they should be marked superseded by ADR-008
 
 ## Review
 
