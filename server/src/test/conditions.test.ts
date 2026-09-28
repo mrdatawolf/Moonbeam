@@ -1,4 +1,4 @@
-// CONTRACT-001 C1, C2 (data only), claim expiry (T5), lease suspension and renewal.
+// CONTRACT-005 C1, C2 (data only), claim expiry (T5), lease suspension and renewal.
 import { afterEach, describe, expect, it } from "vitest";
 import { approvedTask, expectOk, expectRejected, getTask, handoffBody, startRun, world, type World } from "./harness.js";
 

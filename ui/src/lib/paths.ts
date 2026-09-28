@@ -1,4 +1,4 @@
-// Mirror of the server's path rule (CONTRACT-001 Definitions, Board A1; server
+// Mirror of the server's path rule (CONTRACT-005 Definitions, Board A1; server
 // `lifecycle/paths.ts`): plain paths relative to the repository root, no
 // globs, not absolute, never leaving the root. Used to say before approving
 // why the server would refuse; the server stays the authority.

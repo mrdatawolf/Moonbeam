@@ -1,14 +1,14 @@
-// The human actions on a task (CONTRACT-001 T2, T3, T4, T6, T9, T10, T15, C1;
+// The human actions on a task (CONTRACT-005 T2, T3, T4, T6, T9, T10, T15, C1;
 // CONTRACT-003 A-1, A-2, A-3, A-5). Every action stays visible; unavailable
 // ones are disabled with the reason. Each one names the acting user, is sent
 // to the server, shows its refusal category in place and keeps entered text,
 // and moves focus to the result message on success.
-import type { TaskDetail } from "@moonbeam/shared";
+import type { TaskDetail, TaskActionKey } from "@moonbeam/shared";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { ApiRequestError } from "../api/client";
 import { useConnectionLost } from "../api/connection";
 import { useProjects, useTaskAction } from "../api/queries";
-import { availability, CHOOSE_USER, needsReviewWaiver, releaseMode, type Availability } from "../lib/actions";
+import { browserAvailability, CHOOSE_USER, needsReviewWaiver, releaseMode, type Availability } from "../lib/actionPresentation";
 import { focusUserPicker, useCurrentUser } from "../lib/currentUser";
 import { latestHandoff, REVIEW_VERDICT, reviewsOfLatestAttempt, WARNING } from "../lib/status";
 import { Dialog } from "./Dialog";
@@ -65,7 +65,7 @@ export function TaskActions({ task }: { task: TaskDetail }) {
   const { user } = useCurrentUser();
   const lost = useConnectionLost();
   const ctx = { userId: user?.id ?? null, connectionLost: lost };
-  const av = (k: Parameters<typeof availability>[1]) => availability(task, k, ctx);
+  const av = (k: TaskActionKey) => browserAvailability(task.allowedActions[k], ctx);
   const projects = useProjects();
   const mainBranch = projects.data?.find((p) => p.id === task.projectId)?.mainBranch ?? "main";
 

@@ -1,4 +1,4 @@
-// Read models for the API (CONTRACT-001 "Interfaces": every task view exposes
+// Read models for the API (CONTRACT-005 "Interfaces": every task view exposes
 // state and conditions, claimant and lease, parent and subtasks, envelope,
 // queue position and path dependencies in both directions, reviews with the
 // same-model flag, and the full audit history).
@@ -16,6 +16,8 @@ import type {
   TaskSummary,
 } from "@moonbeam/shared";
 import { dependenciesOf, dependents, projectQueue } from "./lifecycle/dependencies.js";
+import type { Actor } from "./identity/actor.js";
+import { allowedActions, blockerAvailability } from "./lifecycle/availability.js";
 import { pathsOverlap } from "./lifecycle/paths.js";
 
 type TaskRow = typeof schema.tasks.$inferSelect;
@@ -36,9 +38,12 @@ export class ViewData {
     readonly pausedTasks: Set<string>,
     readonly users: Map<string, UserRow>,
     readonly runs: Map<string, RunRow>,
+    readonly blockers: (typeof schema.blockers.$inferSelect)[],
+    readonly handoffs: (typeof schema.handoffs.$inferSelect)[],
+    readonly actor: Actor | null,
   ) {}
 
-  static async load(db: Database, projectIds: string[] | "all"): Promise<ViewData> {
+  static async load(db: Database, projectIds: string[] | "all", actor: Actor | null = null): Promise<ViewData> {
     const scope = projectIds === "all" ? undefined : inArray(schema.tasks.projectId, projectIds.length ? projectIds : ["00000000-0000-0000-0000-000000000000"]);
     const tasks = await db.select().from(schema.tasks).where(scope).orderBy(asc(schema.tasks.number));
     const claims = await db
@@ -47,7 +52,7 @@ export class ViewData {
       .innerJoin(schema.tasks, eq(schema.tasks.id, schema.claims.taskId))
       .where(and(isNull(schema.claims.endedAt), scope));
     const blockers = await db
-      .select({ taskId: schema.blockers.taskId })
+      .select({ blocker: schema.blockers })
       .from(schema.blockers)
       .innerJoin(schema.tasks, eq(schema.tasks.id, schema.blockers.taskId))
       .where(and(isNull(schema.blockers.resolvedAt), scope));
@@ -57,15 +62,20 @@ export class ViewData {
       .innerJoin(schema.agentRuns, eq(schema.agentRuns.id, schema.pauses.runId))
       .innerJoin(schema.tasks, eq(schema.tasks.id, schema.pauses.taskId))
       .where(and(isNull(schema.pauses.closedAt), eq(schema.agentRuns.status, "active"), scope));
+    const handoffs = await db.select({ handoff: schema.handoffs }).from(schema.handoffs)
+      .innerJoin(schema.tasks, eq(schema.tasks.id, schema.handoffs.taskId)).where(scope);
     const users = await db.select().from(schema.users);
     const runs = await db.select().from(schema.agentRuns);
     return new ViewData(
       tasks,
       new Map(claims.map((c) => [c.claim.taskId, c.claim])),
-      new Set(blockers.map((b) => b.taskId)),
+      new Set(blockers.map((b) => b.blocker.taskId)),
       new Set(pauses.map((p) => p.taskId)),
       new Map(users.map((u) => [u.id, u])),
       new Map(runs.map((r) => [r.id, r])),
+      blockers.map((b) => b.blocker),
+      handoffs.map((h) => h.handoff),
+      actor,
     );
   }
 
@@ -119,6 +129,7 @@ export class ViewData {
       fellBack: t.fellBackAt !== null && t.state === "approved",
       workOnMain: t.workOnMain,
       updatedAt: iso(t.updatedAt),
+      allowedActions: allowedActions(t, this.actor, this),
     };
   }
 
@@ -206,10 +217,10 @@ function reviewView(r: typeof schema.reviews.$inferSelect): ReviewView {
   };
 }
 
-export async function taskDetail(db: Database, taskId: string): Promise<TaskDetail | null> {
+export async function taskDetail(db: Database, taskId: string, actor: Actor | null = null): Promise<TaskDetail | null> {
   const [head] = await db.select({ projectId: schema.tasks.projectId }).from(schema.tasks).where(eq(schema.tasks.id, taskId));
   if (!head) return null;
-  const data = await ViewData.load(db, [head.projectId]);
+  const data = await ViewData.load(db, [head.projectId], actor);
   const t = data.task(taskId)!;
   const [blockers, pauses, handoffs, reviews, audit] = await Promise.all([
     db.select().from(schema.blockers).where(eq(schema.blockers.taskId, taskId)).orderBy(asc(schema.blockers.addedAt)),
@@ -269,6 +280,7 @@ export async function taskDetail(db: Database, taskId: string): Promise<TaskDeta
     parent: parent ? data.summary(parent) : null,
     subtasks: subtasks.map((s) => data.summary(s)),
     blockers: blockers.map(blockerView),
+    blockerActions: Object.fromEntries(blockers.map((b) => [b.id, blockerAvailability(t, b, actor, data)])),
     pauses: pauses.map((p) => ({
       id: p.id,
       runId: p.runId,
@@ -301,13 +313,13 @@ export async function auditRecords(db: Database, ids: number[]): Promise<AuditRe
   return rows.map((r) => data.audit(r));
 }
 
-export async function listTasks(db: Database, projectId: string, states: string[] | null): Promise<TaskSummary[]> {
-  const data = await ViewData.load(db, [projectId]);
+export async function listTasks(db: Database, projectId: string, states: string[] | null, actor: Actor | null = null): Promise<TaskSummary[]> {
+  const data = await ViewData.load(db, [projectId], actor);
   return data.tasks.filter((t) => !states || states.includes(t.state)).map((t) => data.summary(t));
 }
 
-export async function projectQueueView(db: Database, projectId: string) {
-  const data = await ViewData.load(db, [projectId]);
+export async function projectQueueView(db: Database, projectId: string, actor: Actor | null = null) {
+  const data = await ViewData.load(db, [projectId], actor);
   const queue = projectQueue(data.tasks);
   return queue.map((t) => ({
     task: data.summary(t),
@@ -316,12 +328,12 @@ export async function projectQueueView(db: Database, projectId: string) {
 }
 
 /**
- * The decision queue groups of CONTRACT-001 "UX expectations" that exist in
+ * The decision queue groups of CONTRACT-005 "UX expectations" that exist in
  * phase 2. "Accepted, not merged" lists completed top-level tasks (none is on
  * main yet); ordering refused merges first needs merge requests (phase 3).
  */
-export async function decisionQueue(db: Database, projectIds: string[] | "all"): Promise<DecisionQueue> {
-  const data = await ViewData.load(db, projectIds);
+export async function decisionQueue(db: Database, projectIds: string[] | "all", actor: Actor | null = null): Promise<DecisionQueue> {
+  const data = await ViewData.load(db, projectIds, actor);
   const open = (t: TaskRow) => t.state !== "completed" && t.state !== "cancelled";
   const reviews = data.tasks.length
     ? await db

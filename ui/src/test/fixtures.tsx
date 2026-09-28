@@ -1,5 +1,6 @@
 // Test fixtures: schema-valid API objects and a render helper with the app's
 // providers and a fake `fetch` that answers per method and path.
+import { taskActionKeySchema, type AllowedActions } from "@moonbeam/shared";
 import type { ActorRef, DecisionQueue, Project, TaskDetail, TaskSummary, User } from "@moonbeam/shared";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render } from "@testing-library/react";
@@ -31,6 +32,8 @@ export const humanRef = (u: User): ActorRef => ({
   systemTrigger: null,
 });
 
+export const enabledActions = Object.fromEntries(taskActionKeySchema.options.map((key) => [key, { enabled: true }])) as AllowedActions;
+
 export function summary(over: Partial<TaskSummary> = {}): TaskSummary {
   return {
     id: TASK_ID,
@@ -50,6 +53,7 @@ export function summary(over: Partial<TaskSummary> = {}): TaskSummary {
     fellBack: false,
     workOnMain: false,
     updatedAt: NOW,
+    allowedActions: enabledActions,
     ...over,
   };
 }
@@ -74,6 +78,7 @@ export function detail(over: Partial<TaskDetail> = {}): TaskDetail {
     parent: null,
     subtasks: [],
     blockers: [],
+    blockerActions: {},
     pauses: [],
     handoffs: [],
     reviews: [],

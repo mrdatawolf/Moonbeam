@@ -55,6 +55,7 @@ export const CATEGORY_LABEL: Record<ErrorCategory, string> = {
 /** Audit action names as sentences for the history table. */
 const AUDIT_LABEL: Record<string, string> = {
   created: "Proposed",
+  edited: "Proposal edited",
   approved: "Approved",
   auto_approved: "Approved automatically with the split",
   created_by_split: "Created by a split",

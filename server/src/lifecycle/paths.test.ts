@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { checkPath, checkPaths, filesOutsidePaths, pathsOverlap, pathWithin } from "./paths.js";
 
-describe("paths (CONTRACT-001 Definitions, Board A1)", () => {
+describe("paths (CONTRACT-005 Definitions, Board A1)", () => {
   it("accepts and normalises plain relative paths", () => {
     expect(checkPath("src/")).toEqual({ ok: true, path: "src" });
     expect(checkPath("./docs/a.md")).toEqual({ ok: true, path: "docs/a.md" });

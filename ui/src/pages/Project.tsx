@@ -1,4 +1,4 @@
-// One project: its tasks by state (board) and its queue in order (CONTRACT-001
+// One project: its tasks by state (board) and its queue in order (CONTRACT-005
 // "Project queue and path dependencies"), with proposing a task.
 import { Link, useParams, useSearchParams } from "react-router";
 import { useProject, useProjectTasks } from "../api/queries";

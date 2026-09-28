@@ -6,7 +6,7 @@ const parent = (() => {
     inclusions: ["Build the API", "Write docs"],
     exclusions: ["No UI"],
     constraints: ["Use zod"],
-    contracts: ["CONTRACT-001"],
+    contracts: ["CONTRACT-005"],
     paths: ["server", "docs/DEVELOPMENT.md"],
   });
   if (!r.ok) throw new Error("bad fixture");
@@ -17,11 +17,11 @@ const ok = {
   inclusions: [{ text: "Build the claim route", derivedFrom: "I1" }],
   exclusions: ["No UI", "No docs"],
   constraints: ["Use zod"],
-  contracts: ["CONTRACT-001"],
+  contracts: ["CONTRACT-005"],
   paths: ["server/src"],
 };
 
-describe("scope envelope narrowing (CONTRACT-001 Scope envelope)", () => {
+describe("scope envelope narrowing (CONTRACT-005 Scope envelope)", () => {
   it("keys top-level inclusions I1, I2, ...", () => {
     expect(parent.inclusions.map((i) => i.key)).toEqual(["I1", "I2"]);
   });

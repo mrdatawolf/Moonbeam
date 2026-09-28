@@ -1,5 +1,5 @@
 // Scope envelopes and the narrowing rules the server can check
-// (CONTRACT-001 "Scope envelope").
+// (CONTRACT-005 "Scope envelope").
 import type { ScopeEnvelopeRecord } from "@moonbeam/db";
 import { checkPath, checkPaths, pathWithin } from "./paths.js";
 

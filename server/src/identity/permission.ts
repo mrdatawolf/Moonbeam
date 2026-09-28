@@ -2,12 +2,13 @@
 // agent is denied every human-only action (`authority_violation`) and, for
 // everything else, any target outside its run's binding (`not_permitted`).
 // Lifecycle relationships (claimant, author, reviewer) are checked afterwards
-// by the lifecycle service (CONTRACT-001).
+// by the lifecycle service (CONTRACT-005).
 import type { Actor } from "./actor.js";
 
 export type ActionName =
-  // CONTRACT-001
+  // CONTRACT-005
   | "create_task"
+  | "edit"
   | "approve"
   | "claim"
   | "release"

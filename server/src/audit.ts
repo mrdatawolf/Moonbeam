@@ -18,7 +18,7 @@ export interface AuditEntry {
   occurredAt?: Date;
 }
 
-/** Actor columns of an audit record (CONTRACT-001 "Audit record"; CONTRACT-002 identity mode). */
+/** Actor columns of an audit record (CONTRACT-005 "Audit record"; CONTRACT-002 identity mode). */
 function actorColumns(actor: AnyActor) {
   switch (actor.kind) {
     case "human":

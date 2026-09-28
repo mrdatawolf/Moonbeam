@@ -36,7 +36,7 @@ server.on("error", async (err) => {
   await shutdown(1);
 });
 
-// Agent-run leases expire at their deadline (CONTRACT-001 T5). Actions and
+// Agent-run leases expire at their deadline (CONTRACT-005 T5). Actions and
 // reads also expire due leases before they look at a claim; this sweep writes
 // the `claim_expired` records for tasks nobody is looking at.
 const sweep = setInterval(() => {

@@ -1,18 +1,19 @@
-// Task detail (CONTRACT-001 "Interfaces": every task view exposes state and
+// Task detail (CONTRACT-005 "Interfaces": every task view exposes state and
 // conditions, blockers, claimant and lease, parent and subtasks, envelope,
 // queue position and path dependencies both ways, reviews with the
 // same-model flag, and the full audit history). Order follows "what is
 // happening, does it need me, what do I do about it".
-import type { AuditRecordView, PathDependency, TaskDetail } from "@moonbeam/shared";
+import type { ActionAvailability, AuditRecordView, PathDependency, TaskDetail } from "@moonbeam/shared";
 import { Link, useParams } from "react-router";
 import { useConnectionLost } from "../api/connection";
 import { useProjects, useTask, useTaskAction, useUsers } from "../api/queries";
 import { EmptyState, LoadError, Mono, Refusal, SectionHeading, Skeleton, TaskRef, Time } from "../components/common";
 import { MoveControl } from "../components/MoveControl";
 import { StatusBadge } from "../components/StatusBadge";
+import { EditProposedTask } from "../components/EditProposedTask";
 import { TaskActions } from "../components/TaskActions";
 import { Claimant } from "../components/TaskCard";
-import { blockerAvailability, CHOOSE_USER, dependencyKindLabel } from "../lib/actions";
+import { browserAvailability, CHOOSE_USER, dependencyKindLabel } from "../lib/actionPresentation";
 import { focusUserPicker, useCurrentUser } from "../lib/currentUser";
 import { actorLabel, auditLabel } from "../lib/format";
 import { conditionsOf, INTEGRATION, latestHandoff, REVIEW_VERDICT, reviewSubstatus, TASK_STATE, WARNING } from "../lib/status";
@@ -51,7 +52,6 @@ function Blockers({ task }: { task: TaskDetail }) {
   const open = task.blockers.filter((b) => !b.resolvedAt);
   const closed = task.blockers.filter((b) => b.resolvedAt);
   if (task.blockers.length === 0 && !task.effectivelyBlocked) return null;
-  const avail = blockerAvailability({ userId: user?.id ?? null, connectionLost: lost });
   return (
     <section aria-labelledby="blockers-h" className="card space-y-3 border-tone-danger-border p-4">
       <SectionHeading id="blockers-h" count={open.length}>
@@ -60,7 +60,7 @@ function Blockers({ task }: { task: TaskDetail }) {
       {task.effectivelyBlocked && !task.blocked ? <p className="text-sm">The parent task is blocked, so this subtask is blocked by its parent.</p> : null}
       <ul className="space-y-3">
         {open.map((b) => (
-          <BlockerItem key={b.id} taskId={task.id} blocker={b} avail={avail} />
+          <BlockerItem key={b.id} taskId={task.id} blocker={b} avail={browserAvailability(task.blockerActions[b.id]!, { userId: user?.id ?? null, connectionLost: lost })} />
         ))}
       </ul>
       {closed.length ? (
@@ -79,7 +79,7 @@ function Blockers({ task }: { task: TaskDetail }) {
   );
 }
 
-function BlockerItem({ taskId, blocker: b, avail }: { taskId: string; blocker: TaskDetail["blockers"][number]; avail: ReturnType<typeof blockerAvailability> }) {
+function BlockerItem({ taskId, blocker: b, avail }: { taskId: string; blocker: TaskDetail["blockers"][number]; avail: ActionAvailability }) {
   const resolve = useTaskAction(taskId, `blockers/${b.id}/resolve`);
   return (
     <li className="space-y-1 rounded-control border border-border p-3 text-sm">
@@ -146,6 +146,16 @@ function History({ audit }: { audit: AuditRecordView[] }) {
                       {" "}
                       ({TASK_STATE[a.fromState as keyof typeof TASK_STATE]?.label ?? a.fromState} → {TASK_STATE[a.toState as keyof typeof TASK_STATE]?.label ?? a.toState})
                     </span>
+                  ) : null}
+                  {a.action === "edited" && a.details?.changes && typeof a.details.changes === "object" ? (
+                    <dl className="mt-2 space-y-2 text-xs">
+                      {Object.entries(a.details.changes).map(([field, change]) => {
+                        const values = change as { previous: unknown; new: unknown };
+                        return <div key={field}><dt className="font-semibold">{field}</dt>
+                          <dd className="whitespace-pre-wrap break-words">Previous: {JSON.stringify(values.previous)}<br />New: {JSON.stringify(values.new)}</dd>
+                        </div>;
+                      })}
+                    </dl>
                   ) : null}
                   {a.details && typeof a.details.override === "object" && a.details.override ? <span className="text-tone-attention-fg"> · Accept anyway override</span> : null}
                 </td>
@@ -412,6 +422,9 @@ function TaskBody({ task }: { task: TaskDetail }) {
         </div>
 
         <aside className="min-w-0 space-y-6" aria-label="Actions and relationships">
+          {task.state === "proposed" ? <EditProposedTask task={task} /> : (
+            <p className="text-sm text-muted-foreground">Content is fixed after approval. To change scope, cancel an unfinished task and propose a replacement.</p>
+          )}
           <TaskActions task={task} />
           <section aria-labelledby="deps-h" className="card space-y-3 p-4">
             <SectionHeading id="deps-h">Path dependencies</SectionHeading>

@@ -16,7 +16,7 @@ import {
 } from "@moonbeam/shared";
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { invalidateSelection, readSelectedUserId } from "../lib/selection";
+import { invalidateSelection, readSelectedUserId, useSelectedUserId } from "../lib/selection";
 import { ApiRequestError, request } from "./client";
 
 const LIVE = 10_000;
@@ -63,20 +63,20 @@ export const useProjectsRoot = () =>
   });
 
 export const useProject = (id: string) =>
-  useQuery({ queryKey: keys.project(id), queryFn: () => request("GET", `/projects/${id}`, projectQueueResponseSchema), refetchInterval: LIVE });
+  useQuery({ queryKey: [...keys.project(id), useSelectedUserId()], queryFn: () => request("GET", `/projects/${id}`, projectQueueResponseSchema), refetchInterval: LIVE });
 
 export const useProjectTasks = (projectId: string) =>
   useQuery({
-    queryKey: keys.tasks(projectId),
+    queryKey: [...keys.tasks(projectId), useSelectedUserId()],
     queryFn: () => request("GET", `/projects/${projectId}/tasks`, taskListResponseSchema).then((r) => r.tasks),
     refetchInterval: LIVE,
   });
 
 export const useTask = (id: string) =>
-  useQuery({ queryKey: keys.task(id), queryFn: () => request("GET", `/tasks/${id}`, taskDetailSchema), refetchInterval: LIVE, retry: (n, e) => !(e instanceof ApiRequestError && e.category === "not_found") && n < 3 });
+  useQuery({ queryKey: [...keys.task(id), useSelectedUserId()], queryFn: () => request("GET", `/tasks/${id}`, taskDetailSchema), refetchInterval: LIVE, retry: (n, e) => !(e instanceof ApiRequestError && e.category === "not_found") && n < 3 });
 
 export const useDecisionQueue = () =>
-  useQuery({ queryKey: keys.decisionQueue, queryFn: () => request("GET", "/decision-queue", decisionQueueSchema), refetchInterval: LIVE });
+  useQuery({ queryKey: [...keys.decisionQueue, useSelectedUserId()], queryFn: () => request("GET", "/decision-queue", decisionQueueSchema), refetchInterval: LIVE });
 
 /** Refresh everything a lifecycle action may have changed. */
 export function refreshLifecycle(qc: QueryClient) {
@@ -101,6 +101,7 @@ export function onActionError(qc: QueryClient, error: unknown) {
 }
 
 export type TaskActionPath =
+  | "edit"
   | "approve"
   | "claim"
   | "release"
@@ -114,10 +115,11 @@ export type TaskActionPath =
 
 export function useTaskAction(taskId: string, path: TaskActionPath) {
   const qc = useQueryClient();
+  const selectedId = useSelectedUserId();
   return useMutation<ActionResult, ApiRequestError, unknown>({
-    mutationFn: (body) => request("POST", `/tasks/${taskId}/${path}`, actionResultSchema, body ?? {}),
+    mutationFn: (body) => request(path === "edit" ? "PATCH" : "POST", path === "edit" ? `/tasks/${taskId}` : `/tasks/${taskId}/${path}`, actionResultSchema, body ?? {}),
     onSuccess: (result) => {
-      qc.setQueryData(keys.task(result.task.id), result.task);
+      qc.setQueryData([...keys.task(result.task.id), selectedId], result.task);
       refreshLifecycle(qc);
     },
     onError: (e) => onActionError(qc, e),
@@ -126,10 +128,11 @@ export function useTaskAction(taskId: string, path: TaskActionPath) {
 
 export function useCreateTask(projectId: string) {
   const qc = useQueryClient();
+  const selectedId = useSelectedUserId();
   return useMutation<ActionResult, ApiRequestError, unknown>({
     mutationFn: (body) => request("POST", `/projects/${projectId}/tasks`, actionResultSchema, body),
     onSuccess: (result) => {
-      qc.setQueryData(keys.task(result.task.id), result.task);
+      qc.setQueryData([...keys.task(result.task.id), selectedId], result.task);
       refreshLifecycle(qc);
     },
     onError: (e) => onActionError(qc, e),

@@ -43,7 +43,7 @@ export const TASK_STATE: Record<TaskState, StatusDef> = {
   cancelled: def("Task state", "Cancelled", "neutral", "circle-slash"),
 };
 
-/** Conditions are badges on top of the state, never a state (CONTRACT-001 UX). */
+/** Conditions are badges on top of the state, never a state (CONTRACT-005 UX). */
 export const CONDITION = {
   blocked: def("Condition", "Blocked", "danger", "octagon"),
   blockedByParent: def("Condition", "Blocked by parent", "danger", "octagon-outline"),

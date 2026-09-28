@@ -1,4 +1,4 @@
-// CONTRACT-001 "Concurrency rules": concurrent actions behave like some
+// CONTRACT-005 "Concurrency rules": concurrent actions behave like some
 // sequential order; concurrent claims yield exactly one winner.
 import { and, eq, isNull } from "drizzle-orm";
 import { afterEach, describe, expect, it } from "vitest";

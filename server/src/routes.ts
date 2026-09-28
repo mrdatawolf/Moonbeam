@@ -63,7 +63,7 @@ export function apiRoutes(services: Services): Router {
     async (req: Request, res: Response) => {
       const actor = requireActor(await resolve(req));
       const outcome = await fn(actor, req);
-      const task = await taskDetail(db, outcome.taskId);
+      const task = await taskDetail(db, outcome.taskId, actor);
       res.status(status).json(actionResultSchema.parse({ task, audit: await auditRecords(db, outcome.auditIds) }));
     };
 
@@ -131,20 +131,22 @@ export function apiRoutes(services: Services): Router {
     res.status(201).json(projectView(await registry.registerProject(requireActor(await resolve(req)), req.body)));
   });
 
-  /** A project with its queue in order (CONTRACT-001 "Interfaces"). */
+  /** A project with its queue in order (CONTRACT-005 "Interfaces"). */
   router.get("/projects/:id", async (req, res) => {
-    const project = await registry.getProject(await resolve(req), param(req, "id"));
+    const actor = await resolve(req);
+    const project = await registry.getProject(actor, param(req, "id"));
     await lifecycle.sweepExpiredClaims();
-    res.json(projectQueueResponseSchema.parse({ project: projectView(project), queue: await projectQueueView(db, project.id) }));
+    res.json(projectQueueResponseSchema.parse({ project: projectView(project), queue: await projectQueueView(db, project.id, actor) }));
   });
 
   router.get("/projects/:id/tasks", async (req, res) => {
-    const project = await registry.getProject(await resolve(req), param(req, "id"));
+    const actor = await resolve(req);
+    const project = await registry.getProject(actor, param(req, "id"));
     const raw = typeof req.query.state === "string" ? req.query.state.split(",").filter(Boolean) : null;
     const states = raw ? raw.map((s) => taskStateSchema.safeParse(s)) : null;
     if (states?.some((s) => !s.success)) reject("validation", "Unknown task state in `state`.");
     await lifecycle.sweepExpiredClaims();
-    const tasks = await listTasks(db, project.id, states ? states.map((s) => s.data!) : null);
+    const tasks = await listTasks(db, project.id, states ? states.map((s) => s.data!) : null, actor);
     res.json(taskListResponseSchema.parse({ tasks }));
   });
 
@@ -156,7 +158,7 @@ export function apiRoutes(services: Services): Router {
     const actor = await resolve(req);
     await lifecycle.sweepExpiredClaims();
     const id = param(req, "id");
-    const detail = UUID.test(id) ? await taskDetail(db, id) : null;
+    const detail = UUID.test(id) ? await taskDetail(db, id, actor) : null;
     if (!detail) {
       if (actor?.kind === "agent") reject("not_permitted", "An agent reads only its own project.");
       reject("not_found", "The task does not exist.");
@@ -165,6 +167,7 @@ export function apiRoutes(services: Services): Router {
     res.json(taskDetailSchema.parse(detail));
   });
 
+  router.patch("/tasks/:id", action((a, req) => lifecycle.editTask(a, param(req, "id"), req.body)));
   router.post("/tasks/:id/approve", action((a, req) => lifecycle.approve(a, param(req, "id"))));
   router.post("/tasks/:id/claim", action((a, req) => lifecycle.claim(a, param(req, "id"))));
   router.post("/tasks/:id/release", action((a, req) => lifecycle.release(a, param(req, "id"), req.body)));
@@ -191,7 +194,7 @@ export function apiRoutes(services: Services): Router {
     if (projectId) await readProject(actor, projectId);
     await lifecycle.sweepExpiredClaims();
     const scope = projectId ? [projectId] : actor?.kind === "agent" ? [actor.projectId] : "all";
-    res.json(decisionQueueSchema.parse(await decisionQueue(db, scope)));
+    res.json(decisionQueueSchema.parse(await decisionQueue(db, scope, actor)));
   });
 
   // ---- development and test only ---------------------------------------------

@@ -2,7 +2,7 @@
 // database transaction that first locks its project row (`SELECT ... FOR
 // UPDATE`). All mutations of a project's tasks, claims, blockers and queue are
 // therefore serialised, which makes each action atomic and the outcome of
-// concurrent actions equal to some sequential order (CONTRACT-001
+// concurrent actions equal to some sequential order (CONTRACT-005
 // "Concurrency rules"). The partial unique indexes on `claims` back this up at
 // the database level (I4, I5).
 import { and, asc, desc, eq, inArray, isNull, max } from "drizzle-orm";

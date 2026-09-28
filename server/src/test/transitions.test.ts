@@ -1,4 +1,4 @@
-// CONTRACT-001 transitions T1-T10, T15: allowed actors, rejected actors,
+// CONTRACT-005 transitions T1-T10, T15: allowed actors, rejected actors,
 // failure categories, and the audit records each produces.
 import { eq } from "drizzle-orm";
 import { afterEach, describe, expect, it } from "vitest";

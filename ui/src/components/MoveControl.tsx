@@ -2,17 +2,17 @@
 // Human only; requires confirmation. The server refuses a move that would
 // make a started task wait on an unfinished one; after a move, the
 // dependency changes it produced are listed from the returned audit records.
-import type { AuditRecordView } from "@moonbeam/shared";
+import type { AuditRecordView, TaskSummary } from "@moonbeam/shared";
 import { useState } from "react";
 import { useConnectionLost } from "../api/connection";
 import { useTaskAction } from "../api/queries";
-import { moveAvailability } from "../lib/actions";
+import { browserAvailability } from "../lib/actionPresentation";
 import { useCurrentUser } from "../lib/currentUser";
 import { Dialog } from "./Dialog";
 import { Field, Refusal } from "./common";
 
 interface Props {
-  task: { id: string; number: number; title: string; parentId: string | null; queuePosition: number | null; siblingPosition: number | null };
+  task: TaskSummary;
   /** Number of positions in the queue or sibling list. */
   count: number;
 }
@@ -29,7 +29,7 @@ function describe(a: AuditRecordView): string | null {
 export function MoveControl({ task, count }: Props) {
   const { user } = useCurrentUser();
   const lost = useConnectionLost();
-  const avail = moveAvailability(task, { userId: user?.id ?? null, connectionLost: lost });
+  const avail = browserAvailability(task.allowedActions.move, { userId: user?.id ?? null, connectionLost: lost });
   const current = (task.parentId === null ? task.queuePosition : task.siblingPosition) ?? 1;
   const [open, setOpen] = useState(false);
   const [target, setTarget] = useState(String(current));

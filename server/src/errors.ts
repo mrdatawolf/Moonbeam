@@ -1,7 +1,7 @@
 import type { FailureCategory } from "@moonbeam/shared";
 import type { z } from "zod";
 
-/** A rejected action. Rejections change nothing (CONTRACT-001 "Failure behavior"). */
+/** A rejected action. Rejections change nothing (CONTRACT-005 "Failure behavior"). */
 export class ActionError extends Error {
   constructor(
     readonly category: FailureCategory,
@@ -15,7 +15,7 @@ export class ActionError extends Error {
 
 /**
  * An agent attempted a human-only action. The attempt is recorded in the audit
- * trail after the action's transaction has rolled back (CONTRACT-001 "Audit
+ * trail after the action's transaction has rolled back (CONTRACT-005 "Audit
  * record": rejected authority violations are recorded).
  */
 export class AuthorityViolation extends ActionError {

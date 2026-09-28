@@ -1,4 +1,4 @@
-// CONTRACT-001 "Project queue and path dependencies" and D1.
+// CONTRACT-005 "Project queue and path dependencies" and D1.
 import { eq } from "drizzle-orm";
 import { afterEach, describe, expect, it } from "vitest";
 import { schema } from "@moonbeam/db";

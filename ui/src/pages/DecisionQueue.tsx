@@ -1,5 +1,5 @@
 // The decision queue: everything that needs a human, in the phase-2 groups
-// (TASK-007 scope; CONTRACT-001 UX; CONTRACT-003 Q24): proposed tasks
+// (TASK-007 scope; CONTRACT-005 UX; CONTRACT-003 Q24): proposed tasks
 // awaiting approval, top-level tasks in review, blocked tasks, rejected agent
 // authority-violation attempts, and accepted tasks not yet merged.
 import type { AuditRecordView, TaskSummary } from "@moonbeam/shared";
@@ -10,7 +10,7 @@ import { EmptyState, LoadError, SectionHeading, Skeleton, Time } from "../compon
 import { StatusBadge } from "../components/StatusBadge";
 import { TaskCard } from "../components/TaskCard";
 import { actorLabel } from "../lib/format";
-import { INTEGRATION } from "../lib/status";
+import { INTEGRATION, REVIEW_VERDICT, WARNING } from "../lib/status";
 
 function Group({ id, title, description, count, children, empty }: { id: string; title: string; description: string; count: number; children: ReactNode; empty: string }) {
   return (
@@ -123,6 +123,26 @@ export function DecisionQueuePage() {
             empty="No tasks are in review."
           >
             <Tasks tasks={queue.data.inReview} projectName={projectName} />
+          </Group>
+          <Group id="q-findings" title="Subtask findings"
+            description="Subtask reviews with findings on an unfinished parent. Open the subtask or parent to decide what follows."
+            count={queue.data.subtaskFindings.length} empty="No subtask findings need attention.">
+            <ul className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+              {queue.data.subtaskFindings.map(({ task, review }) => <li key={task.id}>
+                <TaskCard task={task} extra={<div className="space-y-2 text-sm">
+                  <p>{projectName(task.projectId)}</p>
+                  <StatusBadge status={REVIEW_VERDICT[review.verdict]} compact />
+                  {review.sameModel ? <StatusBadge status={WARNING.sameModel} compact /> : null}
+                  <ul className="list-disc pl-5">{review.findings.map((f, i) => <li key={i}>{f.severity}: {f.text}</li>)}</ul>
+                  {task.parentId ? <Link className="text-primary underline" to={`/tasks/${task.parentId}`}>Open parent task</Link> : null}
+                </div>} />
+              </li>)}
+            </ul>
+          </Group>
+          <Group id="q-fell-back" title="Fell back"
+            description="All subtasks were cancelled. These parents are approved and can be claimed for direct work or split again."
+            count={queue.data.fellBack.length} empty="No tasks fell back.">
+            <Tasks tasks={queue.data.fellBack} projectName={projectName} />
           </Group>
           <Group
             id="q-blocked"

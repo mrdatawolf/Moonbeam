@@ -1,4 +1,4 @@
-// CONTRACT-001 T8, T10 (split parents), T11, T12, T14, T15/T16 and the
+// CONTRACT-005 T8, T10 (split parents), T11, T12, T14, T15/T16 and the
 // integration blocker (C1, Board A4).
 import { afterEach, describe, expect, it } from "vitest";
 import {
@@ -21,10 +21,10 @@ afterEach(async () => w?.h.close());
 const blockerBody = { whatIsNeeded: "Decision", whoCanResolve: "Board", effect: "Waits" };
 
 async function split(paths: string[][] = [["src/a"], ["src/b"]]) {
-  const parent = await approvedTask(w, { envelope: fullEnvelope(["src"], { exclusions: ["No UI"], contracts: ["CONTRACT-001"] }) });
+  const parent = await approvedTask(w, { envelope: fullEnvelope(["src"], { exclusions: ["No UI"], contracts: ["CONTRACT-005"] }) });
   const res = await w.h.req("POST", `/tasks/${parent.id}/subtasks`, {
     as: w.A,
-    body: { subtasks: paths.map((p, i) => subtask(p, `Sub ${i + 1}`, { exclusions: ["No UI"], contracts: ["CONTRACT-001"] })) },
+    body: { subtasks: paths.map((p, i) => subtask(p, `Sub ${i + 1}`, { exclusions: ["No UI"], contracts: ["CONTRACT-005"] })) },
   });
   expectOk(res);
   return { parent: res.body.task, subs: res.body.task.subtasks as { id: string }[] };
@@ -145,7 +145,7 @@ describe("Subtask flow: T6, T7, T8, T12", () => {
     w = await world();
     const { parent, subs } = await split([["src/a"]]);
     const reviewer = await handOff(subs[0]!.id);
-    const fix = subtask(["src/a"], "Fix", { exclusions: ["No UI"], contracts: ["CONTRACT-001"] });
+    const fix = subtask(["src/a"], "Fix", { exclusions: ["No UI"], contracts: ["CONTRACT-005"] });
     const noFindings = await w.h.req("POST", `/tasks/${subs[0]!.id}/reviews`, { as: reviewer.as, body: { verdict: "pass", addSubtasks: [fix] } });
     expectRejected(noFindings, "validation", 422);
     expect((await getTask(w, parent.id)).subtasks).toHaveLength(1);
@@ -210,7 +210,7 @@ describe("T10 Return of a split parent", () => {
     const { parent } = await parentInReview();
     const res = await w.h.req("POST", `/tasks/${parent.id}/return`, {
       as: w.A,
-      body: { reason: "Missing edge case", subtasks: [subtask(["src/a"], "Edge", { exclusions: ["No UI"], contracts: ["CONTRACT-001"] })] },
+      body: { reason: "Missing edge case", subtasks: [subtask(["src/a"], "Edge", { exclusions: ["No UI"], contracts: ["CONTRACT-005"] })] },
     });
     expectOk(res);
     expect(res.body.task.state).toBe("in_progress");
@@ -229,7 +229,7 @@ describe("T10 Return of a split parent", () => {
     expectOk(await w.h.req("POST", `/tasks/${parent.id}/claim`, { as: w.B }));
     const res = await w.h.req("POST", `/tasks/${parent.id}/subtasks`, {
       as: w.B,
-      body: { subtasks: [subtask(["src/a"], "Redo", { exclusions: ["No UI"], contracts: ["CONTRACT-001"] })] },
+      body: { subtasks: [subtask(["src/a"], "Redo", { exclusions: ["No UI"], contracts: ["CONTRACT-005"] })] },
     });
     expectOk(res);
     expect(res.body.task).toMatchObject({ state: "in_progress", claim: null });
@@ -342,7 +342,7 @@ describe("Blocked subtasks and deferred completion (C1)", () => {
     const run = await startRun(w, subs[0]!.id);
     expectOk(await w.h.req("POST", `/tasks/${subs[0]!.id}/claim`, { as: run.as }));
     expectOk(await w.h.req("POST", `/tasks/${parent.id}/blockers`, { as: w.A, body: blockerBody }));
-    const body = { subtasks: [subtask(["src/b"], "More", { exclusions: ["No UI"], contracts: ["CONTRACT-001"] })] };
+    const body = { subtasks: [subtask(["src/b"], "More", { exclusions: ["No UI"], contracts: ["CONTRACT-005"] })] };
     expectRejected(await w.h.req("POST", `/tasks/${parent.id}/subtasks`, { as: run.as, body }), "blocked", 409);
     expectOk(await w.h.req("POST", `/tasks/${parent.id}/subtasks`, { as: w.A, body }));
   });

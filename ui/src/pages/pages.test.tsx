@@ -6,6 +6,7 @@ import {
   baseRoutes,
   detail,
   emptyQueue,
+  enabledActions,
   handoff,
   humanClaim,
   mockApi,
@@ -42,7 +43,7 @@ describe("task page actions", () => {
 
   it("offers only the actions the lifecycle allows, with reasons for the rest", async () => {
     selectUser(USER_ID);
-    mockApi({ ...baseRoutes, [`GET /tasks/${TASK_ID}`]: detail({ state: "approved", queuePosition: 1 }) });
+    mockApi({ ...baseRoutes, [`GET /tasks/${TASK_ID}`]: detail({ state: "approved", queuePosition: 1, allowedActions: { ...enabledActions, approve: { enabled: false, reason: "Only a proposed task can be approved (server reason)." }, accept: { enabled: false, reason: "Not in review" }, return: { enabled: false, reason: "Not in review" } } }) });
     renderTask();
     const claim = await screen.findByRole("button", { name: "Claim" });
     await waitFor(() => expect(claim).toHaveAttribute("aria-disabled", "false"));
@@ -55,7 +56,7 @@ describe("task page actions", () => {
 
   it("approves as the selected user and shows the result in place", async () => {
     selectUser(USER_ID);
-    const approved = detail({ state: "approved", queuePosition: 1 });
+    const approved = detail({ state: "approved", queuePosition: 1, allowedActions: { ...enabledActions, approve: { enabled: false, reason: "Only a proposed task can be approved (server reason)." }, accept: { enabled: false, reason: "Not in review" }, return: { enabled: false, reason: "Not in review" } } });
     const calls = mockApi({
       ...baseRoutes,
       [`GET /tasks/${TASK_ID}`]: detail(),

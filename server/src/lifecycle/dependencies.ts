@@ -1,4 +1,4 @@
-// Path dependencies (CONTRACT-001 "Project queue and path dependencies").
+// Path dependencies (CONTRACT-005 "Project queue and path dependencies").
 // Pure functions over a project's tasks; the queue and sibling order are the
 // stored positions.
 import type { schema } from "@moonbeam/db";

@@ -1,4 +1,4 @@
-// Paths in a scope envelope (CONTRACT-001 Definitions, Board A1): plain file
+// Paths in a scope envelope (CONTRACT-005 Definitions, Board A1): plain file
 // and directory paths relative to the repository root. No globs, not absolute,
 // never leaving the root.
 import { posix } from "node:path";

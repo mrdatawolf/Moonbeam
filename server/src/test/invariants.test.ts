@@ -1,4 +1,4 @@
-// CONTRACT-001 validation item 14: invariants checked after every step of a
+// CONTRACT-005 validation item 14: invariants checked after every step of a
 // randomized (seeded) sequence of actions by humans and agent runs.
 import { asc } from "drizzle-orm";
 import { afterEach, describe, expect, it } from "vitest";
@@ -20,7 +20,7 @@ function rng(seed: number) {
 
 const HUMAN_GATED = new Set(["approved", "accepted", "returned", "queue_reordered"]);
 
-async function checkInvariants(previous: Map<string, string>) {
+async function checkInvariants(previous: Map<string, string>, fixedContent: Map<string, unknown>) {
   const db = w.h.db;
   const tasks = await db.select().from(schema.tasks);
   const claims = (await db.select().from(schema.claims)).filter((c) => c.endedAt === null);
@@ -32,6 +32,14 @@ async function checkInvariants(previous: Map<string, string>) {
   for (const t of tasks) {
     const subs = tasks.filter((s) => s.parentId === t.id);
     const tc = claims.filter((c) => c.taskId === t.id);
+    // I23: once approved, content is immutable; every edit is proposed -> proposed.
+    const content = { title: t.title, desiredOutcome: t.desiredOutcome, acceptanceCriteria: t.acceptanceCriteria, envelope: t.envelope };
+    if (fixedContent.has(t.id)) expect(content, `I23 #${t.number}`).toEqual(fixedContent.get(t.id));
+    if (t.approvedAt && !fixedContent.has(t.id)) fixedContent.set(t.id, content);
+    for (const a of audit.filter((a) => a.taskId === t.id && a.action === "edited")) {
+      expect(a).toMatchObject({ fromState: "proposed", toState: "proposed", rejected: false });
+      expect(Object.keys((a.details as { changes: object }).changes).length).toBeGreaterThan(0);
+    }
     // I4 claim exclusivity
     expect(tc.length, `I4 at most one claim #${t.number}`).toBeLessThanOrEqual(1);
     if (subs.length === 0) {
@@ -44,10 +52,11 @@ async function checkInvariants(previous: Map<string, string>) {
     }
     // I8 subtasks are born approved
     if (t.parentId) expect(t.state).not.toBe("proposed");
-    // I9 parent review readiness (entered by subtasks; see handoff for the T14 case)
+    // I9: by subtasks requires a completion; by handoff requires all cancelled.
     if (subs.length && t.state === "in_review") {
       expect(subs.every((s) => done(s.state)), `I9 #${t.number}`).toBe(true);
       if (t.enteredReviewBy === "subtasks") expect(subs.some((s) => s.state === "completed")).toBe(true);
+      else expect(subs.every((s) => s.state === "cancelled")).toBe(true);
     }
     // I10 parent completion
     if (done(t.state)) expect(subs.every((s) => done(s.state)), `I10 #${t.number}`).toBe(true);
@@ -102,6 +111,7 @@ describe("Invariants under a randomized action sequence", () => {
     const tokens = new Map<string, As>();
     for (let i = 0; i < 3; i++) await approvedTask(w, { paths: [pick(paths)] });
     const previous = new Map<string, string>();
+    const fixedContent = new Map<string, unknown>();
     const statuses: number[] = [];
     const runFor = async (taskId: string, model: string, role = "implementer") => {
       const r = await startRun(w, taskId, model, role);
@@ -123,7 +133,7 @@ describe("Invariants under a randomized action sequence", () => {
       }
       // Mostly pick an action that fits the state (by a fitting actor), sometimes anything.
       const fitting: Record<string, string[]> = {
-        proposed: ["approve", "approve", "cancel"],
+        proposed: ["edit", "approve", "approve", "cancel"],
         approved: ["claim", "claim", "claim", "split", "cancel", "move", "block"],
         in_progress: ["handoff", "handoff", "handoff", "release", "split", "block", "resolve"],
         in_review: ["review", "review", "accept", "return", "cancel", "resolve"],
@@ -133,7 +143,7 @@ describe("Invariants under a randomized action sequence", () => {
       const sensible = rand() < 0.75;
       const action = sensible
         ? pick(fitting[t.state]!)
-        : pick(["create", "approve", "claim", "release", "handoff", "review", "accept", "return", "split", "cancel", "block", "resolve", "move", "endrun"]);
+        : pick(["create", "edit", "approve", "claim", "release", "handoff", "review", "accept", "return", "split", "cancel", "block", "resolve", "move", "endrun"]);
       if (sensible && (action === "handoff" || action === "release") && claimant) actor = claimant;
       if (sensible && ["approve", "accept", "return", "move", "cancel"].includes(action)) actor = pick([w.A, w.B]);
       let res;
@@ -143,6 +153,9 @@ describe("Invariants under a randomized action sequence", () => {
             as: actor,
             body: { title: "R", desiredOutcome: "o", acceptanceCriteria: ["c"], envelope: { inclusions: ["i"], paths: [pick(paths)] } },
           });
+          break;
+        case "edit":
+          res = await w.h.req("PATCH", `/tasks/${t.id}`, { as: actor, body: { title: `Edited at step ${step}` } });
           break;
         case "approve":
           res = await w.h.req("POST", `/tasks/${t.id}/approve`, { as: actor });
@@ -204,7 +217,7 @@ describe("Invariants under a randomized action sequence", () => {
       expect(res.status, `step ${step} ${action}: ${JSON.stringify(res.body)}`).toBeLessThan(500);
       statuses.push(res.status);
       if (action === "endrun") runs.clear();
-      await checkInvariants(previous);
+      await checkInvariants(previous, fixedContent);
     }
     // The sequence exercised both successes and rejections.
     expect(statuses.some((s) => s >= 200 && s < 300)).toBe(true);

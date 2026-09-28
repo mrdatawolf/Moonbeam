@@ -29,7 +29,7 @@ packages/db/          @moonbeam/db: Drizzle client, embedded Postgres, migration
   drizzle.config.ts   drizzle-kit configuration
 server/               @moonbeam/server: Express API (`/api/*`)
   src/identity/       actor resolution, permission check, run credentials (CONTRACT-002)
-  src/lifecycle/      transitions, paths, envelopes, dependencies (CONTRACT-001)
+  src/lifecycle/      transitions, paths, envelopes, dependencies (CONTRACT-005)
   src/test/           database-backed API tests and their harness
 ui/                   @moonbeam/ui: Vite + React single-page app
 docs/, tasks/         development-system documentation and task board
@@ -119,7 +119,7 @@ real database:
 - The suites cover every transition with allowed and rejected actors
   (`transitions`, `splits`, `queue`, `conditions`), CONTRACT-002 (`identity`),
   project registration (`projects`), concurrent claims and races
-  (`concurrency`), and a seeded random walk that checks the CONTRACT-001
+  (`concurrency`), and a seeded random walk that checks the CONTRACT-005
   invariants after every step (`invariants`). TASK-017 regressions (`review-fixes`) cover deferred review
   completion, run-end and project-root races, lease resumption, repeated actions,
   agent e-mail redaction, and a leaf matrix of six states × eight actions ×
@@ -128,9 +128,37 @@ real database:
 Run one file with `pnpm --filter @moonbeam/server exec vitest run src/test/queue.test.ts`.
 The first run of a session takes a few seconds longer while Postgres initialises.
 
+Socket-free server unit tests can be run with
+`pnpm --filter @moonbeam/server exec vitest run --config vitest.unit.config.ts`.
+This deliberately excludes database/API tests and `app.test.ts` (which also
+opens a loopback socket). In a sandbox without loopback, neither a root test
+runner's exit 0 nor package "Done" output proves those suites ran. Use direct
+package commands and record test counts and setup errors. TASK-016's API suite
+is `src/test/task016.test.ts`; UI regressions are `src/pages/task016.test.tsx`.
+
+### CONTRACT-005 readings checked in TASK-016
+
+The existing service already implements I9 and R1–R8; no lifecycle behavior
+change was needed for these readings. The invariant test now explicitly checks
+both I9 branches and fixed content after approval (I23), including randomized edits.
+
+| Reading | Implementation / regression coverage |
+| --- | --- |
+| I9 | `reevaluateParent` falls back when every subtask is cancelled; handoff permits that parent. `splits.test.ts` T14 and `invariants.test.ts` cover it. |
+| R1 | `run` checks binding before target-dependent cancel/break authority; `cancel` and `release` enforce the relationship. Transition, split and review-fix suites cover refusals/audit. |
+| R2 | `recordReview` rejects humans as `not_permitted`; transition tests cover it. |
+| R3 | `addSubtasksTo` omits the parent's `split` audit when called by return, which writes `returned`; split tests cover returns with additions. |
+| R4 | `returnTask` rejects additions on a leaf; no behavior change. |
+| R5 | Registry `setActive` rejects repeated activation/deactivation with `invalid_transition`. |
+| R6 | `moveInputSchema` checks positive integers; `move` checks the upper bound as `validation`. |
+| R7 | `renew` resets a suspended lease's remaining time to the full term and records no renewal audit. |
+| R8 | Top-level/subtask envelope builders validate paths at create/split; T17 reuses the top-level builder for edits; approval rechecks paths. |
+
+M4 remains in the documented phase-3 repository boundary, outside TASK-016.
+
 ## Lifecycle API
 
-The server implements CONTRACT-001 (task lifecycle) and CONTRACT-002 (identity)
+The server implements CONTRACT-005 (task lifecycle) and CONTRACT-002 (identity)
 for phase 2. Request and response shapes are the zod schemas in
 `packages/shared/src/` (`identity.ts`, `lifecycle.ts`, `projects.ts`,
 `errors.ts`); the server validates every response before sending it.
@@ -172,6 +200,7 @@ for a task that does not exist and even with an invalid body.
 | `GET /api/projects/:id/tasks[?state=a,b]` | task summaries, optionally by state |
 | `POST /api/projects/:id/tasks` | T1 create |
 | `GET /api/tasks/:id` | task detail: conditions, claim and lease, parent, subtasks, envelope, dependencies both ways, handoffs, reviews, audit |
+| `PATCH /api/tasks/:id` | T17 edit proposed task |
 | `POST /api/tasks/:id/approve` | T2 |
 | `POST /api/tasks/:id/claim` | T3 |
 | `POST /api/tasks/:id/release` | T4 (a reason is required to break someone else's claim) |
@@ -185,6 +214,20 @@ for a task that does not exist and even with an invalid body.
 | `POST /api/tasks/:id/blockers`, `POST /api/tasks/:id/blockers/:blockerId/resolve` | C1 |
 | `POST /api/tasks/:id/move` | D1: `{ "position": n }` in the project queue, or among siblings for a subtask |
 | `GET /api/decision-queue[?projectId=]` | proposed, in review, subtask findings, blocked, fell back, authority violations, accepted not merged |
+
+`PATCH /api/tasks/:id` accepts any subset of `title`, `desiredOutcome`,
+`acceptanceCriteria` and `envelope`. Omitted fields are preserved. A supplied
+`envelope` replaces the whole envelope using the creation shape (plain-text
+inclusions, optional arrays defaulting to empty). Unknown fields are rejected,
+including attempted author/state changes. Titles/outcomes must remain nonempty;
+paths are normalized and validated as at creation. An empty or semantically
+unchanged edit is `validation`. Any active human or the exact authoring agent
+run can edit; another run is `not_permitted` without audit. Only proposed
+top-level tasks are editable; later states are `invalid_transition`. Successful
+edits write one `edited` record with `details.changes`, keyed by content field
+(including `envelope.paths`, etc.), each holding `previous` and `new` values.
+Edits use the project lock and locked credential revalidation. Approval applies
+to the content present when it obtains that lock (CONTRACT-005 Q27 interim rule).
 
 A successful action returns `{ task, audit }`: the task detail after the action
 and the audit records the action produced. The system transitions (T5, T8,
@@ -225,7 +268,7 @@ Rejections change nothing and return `{ "error": { "category", "message", "detai
 | `validation` | 422 | missing or invalid input, including malformed JSON; lists each failing rule. |
 | `repository_unavailable` | 503 | the repository could not be read (T9 changed-file set). |
 
-Only `authority_violation` rejections are audited (CONTRACT-001 A12).
+Only `authority_violation` rejections are audited (CONTRACT-005 A12).
 
 ### Phase-3 boundary
 
@@ -242,7 +285,7 @@ The UI in `ui/src/` is the phase-2 board surface built on the lifecycle API.
 
 ```text
 ui/src/api/        client.ts (fetch, identity header, ApiRequestError), queries.ts (TanStack Query hooks), connection.ts
-ui/src/lib/        status.ts (CONTRACT-003 SV vocabulary), actions.ts (action availability), selection.ts, currentUser.tsx, format.ts, paths.ts
+ui/src/lib/        status.ts (CONTRACT-003 SV vocabulary), actionPresentation.ts (browser readiness and action labels), selection.ts, currentUser.tsx, format.ts, paths.ts
 ui/src/components/ StatusBadge (the shared status badge), Dialog (native <dialog>), TaskActions, MoveControl, TaskCard, Layout, common
 ui/src/pages/      Setup, Users, Projects, Project (board and queue), ProposeTask, Task (detail), DecisionQueue, Dashboard (placeholder, TASK-008)
 ```
@@ -259,10 +302,24 @@ ui/src/pages/      Setup, Users, Projects, Project (board and queue), ProposeTas
   visible with their category and entered values. Deactivation clears the affected browser selection
   and asks the person to choose again. An `unidentified` read retries as a viewer; writes never retry.
   `pages/users.test.tsx` and `api/client.test.ts` cover these flows and selection races.
-- **Action availability.** The API does not report which actions are allowed. `ui/src/lib/actions.ts`
-  mirrors the CONTRACT-001 preconditions for a human actor and gives a reason for each disabled action.
-  The server still decides, and a refusal is shown with its category. Keep that file in step with
-  `server/src/lifecycle/service.ts`. `actions.test.ts` covers each rule.
+- **Action availability.** Every task summary and detail includes `allowedActions`, computed by
+  `server/src/lifecycle/availability.ts` for the resolved actor (or anonymous viewer). Each entry
+  is `{ enabled: true }` or `{ enabled: false, reason }`. Detail also includes `blockerActions`,
+  keyed by blocker id. This covers edit, approve, claim, release, renew, handoff, recordReview,
+  accept, return, addSubtasks, cancel, addBlocker, resolveBlocker and move. The browser consumes
+  these decisions; it adds only selection/connection readiness, form validation and presentation.
+  Task, project queue, task list and decision queue query caches are keyed by selected user so a
+  user's permissions cannot carry over to another selection. Availability means an action can be
+  started with valid input: required reasons, review waivers, warnings confirmation, specific move
+  destinations and repository checks still apply when submitted, as do fresh identity/state checks.
+  Reading availability performs no actions and writes no authority-violation audit records.
+- **Proposal editing.** A proposed task offers an edit dialog for title, desired outcome,
+  acceptance criteria and every envelope field. The same `desiredOutcome` prose field used at
+  creation represents the description/outcome; there is no separate description column. History
+  displays each edited field's previous and new value. Refusals retain the entered form and category.
+- **Decision queue.** The UI renders all seven phase-2 API groups, including Subtask findings
+  (verdict, findings, same-model flag and parent link) and Fell back (parents whose subtasks were
+  all cancelled, ready for direct work or another split).
 - **Tokens.** Status tones (`--color-tone-<tone>-fg|bg|border`) and control utilities (`btn-*`,
   `field-input`, `card`) are defined in `ui/src/index.css`. No shadcn or Radix primitives were added.
   Dialogs use the native `<dialog>` element.

@@ -6,7 +6,7 @@ import { Link } from "react-router";
 import { useProjects, useProjectsRoot, useRegisterProject, useSetProjectsRoot } from "../api/queries";
 import { useConnectionLost } from "../api/connection";
 import { EmptyState, Field, LoadError, Mono, Refusal, SectionHeading, Skeleton, Time } from "../components/common";
-import { CHOOSE_USER, CONNECTION_LOST } from "../lib/actions";
+import { CHOOSE_USER, CONNECTION_LOST } from "../lib/actionPresentation";
 import { focusUserPicker, useCurrentUser } from "../lib/currentUser";
 
 function DisabledReason({ reason }: { reason: string }) {

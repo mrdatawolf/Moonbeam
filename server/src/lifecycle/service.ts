@@ -1,7 +1,8 @@
-// CONTRACT-001 lifecycle actions. Every public method follows the CONTRACT-002
+// CONTRACT-005 lifecycle actions. Every public method follows the CONTRACT-002
 // order: the caller has resolved the actor (step 1); `run` performs the
 // permission check (step 2); the action body evaluates the lifecycle rules and
 // then the repository step (step 3). Each action is one transaction.
+import { isDeepStrictEqual } from "node:util";
 import { and, eq, isNotNull, isNull, lte } from "drizzle-orm";
 import { schema, type Database } from "@moonbeam/db";
 import {
@@ -10,6 +11,7 @@ import {
   addSubtasksInputSchema,
   cancelInputSchema,
   createTaskInputSchema,
+  editTaskInputSchema,
   devEndRunInputSchema,
   devOpenPauseInputSchema,
   devStartRunInputSchema,
@@ -37,7 +39,7 @@ import {
 import { buildSubtaskEnvelope, buildTopLevelEnvelope } from "./envelope.js";
 import { checkPaths, filesOutsidePaths } from "./paths.js";
 
-/** The approved default agent claim lease (CONTRACT-001 "Claim expiry"). */
+/** The approved default agent claim lease (CONTRACT-005 "Claim expiry"). */
 export const DEFAULT_LEASE_MS = 30 * 60 * 1000;
 
 export interface LifecycleOptions {
@@ -225,7 +227,7 @@ export class LifecycleService {
 
   /**
    * The tasks an agent run may act on (CONTRACT-002 "Bound to the run's task
-   * and project", with the CONTRACT-001 precondition 3 exceptions): its bound
+   * and project", with the CONTRACT-005 precondition 3 exceptions): its bound
    * task, that task's parent and subtasks, the parent's other subtasks, and
    * tasks this run authored. The per-action relationship rules narrow this.
    */
@@ -542,6 +544,45 @@ export class LifecycleService {
     });
   }
 
+  /** T17: serialize edits with approval/cancellation under the project lock. */
+  editTask(actor: Actor, taskId: string, body: unknown): Promise<ActionOutcome> {
+    return this.run(actor, "edit", { taskId }, async (ctx, task) => {
+      const t = task!;
+      if (actor.kind === "agent" && t.authorRunId !== actor.runId) {
+        reject("not_permitted", "Only the run that authored the proposed task may edit it.");
+      }
+      if (t.state !== "proposed" || t.parentId !== null) {
+        reject("invalid_transition", "Only a proposed top-level task can be edited. Cancel and re-propose to change approved content.");
+      }
+      const input = parseInput(editTaskInputSchema, body);
+      const patch: Partial<Pick<TaskRow, "title" | "desiredOutcome" | "acceptanceCriteria" | "envelope">> = {};
+      const changes: Record<string, { previous: unknown; new: unknown }> = {};
+      for (const key of ["title", "desiredOutcome", "acceptanceCriteria"] as const) {
+        const value = input[key];
+        if (value !== undefined && !isDeepStrictEqual(t[key], value)) {
+          Object.assign(patch, { [key]: value });
+          changes[key] = { previous: t[key], new: value };
+        }
+      }
+      if (input.envelope !== undefined) {
+        const env = buildTopLevelEnvelope(input.envelope);
+        if (!env.ok) reject("validation", env.reasons.join("; "), { issues: env.reasons });
+        if (env.ok && !isDeepStrictEqual(t.envelope, env.envelope)) {
+          patch.envelope = env.envelope;
+          for (const key of ["inclusions", "exclusions", "constraints", "contracts", "paths"] as const) {
+            if (!isDeepStrictEqual(t.envelope[key], env.envelope[key])) {
+              changes[`envelope.${key}`] = { previous: t.envelope[key], new: env.envelope[key] };
+            }
+          }
+        }
+      }
+      if (!Object.keys(changes).length) reject("validation", "At least one field must change.", { issues: ["At least one field must change."] });
+      await ctx.updateTask(t.id, patch);
+      await ctx.audit(actor, { taskId: t.id, action: "edited", fromState: "proposed", toState: "proposed", details: { changes } });
+      return t.id;
+    });
+  }
+
   /** T2 Approve (human only). */
   approve(actor: Actor, taskId: string): Promise<ActionOutcome> {
     return this.run(actor, "approve", { taskId }, async (ctx, task) => {
@@ -753,9 +794,8 @@ export class LifecycleService {
     return this.run(actor, "record_review", { taskId }, async (ctx, task) => {
       const t = task!;
       if (actor.kind !== "agent") {
-        // CONTRACT-001 T7 allows only an agent reviewer run. A human is not a
-        // human-only-list violation, so the conservative category is
-        // `not_permitted` (see the TASK-006 handoff, board question).
+        // CONTRACT-005 T7 allows only an agent reviewer run. A human is not a
+        // human-only-list violation: CONTRACT-005 R2 specifies `not_permitted`.
         reject("not_permitted", "Only an agent reviewer run records a review.");
       }
       const agent = actor as Extract<Actor, { kind: "agent" }>;
@@ -1001,7 +1041,7 @@ export class LifecycleService {
             this.deny(actor, "cancel_beyond_agent_allowance", { taskId: t.id, projectId: t.projectId });
           }
         } else {
-          // CONTRACT-001 lists "not the subtask's creating run, or the
+          // CONTRACT-005 lists "not the subtask's creating run, or the
           // subtask has been claimed" under `not_permitted`.
           if (t.authorRunId !== actor.runId) reject("not_permitted", "An agent may cancel only a subtask its own run created.");
           const bound = await ctx.task(actor.taskId);

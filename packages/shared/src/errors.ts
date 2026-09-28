@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /**
- * Failure categories, named exactly as CONTRACT-001 "Failure behavior" and
+ * Failure categories, named exactly as CONTRACT-005 "Failure behavior" and
  * CONTRACT-002 "Failure behavior" name them. The repository categories are
  * CONTRACT-004's; in TASK-006 only `merge_conflict` and
  * `repository_unavailable` can be raised (through the pluggable repository

@@ -1,13 +1,12 @@
 // T1 Propose a task. Title and desired outcome are required; the draft scope
 // envelope and acceptance criteria may be incomplete, but approval needs at
-// least one inclusion and one criterion, and editing a proposed task is not
-// available yet, so the form says so up front.
+// least one inclusion and one criterion. Proposals may be edited until approval.
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { useConnectionLost } from "../api/connection";
 import { useCreateTask, useProject } from "../api/queries";
 import { Field, lines, Refusal } from "../components/common";
-import { CHOOSE_USER, CONNECTION_LOST } from "../lib/actions";
+import { CHOOSE_USER, CONNECTION_LOST } from "../lib/actionPresentation";
 import { focusUserPicker, useCurrentUser } from "../lib/currentUser";
 import { pathProblems } from "../lib/paths";
 
@@ -71,7 +70,7 @@ export function ProposeTaskPage() {
           <Field label="Included" hint="One inclusion per line." multiline value={f.inclusions} onChange={set("inclusions")} />
           <Field label="Excluded" hint="One per line." multiline value={f.exclusions} onChange={set("exclusions")} />
           <Field label="Constraints" hint="One per line." multiline rows={2} value={f.constraints} onChange={set("constraints")} />
-          <Field label="Linked contracts" hint="One per line, for example CONTRACT-001." multiline rows={2} mono value={f.contracts} onChange={set("contracts")} />
+          <Field label="Linked contracts" hint="One per line, for example CONTRACT-005." multiline rows={2} mono value={f.contracts} onChange={set("contracts")} />
           <Field
             label="Paths"
             hint="The files and folders this task may change, one per line, relative to the repository root. No wildcards. Leave empty for a task that changes no files."
@@ -83,14 +82,14 @@ export function ProposeTaskPage() {
           {badPaths.length ? (
             <ul className="list-disc pl-5 text-sm text-tone-attention-fg">
               {badPaths.map((p) => (
-                <li key={p}>{p} The task can be proposed, but not approved with this path.</li>
+                <li key={p}>{p} The path must be fixed before proposing.</li>
               ))}
             </ul>
           ) : null}
         </fieldset>
         {approvalGaps.length ? (
           <p className="rounded-control border border-tone-attention-border bg-tone-attention-bg px-3 py-2 text-sm text-tone-attention-fg">
-            To be approved, this task needs {approvalGaps.join(" and ")}. A proposed task can't be edited yet, so add them now if you can.
+            To be approved, this task needs {approvalGaps.join(" and ")}. You can also add them by editing the proposal before approval.
           </p>
         ) : null}
         <Refusal error={create.error} />

@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 // ---------------------------------------------------------------------------
-// Vocabulary (CONTRACT-001)
+// Vocabulary (CONTRACT-005)
 // ---------------------------------------------------------------------------
 
 export const taskStateSchema = z.enum([
@@ -46,7 +46,7 @@ export type ScopeEnvelope = z.infer<typeof scopeEnvelopeSchema>;
  * Envelope of a top-level task at creation. Inclusions are plain texts; the
  * server keys them `I1`, `I2`, ... so that subtasks can name the inclusion
  * they narrow. Paths are validated by the server (plain relative paths, no
- * globs; CONTRACT-001 Definitions).
+ * globs; CONTRACT-005 Definitions).
  */
 export const envelopeInputSchema = z.object({
   inclusions: z.array(nonEmpty).default([]),
@@ -60,7 +60,7 @@ export type EnvelopeInput = z.input<typeof envelopeInputSchema>;
 /**
  * Envelope of a subtask. It must repeat every parent exclusion, constraint and
  * contract, derive each inclusion from a named parent inclusion, and keep its
- * paths within the parent's paths (CONTRACT-001 "Scope envelope").
+ * paths within the parent's paths (CONTRACT-005 "Scope envelope").
  */
 export const subtaskEnvelopeInputSchema = z.object({
   inclusions: z
@@ -98,6 +98,29 @@ export const createTaskInputSchema = z.object({
   }),
 });
 export type CreateTaskInput = z.input<typeof createTaskInputSchema>;
+
+/** T17: omitted fields stay unchanged; a supplied envelope replaces the envelope. */
+export const editTaskInputSchema = z.object({
+  title: nonEmpty.optional(),
+  desiredOutcome: nonEmpty.optional(),
+  acceptanceCriteria: z.array(nonEmpty).optional(),
+  envelope: envelopeInputSchema.strict().optional(),
+}).strict();
+export type EditTaskInput = z.input<typeof editTaskInputSchema>;
+
+/** Availability of starting an action; submitted input and repository checks still apply. */
+export const actionAvailabilitySchema = z.discriminatedUnion("enabled", [
+  z.object({ enabled: z.literal(true) }),
+  z.object({ enabled: z.literal(false), reason: z.string().min(1) }),
+]);
+export type ActionAvailability = z.infer<typeof actionAvailabilitySchema>;
+export const taskActionKeySchema = z.enum([
+  "edit", "approve", "claim", "release", "renew", "handoff", "recordReview",
+  "accept", "return", "addSubtasks", "cancel", "addBlocker", "resolveBlocker", "move",
+]);
+export type TaskActionKey = z.infer<typeof taskActionKeySchema>;
+export const allowedActionsSchema = z.record(taskActionKeySchema, actionAvailabilitySchema);
+export type AllowedActions = z.infer<typeof allowedActionsSchema>;
 
 /** T2, T3, renew: no body. */
 export const emptyInputSchema = z.object({}).strict();
@@ -277,6 +300,7 @@ export const taskSummarySchema = z.object({
   fellBack: z.boolean(),
   workOnMain: z.boolean(),
   updatedAt: iso,
+  allowedActions: allowedActionsSchema,
 });
 export type TaskSummary = z.infer<typeof taskSummarySchema>;
 
@@ -315,6 +339,7 @@ export const taskDetailSchema = taskSummarySchema.extend({
   parent: taskSummarySchema.nullable(),
   subtasks: z.array(taskSummarySchema),
   blockers: z.array(blockerViewSchema),
+  blockerActions: z.record(z.string(), actionAvailabilitySchema),
   pauses: z.array(pauseViewSchema),
   handoffs: z.array(handoffViewSchema),
   reviews: z.array(reviewViewSchema),

@@ -14,7 +14,7 @@ import { useConnectionLost } from "../api/connection";
 import { useAllUsers, useUserChange } from "../api/queries";
 import { EmptyState, Field, LoadError, Mono, Refusal, SectionHeading, Skeleton, Time } from "../components/common";
 import { Dialog } from "../components/Dialog";
-import { CHOOSE_USER, CONNECTION_LOST } from "../lib/actions";
+import { CHOOSE_USER, CONNECTION_LOST } from "../lib/actionPresentation";
 import { focusUserPicker, useCurrentUser } from "../lib/currentUser";
 
 /** Anchor of the add form; the header's "Add a user" link points here. */
