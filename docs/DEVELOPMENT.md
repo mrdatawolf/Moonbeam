@@ -287,7 +287,7 @@ The UI in `ui/src/` is the phase-2 board surface built on the lifecycle API.
 ui/src/api/        client.ts (fetch, identity header, ApiRequestError), queries.ts (TanStack Query hooks), connection.ts
 ui/src/lib/        status.ts (CONTRACT-003 SV vocabulary), actionPresentation.ts (browser readiness and action labels), selection.ts, currentUser.tsx, format.ts, paths.ts
 ui/src/components/ StatusBadge (the shared status badge), Dialog (native <dialog>), TaskActions, MoveControl, TaskCard, Layout, common
-ui/src/pages/      Setup, Users, Projects, Project (board and queue), ProposeTask, Task (detail), DecisionQueue, Dashboard (placeholder, TASK-008)
+ui/src/pages/      Setup, Users, Projects, Project (board and queue), ProposeTask, Task (detail), DecisionQueue, Dashboard
 ```
 
 - **Identity.** The selected user lives in `localStorage` (`moonbeam.selectedUserId`) and is sent as
@@ -320,6 +320,19 @@ ui/src/pages/      Setup, Users, Projects, Project (board and queue), ProposeTas
 - **Decision queue.** The UI renders all seven phase-2 API groups, including Subtask findings
   (verdict, findings, same-model flag and parent link) and Fell back (parents whose subtasks were
   all cancelled, ready for direct work or another split).
+- **Dashboard (TASK-008).** Four sections at `/`: the seven decision-queue group
+  counts linking to `/decisions`, all six task-state counts per project (including
+  subtasks), active claims with claimant/lease and condition badges, and the ten
+  most recent task audit events by effective time (audit ID breaks ties). Reads
+  poll every 10 seconds while the page is visible, including the project list.
+  It reuses existing schema-validated project, task-list, task-detail and decision
+  queue endpoints and their query keys; there is no new aggregate API. The audit
+  feed reads each task's full history, deduplicates event IDs and takes the newest
+  ten globally. Registry-only events are not included. This costs one detail read
+  per task each polling cycle and may need an approved aggregate API for larger
+  installations. Failed reads are labeled; available data stays visible with a
+  stale-data warning, and incomplete reads never become misleading empty states.
+  `pages/dashboard.test.tsx` covers fixtures, polling, partial failures and axe.
 - **Tokens.** Status tones (`--color-tone-<tone>-fg|bg|border`) and control utilities (`btn-*`,
   `field-input`, `card`) are defined in `ui/src/index.css`. No shadcn or Radix primitives were added.
   Dialogs use the native `<dialog>` element.
