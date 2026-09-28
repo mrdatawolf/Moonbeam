@@ -1,0 +1,2 @@
+CREATE INDEX "audit_recent_task_idx" ON "audit_records" USING btree ("occurred_at" DESC NULLS LAST,"id" DESC NULLS LAST) WHERE "audit_records"."task_id" is not null;--> statement-breakpoint
+CREATE INDEX "audit_project_recent_task_idx" ON "audit_records" USING btree ("project_id","occurred_at" DESC NULLS LAST,"id" DESC NULLS LAST) WHERE "audit_records"."task_id" is not null;

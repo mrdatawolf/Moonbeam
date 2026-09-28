@@ -199,6 +199,7 @@ for a task that does not exist and even with an invalid body.
 | `GET /api/projects/:id` | project with its queue in order |
 | `GET /api/projects/:id/tasks[?state=a,b]` | task summaries, optionally by state |
 | `POST /api/projects/:id/tasks` | T1 create |
+| `GET /api/audit/recent[?limit=N]` | recent task audit events; default 10, integer 1–50, newest effective time then audit ID first |
 | `GET /api/tasks/:id` | task detail: conditions, claim and lease, parent, subtasks, envelope, dependencies both ways, handoffs, reviews, audit |
 | `PATCH /api/tasks/:id` | T17 edit proposed task |
 | `POST /api/tasks/:id/approve` | T2 |
@@ -232,7 +233,9 @@ to the content present when it obtains that lock (CONTRACT-005 Q27 interim rule)
 A successful action returns `{ task, audit }`: the task detail after the action
 and the audit records the action produced. The system transitions (T5, T8,
 T12, T14, T16) have no endpoints; they happen inside the actions that trigger
-them, and lease expiry is also applied by a 15-second sweep and before reads.
+them, and lease expiry is also applied by a 15-second sweep and before task/queue
+reads. The recent-audit endpoint only reads already-recorded events; it does not
+trigger a sweep or write audit records.
 
 Development and test only (`MOONBEAM_DEV_ROUTES=1`), until the runs contract
 exists: `POST /api/dev/runs` starts a run bound to a task and returns its
@@ -325,13 +328,23 @@ ui/src/pages/      Setup, Users, Projects, Project (board and queue), ProposeTas
   subtasks), active claims with claimant/lease and condition badges, and the ten
   most recent task audit events by effective time (audit ID breaks ties). Reads
   poll every 10 seconds while the page is visible, including the project list.
-  It reuses existing schema-validated project, task-list, task-detail and decision
-  queue endpoints and their query keys; there is no new aggregate API. The audit
-  feed reads each task's full history, deduplicates event IDs and takes the newest
-  ten globally. Registry-only events are not included. This costs one detail read
-  per task each polling cycle and may need an approved aggregate API for larger
-  installations. Failed reads are labeled; available data stays visible with a
-  stale-data warning, and incomplete reads never become misleading empty states.
+  It uses schema-validated project, task-list, decision-queue and recent-audit
+  endpoints. Each refresh makes one task-list request per project plus one each
+  for projects, decision queue and recent audit; there are no task-detail reads.
+  `GET /api/audit/recent?limit=10` returns `{ events: [...] }`, extending each
+  audit record with `task: { number, title }` and `project: { id, name }`.
+  The limit defaults to 10; non-integers or values outside 1–50 are `validation`.
+  The read-only query orders by `occurred_at DESC, id DESC`, limits in SQL,
+  and joins only the needed task, project and actor context. Partial task-event
+  indexes support global and per-project time ordering. Registry-only records
+  and attempts against nonexistent tasks are excluded, matching task-history
+  scope. Humans/viewers see all projects; valid agent credentials restrict the
+  query to their own project before limiting. Actor references expose current
+  display names and inactive status, never user e-mail addresses.
+  The feed polls independently, retains cached events on error, and participates
+  in lifecycle/user-name cache invalidation. Failed reads are labeled; available
+  data stays visible with a stale-data warning, and failed reads never become
+  misleading empty states.
   `pages/dashboard.test.tsx` covers fixtures, polling, partial failures and axe.
 - **Tokens.** Status tones (`--color-tone-<tone>-fg|bg|border`) and control utilities (`btn-*`,
   `field-input`, `card`) are defined in `ui/src/index.css`. No shadcn or Radix primitives were added.

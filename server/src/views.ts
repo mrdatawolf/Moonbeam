@@ -2,7 +2,7 @@
 // state and conditions, claimant and lease, parent and subtasks, envelope,
 // queue position and path dependencies in both directions, reviews with the
 // same-model flag, and the full audit history).
-import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 import { schema, type Database } from "@moonbeam/db";
 import type {
   ActorRef,
@@ -12,6 +12,7 @@ import type {
   DecisionQueue,
   PathDependency,
   ReviewView,
+  RecentAuditRecord,
   TaskDetail,
   TaskSummary,
 } from "@moonbeam/shared";
@@ -376,4 +377,38 @@ export async function decisionQueue(db: Database, projectIds: string[] | "all", 
       .sort((a, b) => (a.acceptedAt?.getTime() ?? 0) - (b.acceptedAt?.getTime() ?? 0))
       .map((t) => data.summary(t)),
   };
+}
+
+/** One bounded indexed read; do not load ViewData or entire user/run registries. */
+export async function recentAudit(db: Database, limit: number, actor: Actor | null): Promise<RecentAuditRecord[]> {
+  const a = schema.auditRecords;
+  const rows = await db.select({
+    audit: a,
+    task: { number: schema.tasks.number, title: schema.tasks.title },
+    project: { id: schema.projects.id, name: schema.projects.name },
+    displayName: schema.users.displayName,
+    userActive: schema.users.active,
+    runRole: schema.agentRuns.role,
+    runModel: schema.agentRuns.model,
+  }).from(a)
+    .innerJoin(schema.tasks, and(eq(schema.tasks.id, a.taskId), eq(schema.tasks.projectId, a.projectId)))
+    .innerJoin(schema.projects, eq(schema.projects.id, a.projectId))
+    .leftJoin(schema.users, eq(schema.users.id, a.actorUserId))
+    .leftJoin(schema.agentRuns, eq(schema.agentRuns.id, a.actorRunId))
+    .where(and(isNotNull(a.taskId), actor?.kind === "agent" ? eq(a.projectId, actor.projectId) : undefined))
+    // Match drizzle-kit's DESC NULLS LAST indexes (both ordering columns are non-null).
+    .orderBy(sql`${a.occurredAt} desc nulls last`, sql`${a.id} desc nulls last`)
+    .limit(limit);
+  return rows.map(({ audit: r, task, project, displayName, userActive, runRole, runModel }) => ({
+    id: r.id, projectId: project.id, taskId: r.taskId!, parentTaskId: r.parentTaskId,
+    subjectUserId: r.subjectUserId, action: r.action, fromState: r.fromState, toState: r.toState,
+    rejected: r.rejected, reason: r.reason, details: r.details,
+    occurredAt: iso(r.occurredAt), recordedAt: iso(r.recordedAt),
+    actor: {
+      kind: r.actorKind, userId: r.actorUserId, displayName, userActive,
+      identityMode: r.identityMode, runId: r.actorRunId,
+      role: r.actorRole ?? runRole, model: r.actorModel ?? runModel, systemTrigger: r.systemTrigger,
+    },
+    task, project,
+  }));
 }

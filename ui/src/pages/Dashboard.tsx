@@ -1,4 +1,4 @@
-import { projectListResponseSchema, taskDetailSchema, taskListResponseSchema, taskStateSchema, type DecisionQueue } from "@moonbeam/shared";
+import { projectListResponseSchema, recentAuditResponseSchema, taskListResponseSchema, taskStateSchema, type DecisionQueue } from "@moonbeam/shared";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
 import { request } from "../api/client";
@@ -39,20 +39,17 @@ export function Dashboard() {
     refetchInterval: LIVE,
   })) });
   const tasks = lists.flatMap((q) => q.data ?? []);
-  // Existing detail reads are the only task-audit API. Keep their normal cache
-  // keys so navigation and lifecycle invalidation reuse the same data.
-  const details = useQueries({ queries: tasks.map((t) => ({
-    queryKey: [...keys.task(t.id), selectedId],
-    queryFn: () => request("GET", `/tasks/${t.id}`, taskDetailSchema),
+  const audit = useQuery({
+    queryKey: [...keys.recentAudit, selectedId],
+    queryFn: () => request("GET", "/audit/recent?limit=10", recentAuditResponseSchema).then((r) => r.events),
     refetchInterval: LIVE,
-  })) });
+  });
   const loadingTasks = projects.isPending || lists.some((q) => q.isPending);
   const failedTasks = projects.isError || lists.some((q) => q.isError);
   const claims = tasks.filter((t) => t.claim !== null);
-  const events = [...new Map(details.flatMap((q) => q.data?.audit ?? []).map((r) => [r.id, r])).values()]
-    .sort((a, b) => b.occurredAt.localeCompare(a.occurredAt) || b.id - a.id).slice(0, 10);
-  const loadingAudit = loadingTasks || details.some((q) => q.isPending);
-  const failedAudit = failedTasks || details.some((q) => q.isError);
+  const events = audit.data ?? [];
+  const loadingAudit = audit.isPending;
+  const failedAudit = audit.isError;
   const projectName = (id: string | null) => projects.data?.find((p) => p.id === id)?.name ?? "Unknown project";
 
   return <div className="min-w-0 space-y-8 [overflow-wrap:anywhere]">
@@ -110,11 +107,11 @@ export function Dashboard() {
       {!loadingAudit && !failedAudit && events.length === 0 && <EmptyState title="No task events yet.">Task changes will appear here.</EmptyState>}
       <ol className="space-y-2">
         {events.map((r) => {
-          const task = tasks.find((t) => t.id === r.taskId);
+          const task = r.task;
           return <li key={r.id} className="card min-w-0 space-y-1 p-3 text-sm">
             <p className="font-medium">{auditLabel(r.action, r.rejected)}</p>
             <p>{actorLabel(r.actor)} · <Time iso={r.occurredAt} /></p>
-            <p className="text-muted-foreground">{projectName(r.projectId)}{r.taskId && <> · <Link className="text-primary underline" to={`/tasks/${r.taskId}`}>
+            <p className="text-muted-foreground">{r.project.name}{r.taskId && <> · <Link className="text-primary underline" to={`/tasks/${r.taskId}`}>
               {task ? <><span className="font-mono">#{task.number}</span> {task.title}</> : "Open task"}
             </Link></>}</p>
             {r.reason && <p>{r.reason}</p>}

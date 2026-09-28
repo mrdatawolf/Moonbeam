@@ -322,6 +322,19 @@ export const auditRecordViewSchema = z.object({
 });
 export type AuditRecordView = z.infer<typeof auditRecordViewSchema>;
 
+/** Bounded task-event feed; registry-only records are excluded. */
+export const recentAuditRecordSchema = auditRecordViewSchema.extend({
+  projectId: z.uuid(),
+  taskId: z.uuid(),
+  task: z.object({ number: z.number().int().positive(), title: z.string() }),
+  project: z.object({ id: z.uuid(), name: z.string() }),
+});
+export type RecentAuditRecord = z.infer<typeof recentAuditRecordSchema>;
+export const recentAuditResponseSchema = z.object({
+  events: z.array(recentAuditRecordSchema).max(50),
+});
+export type RecentAuditResponse = z.infer<typeof recentAuditResponseSchema>;
+
 export const taskDetailSchema = taskSummarySchema.extend({
   desiredOutcome: z.string(),
   acceptanceCriteria: z.array(z.string()),

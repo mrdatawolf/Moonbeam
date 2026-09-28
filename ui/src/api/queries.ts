@@ -32,6 +32,7 @@ export const keys = {
   tasks: (projectId: string) => ["tasks", projectId] as const,
   task: (id: string) => ["task", id] as const,
   decisionQueue: ["decision-queue"] as const,
+  recentAudit: ["recent-audit"] as const,
 };
 
 export const useSetupStatus = () => useQuery({ queryKey: keys.setup, queryFn: () => request("GET", "/setup", setupStatusSchema) });
@@ -84,6 +85,7 @@ export function refreshLifecycle(qc: QueryClient) {
   void qc.invalidateQueries({ queryKey: ["tasks"] });
   void qc.invalidateQueries({ queryKey: ["project"] });
   void qc.invalidateQueries({ queryKey: keys.decisionQueue });
+  void qc.invalidateQueries({ queryKey: keys.recentAudit });
 }
 
 /**

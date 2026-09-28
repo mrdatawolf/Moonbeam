@@ -343,6 +343,8 @@ export const auditRecords = pgTable(
   (t) => [
     index("audit_task_idx").on(t.taskId, t.id),
     index("audit_project_idx").on(t.projectId, t.id),
+    index("audit_recent_task_idx").on(t.occurredAt.desc(), t.id.desc()).where(sql`${t.taskId} is not null`),
+    index("audit_project_recent_task_idx").on(t.projectId, t.occurredAt.desc(), t.id.desc()).where(sql`${t.taskId} is not null`),
     index("audit_rejected_idx").on(t.rejected, t.id),
   ],
 );

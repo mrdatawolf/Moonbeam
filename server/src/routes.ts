@@ -14,6 +14,7 @@ import {
   projectSchema,
   projectsRootResponseSchema,
   runSchema,
+  recentAuditResponseSchema,
   setupStatusSchema,
   taskDetailSchema,
   taskListResponseSchema,
@@ -28,7 +29,7 @@ import { reject } from "./errors.js";
 import { actorView, requireActor, resolveActor, type Actor } from "./identity/actor.js";
 import type { ActionOutcome, LifecycleService } from "./lifecycle/service.js";
 import type { RegistryService } from "./registry.js";
-import { auditRecords, decisionQueue, listTasks, projectQueueView, taskDetail } from "./views.js";
+import { auditRecords, decisionQueue, listTasks, projectQueueView, recentAudit, taskDetail } from "./views.js";
 
 export interface Services {
   lifecycle: LifecycleService;
@@ -151,6 +152,19 @@ export function apiRoutes(services: Services): Router {
   });
 
   router.post("/projects/:id/tasks", action((actor, req) => lifecycle.createTask(actor, param(req, "id"), req.body), 201));
+
+  router.get("/audit/recent", async (req, res) => {
+    const actor = await resolve(req);
+    const raw = req.query.limit;
+    if (raw !== undefined && (typeof raw !== "string" || !/^[0-9]+$/.test(raw))) {
+      reject("validation", "`limit` must be an integer from 1 to 50.");
+    }
+    const limit = raw === undefined ? 10 : Number(raw);
+    if (!Number.isInteger(limit) || limit < 1 || limit > 50) {
+      reject("validation", "`limit` must be an integer from 1 to 50.");
+    }
+    res.json(recentAuditResponseSchema.parse({ events: await recentAudit(db, limit, actor) }));
+  });
 
   // ---- tasks ---------------------------------------------------------------
 

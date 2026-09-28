@@ -15,6 +15,13 @@
       "when": 1790355483524,
       "tag": "0001_audit_append_only",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790615501792,
+      "tag": "0002_gray_patch",
+      "breakpoints": true
     }
   ]
 }
