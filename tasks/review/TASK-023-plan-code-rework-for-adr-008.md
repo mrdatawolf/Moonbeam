@@ -385,3 +385,19 @@ Validation note for parallel waves: during work, each task runs only its package
 ## Review
 
 Not reviewed.
+
+## Board notes
+
+Board answers to the five decisions (Patrick, 2026-09-28):
+
+1. **How Moonbeam reads GitHub:** neither the mirror nor the API for now.
+   Moonbeam reads local repository folders that the user maintains and points
+   it at. It never fetches or pulls. Having Moonbeam do the pulls may be
+   revisited later.
+2. **Tokens:** deferred ("back burner"). With decision 1 there is no GitHub
+   access yet, so none are needed.
+3. **Remove the shelved code first and drop its tables:** agreed.
+4. **Adopt the task format now and the main-branch rules later
+   (TASK-025, then TASK-041):** agreed, as a trial.
+5. **`packages/dbc`, with the whole snapshot rebuilt on each head change:**
+   agreed.
