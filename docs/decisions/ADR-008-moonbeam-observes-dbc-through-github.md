@@ -1,6 +1,6 @@
 # ADR-008: Moonbeam observes DbC projects through GitHub
 
-Status: Proposed
+Status: Approved
 Date: 2026-09-28
 Decision owners: Board (direction set by Patrick, planning session 2026-09-28)
 Related tasks and contracts: TASK-020, TASK-021 (CONTRACT-006); affects
@@ -239,3 +239,15 @@ only through a new ADR.
   - build the GitHub poller and parser to CONTRACT-006
   - build the per-project view
   - remove the shelved code
+
+## Amendment — 2026-09-28: board answers at approval
+
+Recorded when TASK-020 was accepted. The decision text above is left as
+approved.
+
+- **Decision 8 is resolved as alternative A.** The DbC changes are made in the
+  upstream Project Template DbC, and Moonbeam's `TEMPLATE/` is retired. This
+  supersedes ADR-004 decisions 1 and 2. CONTRACT-006 reads a named version of
+  the upstream template.
+- **CONTRACT-003, CONTRACT-004, and CONTRACT-005 are shelved**, as the
+  "Contracts affected" table defines. They are not marked superseded.
