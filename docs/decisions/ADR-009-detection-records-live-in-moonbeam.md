@@ -1,6 +1,6 @@
 # ADR-009: Detection records live in Moonbeam, not in the repository
 
-Status: Proposed
+Status: Approved
 Date: 2026-09-28
 Decision owners: Board (decided by Patrick, 2026-09-28, CONTRACT-006 Q17)
 Related tasks and contracts: TASK-021, CONTRACT-006 (FG7, Q17); ADR-007,

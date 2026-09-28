@@ -1,8 +1,8 @@
 # CONTRACT-006: What Moonbeam reads from a DbC project
 
-Status: Proposed
-Approved by:
-Approved date:
+Status: Approved
+Approved by: Patrick
+Approved date: 2026-09-25
 Related tasks: TASK-021
 Related ADRs: ADR-008 (governing, with its 2026-09-28 amendment: decision 8 =
 alternative A), ADR-009, ADR-007, ADR-003 (context: ADR-002, ADR-004, ADR-005)

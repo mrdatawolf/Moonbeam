@@ -59,3 +59,12 @@ Moonbeam notes it for later review.
 
 - TASK-014 applies the 2026-09-25 board answers that rely on this principle.
 - The override review screen belongs with the pause review work (phase 4).
+
+## Amendment — 2026-09-28: decision 4 superseded in part by ADR-009
+
+The decision text above is left as approved. ADR-009 (Approved) rejects the
+clause of decision 4 that notes overrides "in the task record written to the
+repository". Under ADR-008, Moonbeam is read-only. Overrides are detected as
+flags (CONTRACT-006), and flags, dismissals, and notes live only in Moonbeam.
+Decisions 1, 2, 3, and 5 stand. Decision 5's override review is the flag
+review in CONTRACT-006.
