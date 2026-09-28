@@ -247,7 +247,3 @@ scan. This is cosmetic.
 ## Review
 
 Not reviewed.
-
-## Human acceptance
-
-Pending.

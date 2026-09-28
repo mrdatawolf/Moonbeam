@@ -312,7 +312,3 @@ shows "Subtask findings" and "Fell back". There were no page errors.
 ## Review
 
 Not reviewed.
-
-## Human acceptance
-
-Pending.

@@ -671,7 +671,3 @@ race with project registration.**
 - **N1:** should agents be able to list users and their e-mail addresses?
 - **Lifecycle:** the task file is in `tasks/completed/` without a review.
   Recommended transition: back to `in-progress` for F1 and F2.
-
-## Human acceptance
-
-Pending.

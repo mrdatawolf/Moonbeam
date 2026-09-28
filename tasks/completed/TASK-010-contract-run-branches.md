@@ -126,7 +126,3 @@ Board review. No code or tests are in scope.
 ## Review
 
 Not reviewed.
-
-## Human acceptance
-
-Pending.

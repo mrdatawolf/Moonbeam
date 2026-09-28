@@ -180,7 +180,3 @@ All runs used Node v24.16.0 and pnpm 11.24.0.
 ## Review
 
 Not reviewed.
-
-## Human acceptance
-
-Pending.

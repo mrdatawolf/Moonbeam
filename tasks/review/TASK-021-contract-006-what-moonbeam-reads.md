@@ -155,7 +155,3 @@ Q1–Q16 are open for the board, each with a recommendation.
 ## Review
 
 Not reviewed.
-
-## Human acceptance
-
-Pending.

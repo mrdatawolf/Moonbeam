@@ -151,7 +151,3 @@ I22 does not cover M4 followed by M3).
 ## Review
 
 Not reviewed.
-
-## Human acceptance
-
-Pending.

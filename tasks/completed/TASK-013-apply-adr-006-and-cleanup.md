@@ -240,6 +240,6 @@ CONTRACT-002's human-only list.
 
 Not reviewed.
 
-## Human acceptance
+## Board notes
 
 Accepted by Patrick, 2026-09-25 (instructed in planning session). Review waived.

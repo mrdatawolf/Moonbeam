@@ -438,7 +438,7 @@ themselves.
 
 Not reviewed.
 
-## Human acceptance
+## Board notes
 
 Changes requested by Patrick, 2026-09-25. Returned to `in-progress/`.
 

@@ -335,7 +335,3 @@ false`. Main branches were suggested correctly, including `master`, `dev` and
 ## Review
 
 Not reviewed.
-
-## Human acceptance
-
-Pending.

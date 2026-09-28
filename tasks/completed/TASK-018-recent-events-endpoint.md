@@ -319,7 +319,3 @@ projects and 16 tasks):
 ## Review
 
 Not reviewed.
-
-## Human acceptance
-
-Pending.

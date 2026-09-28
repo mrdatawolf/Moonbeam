@@ -213,7 +213,3 @@ lines, and the upstream DbC `docs/workflow/lifecycle.md`. Every point under
 ## Review
 
 Not reviewed.
-
-## Human acceptance
-
-Pending.

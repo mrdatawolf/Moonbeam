@@ -156,7 +156,3 @@ ADR-001, ADR-003, ADR-004, and the domain language and resolved questions in
 ## Review
 
 Not reviewed.
-
-## Human acceptance
-
-Pending.

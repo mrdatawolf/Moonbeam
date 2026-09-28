@@ -94,7 +94,3 @@ Contract designer (contract-architect), 2026-09-24.
 ## Review
 
 Not reviewed.
-
-## Human acceptance
-
-Pending.

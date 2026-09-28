@@ -159,7 +159,3 @@ The reviewer should include these changes.
 ## Review
 
 Not reviewed.
-
-## Human acceptance
-
-Pending.

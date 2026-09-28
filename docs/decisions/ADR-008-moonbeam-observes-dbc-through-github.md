@@ -251,3 +251,9 @@ approved.
   the upstream template.
 - **CONTRACT-003, CONTRACT-004, and CONTRACT-005 are shelved**, as the
   "Contracts affected" table defines. They are not marked superseded.
+- **No acceptance section or fields (Board, 2026-09-28).** Acceptance is
+  recorded by git: the merge commit that brings the task to `completed/` on
+  main, and its author. Task files have no `## Human acceptance` section and no
+  acceptance header fields, so decision 7's "incomplete record" example "or the
+  human acceptance on a completed one" does not apply. CONTRACT-006 U2 defines
+  this.

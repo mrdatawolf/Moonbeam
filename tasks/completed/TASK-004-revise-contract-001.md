@@ -226,7 +226,3 @@ Q21 affect it directly.
 ## Review
 
 Not reviewed.
-
-## Human acceptance
-
-Pending.

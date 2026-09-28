@@ -182,7 +182,3 @@ references in contract bodies to the removed questions, `path_dependency_reorder
 ## Review
 
 Not reviewed.
-
-## Human acceptance
-
-Pending.

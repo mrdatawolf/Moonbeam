@@ -174,7 +174,3 @@ Observations:
 ## Review
 
 Not reviewed.
-
-## Human acceptance
-
-Pending.

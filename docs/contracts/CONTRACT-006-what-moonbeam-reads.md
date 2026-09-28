@@ -224,8 +224,6 @@ are "pre-v1".
   | `Proposed date` | date | all states |
   | `Approved by` | name | approved, in-progress, review, completed |
   | `Approved date` | date | approved, in-progress, review, completed |
-  | `Accepted by` | name | completed |
-  | `Accepted date` | date | completed |
   | `Related contracts` | ID list or `None` | all states (Q10) |
   | `Related ADRs` | ID list or `None` | all states (Q10) |
   | `Dependencies` | ID list, free text, or `None` | all states (Q10) |
@@ -245,7 +243,7 @@ are "pre-v1".
       `server`, and `docs/DEVELOPMENT.md` all work as written).
   - A Paths section with no items is empty (FL-2 where required).
 - **P8 Sections not parsed.** Moonbeam renders the whole file (R4) but does not
-  interpret any other section, including `## Human acceptance`.
+  interpret any other section.
 - **P9 Pre-v1 and unknown versions.** A task file without `Format:`, or with a
   value other than `DbC task v1`, is still parsed by P1 to P7 on a best-effort
   basis. Its fields are shown, labeled "not DbC task v1". It raises FL-7 and
@@ -286,7 +284,7 @@ are "pre-v1".
   FL-6. A removed task's state is "removed" (withdrawn if it was only ever in
   `proposed/`).
 - **H8 Header values next to history.** Recorded values (`Approved by` and
-  date, `Accepted by` and date) are shown beside the commit facts. Moonbeam
+  `Approved date`) are shown beside the commit facts. Moonbeam
   does not reconcile them. A header date that differs from the commit date is
   shown, not flagged.
 - **H9 Determinism.** History for a given head is a function of the chain
@@ -334,8 +332,8 @@ Information only. Every value is as of the last successful poll (S7).
   states.
 - **D4 Recently completed:** tasks whose acceptance commit falls in the last 30
   days, and at least the 10 most recent, newest first (Q15). Each shows ID,
-  title, `Accepted by` and date, the acceptance commit (merged or direct) and
-  its author, and the time from the most recent approval entry to acceptance.
+  title, the acceptance commit (merged or direct) and its author, who is the
+  acceptor (U2), and the time from the most recent approval entry to acceptance.
   The full list of completed tasks is reachable from here.
 - **D5 Other states on main.** Tasks currently in `in-progress/` or `review/`
   on main, and removed tasks, each marked as such.
@@ -423,8 +421,9 @@ regardless of the baseline. Every flag can be dismissed with a note (FG4).
   - Rule: at an evaluated commit C where task T enters `approved/` or
     `completed/`, either:
     - C's author maps to no board member (I3), or
-    - T's `Approved by` (for an approval) or `Accepted by` (for an acceptance),
-      as it reads at C, is empty or its name maps to no board member (I5).
+    - for an approval only: T's `Approved by`, as it reads at C, is empty or
+      its name maps to no board member (I5). An acceptance is checked by its
+      commit author alone (U2).
   - Subject: (T, C, approval or acceptance). Kind: event, but it resolves
     automatically when a change to the identity mapping would no longer raise it
     (I6).
@@ -499,7 +498,7 @@ regardless of the baseline. Every flag can be dismissed with a note (FG4).
   Author names are never used to match commits.
 - **I4 Ambiguity.** An identity that matches two or more members counts as
   unmatched, and the identity settings show a warning naming the conflict.
-- **I5 Recorded names.** The name part (P5) of `Approved by` and `Accepted by`
+- **I5 Recorded names.** The name part (P5) of `Approved by`
   matches a member when it equals, case-insensitively, the member's display
   name or one of their name aliases. `Proposed by` is shown and mapped the same
   way but is never flagged, because agents may propose.
@@ -603,11 +602,15 @@ v1. This contract does not edit upstream.
 
 - **U1 Format marker.** `docs/templates/task.md`: add `Format: DbC task v1` as
   the first header line (P6, Q8).
-- **U2 Acceptance fields.** `docs/templates/task.md`: add `Accepted by:` and
-  `Accepted date:` after `Approved date:`. The `## Human acceptance` section
-  stays for notes. Today's upstream template records acceptance only in that
-  free-text section, which is not parseable, and this repository shows the
-  result: most completed tasks still say "Pending." there.
+- **U2 Acceptance is recorded by git (Board, 2026-09-28).**
+  `docs/templates/task.md`: remove the `## Human acceptance` section, and add
+  no acceptance header fields. Moving the task to `completed/` is the
+  acceptance, and the merge commit that brings it to main records who accepted
+  (its author) and when. A second, hand-filled record of the same fact goes
+  stale: this repository's completed tasks mostly said "Pending." there,
+  although a human had accepted each one. Notes the board wants to keep, for
+  example return notes or a review waiver, go under an optional `## Board notes`
+  section, which Moonbeam renders but does not parse.
 - **U3 Paths section.** `docs/templates/task.md`: add `### Paths` under
   `## Scope`, after `### Excluded`. Guidance: one repository-relative path per
   list item in backticks; a trailing `/` for a directory; `*` and `**` allowed;
@@ -625,8 +628,7 @@ v1. This contract does not edit upstream.
     and `Approved date` in the same commit, and pushing. Only a human approves.
   - Branch from main after approval. The moves to `in-progress/`, `review/`,
     and back happen only on that branch.
-  - At acceptance, fill `Accepted by` and `Accepted date` and move the task to
-    `completed/` on the branch. Then merge the branch into main with a merge
+  - At acceptance, move the task to `completed/` on the branch. Then merge the branch into main with a merge
     commit or a squash merge (not a fast-forward) and push. Merging is
     acceptance.
   - Never merge a branch whose task is not in `completed/`.
@@ -635,10 +637,10 @@ v1. This contract does not edit upstream.
 - **U6 Task IDs.** `docs/workflow/lifecycle.md`: a new ID is the highest
   `TASK-NNN` on main plus one, claimed by pushing the proposal to main. IDs are
   never reused. A withdrawn proposal is deleted from `tasks/proposed/`.
-- **U7 Recording gates.** `docs/workflow/approval-gates.md`: approval and
-  acceptance are recorded in the header fields, in the commit that makes the
-  move. If the board accepts Q4, contract and ADR approvals are commits to main
-  that change only the document's header.
+- **U7 Recording gates.** `docs/workflow/approval-gates.md`: approval is
+  recorded in the header fields, in the commit that makes the move. Acceptance
+  is recorded by the merge commit itself (U2). Contract and ADR approvals are
+  commits to main that change only the document's header (Q4).
 - **U8 Version name.** `tasks/README.md` names the task format ("DbC task v1")
   and states that `in-progress/` and `review/` do not appear on main. Upstream
   marks the commit that introduces v1 (for example, a `task-format-v1` tag), so
@@ -724,7 +726,26 @@ v1. This contract does not edit upstream.
 
 ## Open questions
 
-Each has a recommendation. None is decided by this contract.
+- **Q17 Dismissals and ADR-007 decision 4.** FG7 keeps flags, dismissals, and
+  notes only in Moonbeam. ADR-007 decision 4 requires every override to be
+  noted in the task record in the repository, which ADR-008 decision 6
+  (read-only) rules out. The board (2026-09-28) wants either a formal
+  rejection of that part of ADR-007, or a different way to record it. Options:
+  - **A.** A new ADR superseding ADR-007 decision 4 for Moonbeam: detection
+    records live only in Moonbeam, and the repository is never written.
+  - **B.** Dismissal in the repository: the lead developer explains a flag by
+    committing a note, for example a line under `## Board notes` in the task
+    file naming the flag. Moonbeam reads it and treats the flag as dismissed.
+    The explanation then lives with the project, as ADR-007 intended, and
+    Moonbeam stays read-only. Flags without a task, such as FL-3 on a direct
+    commit, would still need Moonbeam-side dismissal, or a project-level notes
+    file.
+  - Not decided here. The board decides before approval.
+
+## Resolved questions
+
+The board accepted every recommendation below on 2026-09-28. They are now part
+of this contract as written.
 
 - **Q1 Staleness threshold.** Recommendation: 14 days from the most recent
   entry into `approved/`, overridable per project, and a dismissal lasting one

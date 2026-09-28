@@ -135,7 +135,3 @@ Implementer: interface-designer (UX specialist), 2026-09-24. Design only.
 ## Review
 
 Not reviewed.
-
-## Human acceptance
-
-Pending.
