@@ -401,3 +401,8 @@ Board answers to the five decisions (Patrick, 2026-09-28):
    (TASK-025, then TASK-041):** agreed, as a trial.
 5. **`packages/dbc`, with the whole snapshot rebuilt on each head change:**
    agreed.
+
+The board approved the planned readings of all 11 CONTRACT-006 gaps and
+ambiguities, as listed in the handoff (Patrick, 2026-09-28). The tasks
+implement them as planned. They are to be collected into a superseding
+CONTRACT-007 later, together with anything the implementation finds.
