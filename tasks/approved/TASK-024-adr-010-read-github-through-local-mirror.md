@@ -4,8 +4,8 @@ Owner role: Architect
 Assigned agent: jarvis (with Claude writing the file)
 Proposed by: Jarvis (TASK-023)
 Proposed date: 2026-09-28
-Approved by:
-Approved date:
+Approved by: Patrick
+Approved date: 2026-09-28
 Related contracts: CONTRACT-006
 Related ADRs: ADR-008, ADR-006, ADR-002
 Dependencies: None (records the board's answers to TASK-023 decisions 1 and 2)

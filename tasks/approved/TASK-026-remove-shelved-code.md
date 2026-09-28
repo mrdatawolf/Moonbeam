@@ -4,8 +4,8 @@ Owner role: Implementer
 Assigned agent: openai-coder (Codex)
 Proposed by: Jarvis (TASK-023)
 Proposed date: 2026-09-28
-Approved by:
-Approved date:
+Approved by: Patrick
+Approved date: 2026-09-28
 Related contracts: CONTRACT-002 (kept parts), CONTRACT-003, CONTRACT-004, CONTRACT-005 (shelved)
 Related ADRs: ADR-008, ADR-003, ADR-002
 Dependencies: None
