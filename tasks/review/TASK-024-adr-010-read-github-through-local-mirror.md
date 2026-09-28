@@ -96,7 +96,35 @@ None.
 
 ## Implementation handoff
 
-Not started.
+**Changed:**
+`docs/decisions/ADR-010-moonbeam-reads-github-through-a-local-mirror.md`
+(new, status Proposed). No other file changed.
+
+**Written by:** Claude directly, not jarvis. The task fully specifies the
+content.
+
+**Acceptance criteria:**
+
+- Follows the ADR template, with status Proposed.
+- Reads only: decisions 2 and 3.
+- Tracked branch only: decision 1.
+- S4 token rules: decision 5.
+- ADR-006 decision 2 and ADR-008 decision 5: "Relationship to earlier
+  decisions".
+- Alternatives, each with its reason.
+
+**Additions beyond the task text:**
+
+- The repository is resolved by its recorded numeric ID
+  (`GET /repositories/{id}`). This gives S8 and F4 directly, and follows
+  renames without trusting the old name.
+- The alternatives record the board's brief "read local folders" choice and
+  its reversal.
+- A missing token shows "token not configured" with no flag, following
+  TASK-023 gap 8.
+
+**Validated:** read against CONTRACT-006 S2 to S8, F1 to F6, I2, I3, N1, and
+N2, and against the TASK-023 board notes.
 
 ## Review
 
