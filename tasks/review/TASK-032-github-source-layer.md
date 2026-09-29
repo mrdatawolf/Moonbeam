@@ -128,7 +128,66 @@ None.
 
 ## Implementation handoff
 
-Not started.
+Implemented TASK-032 in the shared `main` checkout. Ready for dispatcher review; not marked accepted or moved, and no repository git write commands were run.
+
+Files changed:
+
+- `server/src/github/tokens.ts` and `server/src/github/tokens.test.ts`
+- `server/src/github/api.ts` and `server/src/github/api.test.ts`
+- `server/src/github/git.ts` and `server/src/github/git.test.ts`
+- `server/src/github/mirror.ts` and `server/src/github/mirror.test.ts`
+- `server/src/test/git-fixture.ts`
+- `server/vitest.unit.config.ts`
+- `docs/DEVELOPMENT.md`
+- `tasks/in-progress/TASK-032-github-source-layer.md` (Implementation handoff only)
+
+Public API:
+
+- `tokenFile`, `mask`, and `TokenFile.labels()/lookup(label)`: masked label listings and private server-side credential lookup, with `missing`/`unreadable` results and automatic reload.
+- `GitHubApi` and `RestGitHubApi`: `getRepository`, `getRepositoryById`, `getBranchHead`, `getCommit`, and `listCommitLogins`. Injectable fetch/base URL/timeout; discriminated result unions, ETags, write scopes, and ISO rate-limit reset times.
+- `GitRunner.run`, `isolatedGitEnvironment`, and `scrubGitOutput`: allowlisted execution with injectable executor and ephemeral authentication.
+- `Mirror`, `mirrorDirectory`, and `githubRemoteUrl`: `ensure`, `fetch`, `readChain`, `readFile`, `isAncestor`, and `pin`; injectable remote builder and runner. Files return raw buffers.
+- `GitFixture.create`: temporary repositories with deterministic commits, branches, merges, squash merges, fast-forwards, resets, publishing to a local bare remote, and cleanup.
+
+Validation (Node/pnpm path prepended as instructed; git 2.47.3):
+
+- `pnpm --filter @moonbeam/server exec vitest run --config vitest.unit.config.ts`: passed, 53 tests across 4 files. An initial run exposed two log-separator parsing failures; these were corrected before the passing runs.
+- `pnpm typecheck`: passed for all 5 packages.
+- `pnpm test`: passed, 278 tests across 26 files: db 6, dbc 182, shared 4, server 65, UI 21.
+- `pnpm build`: passed for all 5 packages.
+- `pnpm --filter @moonbeam/server exec vitest run`: passed separately, 65 tests across 6 files, including 12 database/API tests and 53 source tests.
+- `git diff --check`: passed. Test subprocesses and embedded Postgres stopped; no server was started or left running. Tests used temporary homes/token files and local `file://` remotes with stubbed HTTP, never real GitHub or real `~/.moonbeam`.
+
+Acceptance criterion evidence:
+
+1. S3/V2: HTTP doubles assert GET-only requests; git tests reject push, commit, remote changes, and other disallowed commands. Mirror tests verify remote refs remain unchanged.
+2. S2: only the tracked branch reaches `refs/moonbeam/tracked`; other remote branches and tags are excluded.
+3. S4: token masking, write-scope detection, environment-only git authentication, sanitized errors/output, credential-free argv, and token-free mirror config are covered.
+4. S8/F4: repository results expose numeric ID, canonical name, and redirect indication; numeric-ID resolution refuses mismatches.
+5. F1/F2/F3/F5: timeout, network error, 5xx, 401, 404, 403/429 rate limits, and missing branches have tested outcomes.
+6. H1/change sets: root, first-parent merge, rename, empty commit, identities, timestamps, and unusual paths are tested oldest-first; renames become delete/add pairs.
+7. P10: oversized blobs return `too_large` after size inspection without reading contents; exactly 1 MiB remains readable.
+8. F6: fast-forward ancestry is true, rewritten ancestry is false, and pinned old objects remain readable.
+9. I2: login pagination stops at known SHAs and preserves null for unlinked authors.
+10. F2/token configuration: missing versus unreadable configuration, absent labels, edits, replacement, deletion, and recovery are tested without restarting.
+
+Assumptions and deviations: no path or dependency deviations. Added `getRepositoryById` alongside the task's name-based registration lookup to implement ADR-010. Duplicate case-insensitive token labels are unreadable. Missing labels return `missing` without creating flags. Numeric-ID mismatches return `not_found`; plain non-rate-limit 403 returns `unauthorized`; an absent reset time is null. Non-branch git fetch failures return `unreachable`, leaving detailed source classification to REST. Mirror operations require caller serialization; incomplete or failed reads throw generic errors rather than returning partial history. Git execution defaults to a 60-second timeout and 128 MiB output bound.
+
+No unresolved blockers. Registration, polling/status orchestration, storage, decoding, and flag handling remain outside this task. `docs/DEVELOPMENT.md` documents configuration, token permissions/scopes, mirror location, git requirement, APIs, and test isolation.
+
+**Dispatcher check:**
+
+- The token reaches git only through `GIT_CONFIG_COUNT` with an
+  `http.<origin>.extraheader`. REST uses a `Bearer` header with
+  `method: "GET"` and `redirect: "manual"`.
+- The git allowlist excludes `push`. Re-ran the server suite: 6 files, 65
+  passed, including the database tests.
+- **Notes for review:**
+  - The allowlist also includes `init`, `config`, and `update-ref`. They
+    write only to Moonbeam's own mirror, never to GitHub or a project
+    folder, but ADR-010 lists only "fetch plus local read commands".
+  - `protocol.file.allow=always` is set for the `file://` test fixtures. In
+    production it could be limited to https only.
 
 ## Review
 

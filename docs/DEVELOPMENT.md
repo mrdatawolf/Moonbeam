@@ -42,7 +42,7 @@ compiled `dist/`.
 
 ## Setup and commands
 
-Prerequisites: Node.js 24 and pnpm 11 (`corepack enable` picks up the pinned
+Prerequisites: git 2.31 or later (for environment-scoped authentication), Node.js 24 and pnpm 11 (`corepack enable` picks up the pinned
 version). No separate Postgres install is needed for development.
 
 ```sh
@@ -67,10 +67,64 @@ Express server, so the browser only talks to one origin.
 | --- | --- | --- |
 | `DATABASE_URL` | unset | Postgres connection string. When unset, embedded Postgres is started. |
 | `MOONBEAM_HOME` | `~/.moonbeam` | Local state directory; embedded Postgres data lives in `$MOONBEAM_HOME/db`. |
+| `MOONBEAM_GITHUB_TOKENS_FILE` | `$MOONBEAM_HOME/github-tokens.json` | Override the host-side GitHub token file. |
 | `MOONBEAM_EMBEDDED_PG_PORT` | `54330` | Port for embedded Postgres (loopback only). |
 | `MOONBEAM_SERVER_HOST` | `127.0.0.1` | Express bind address. |
 | `MOONBEAM_SERVER_PORT` | `3100` | Express port; also the UI dev proxy target. |
 | `MOONBEAM_UI_PORT` | `5180` | Vite dev server port (fails rather than picking another port). |
+
+### GitHub source configuration
+
+Create `$MOONBEAM_HOME/github-tokens.json` (default `~/.moonbeam/github-tokens.json`)
+on the server host, or set `MOONBEAM_GITHUB_TOKENS_FILE` to another file:
+
+```json
+{
+  "tokens": {
+    "your-github-owner": "your-read-only-token"
+  }
+}
+```
+
+Grant repository **contents: read** and **metadata: read**, and nothing else.
+Restrict the file to its owner (`chmod 600`). Group/other readability produces a
+warning naming only the file path. Labels match case-insensitively and
+conventionally name the GitHub owner; registrations will default to that label.
+Duplicate labels differing only by case make the configuration unreadable.
+The loader checks modification time on every lookup/list request and picks up
+edits or replacement without restarting. Missing files or labels mean "token not
+configured" with no flag; invalid or unreadable files mean "token configuration
+unreadable". Token-list consumers receive labels and `••••` plus the last four
+characters only. Raw lookup results are private to server authentication.
+
+Bare mirrors are rebuildable caches at
+`$MOONBEAM_HOME/mirrors/<project-id>.git`. They fetch only the tracked branch into
+`refs/moonbeam/tracked`, without tags. `refs/moonbeam/last-processed` pins the last
+processed head so old objects survive a history rewrite. The source layer never
+pushes or edits a remote. Authentication uses process-scoped git configuration,
+never the URL, command arguments, or mirror config. Classic-token write scopes
+(`repo`, `public_repo`, `write:*`) are reported when GitHub supplies them;
+fine-grained tokens generally have no scope header and return `null`.
+
+The primitives in `server/src/github/` are not yet connected to registration or
+polling. `TokenFile.labels()` returns masked entries; `lookup(label)` privately
+returns a token, or `missing`/`unreadable`. `RestGitHubApi` implements `GitHubApi`
+with injectable fetch/base URL/timeout. Use `getRepository(owner, repo, token,
+etag?)` for registration and `getRepositoryById(id, registeredFullName, token,
+etag?)` for subsequent identity resolution. A mismatched numeric ID is refused
+as `not_found`; a changed canonical name sets `redirected`. Branch, commit, and
+login requests take the resolved owner/name. API results use `kind`, successful
+facts are in `data`, and rate limits carry an ISO `resetAt` (or `null` if absent).
+
+`Mirror(directory, { git?, remoteUrl? })` provides `ensure`, `fetch(url, branch,
+token)`, `readChain`, `readFile`, `isAncestor`, and `pin`. Build fetch URLs with
+`mirror.remoteUrl(owner, repo)` (GitHub HTTPS by default, injectable `file://`
+fixture URLs in tests). The caller serializes operations per mirror. Files are
+raw buffers, limited to 1 MiB; chains include complete first-parent change sets.
+Mirror read errors throw generic errors rather than returning partial history;
+fetch distinguishes `branch_missing` from `unreachable`, with detailed source
+status classification supplied by REST. Polling, status persistence, and flags
+belong to the orchestration layer.
 
 ### Embedded Postgres
 
@@ -110,8 +164,10 @@ a real Express app on an ephemeral port, and a controllable clock.
 - `pnpm --filter @moonbeam/server exec vitest run src/test/identity.test.ts`
   checks setup, user changes, request identity, and audit attribution.
 - `pnpm --filter @moonbeam/server exec vitest run --config vitest.unit.config.ts`
-  selects socket-free identity unit tests. Currently there are none; exit 0
-  with no tests is not evidence that the database/API suite passed.
+  selects socket-free identity and GitHub source unit tests. GitHub tests use
+  fake HTTP and temporary bare repositories over `file://`, never real GitHub or
+  the operator's token file. `src/test/git-fixture.ts` builds deterministic root,
+  merge, squash, fast-forward, and rewritten histories with isolated git config.
 - `pnpm --filter @moonbeam/ui test` checks setup, routing, placeholders, user
   management, browser selection, request recovery, and accessibility with axe.
   jsdom cannot check colour contrast, so those checks require a browser.
