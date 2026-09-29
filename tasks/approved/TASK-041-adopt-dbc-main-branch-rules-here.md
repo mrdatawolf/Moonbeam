@@ -4,8 +4,8 @@ Owner role: Documentation
 Assigned agent: librarian
 Proposed by: Jarvis (TASK-023)
 Proposed date: 2026-09-28
-Approved by:
-Approved date:
+Approved by: Patrick
+Approved date: 2026-09-28
 Related contracts: CONTRACT-006
 Related ADRs: ADR-008
 Dependencies: TASK-025, TASK-038, TASK-022

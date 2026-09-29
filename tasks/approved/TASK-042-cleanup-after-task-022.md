@@ -4,8 +4,8 @@ Owner role: Librarian
 Assigned agent: Claude (dispatcher), small edits
 Proposed by: Claude (planning session)
 Proposed date: 2026-09-28
-Approved by:
-Approved date:
+Approved by: Patrick
+Approved date: 2026-09-28
 Related contracts: CONTRACT-006
 Related ADRs: ADR-008
 Dependencies: TASK-022 (completed)
