@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 import type { ProjectView } from "@moonbeam/shared";
 import { useId, useState } from "react";
 import { useConnectionLost } from "../api/connection";
@@ -22,7 +23,7 @@ function Registration({ project }: { project: ProjectView }) {
   const currentLead = users.data?.find((u) => u.id === project.leadDeveloperUserId);
   const redirected = source.data?.source?.redirectedFullName;
   return <section aria-labelledby={`${id}-heading`} className="card space-y-3 p-4">
-    <h2 id={`${id}-heading`} className="text-lg font-semibold">{project.name}</h2>
+    <h2 id={`${id}-heading`} className="text-lg font-semibold"><Link className="text-primary underline" to={`/projects/${project.id}`}>{project.name}</Link></h2>
     <p className="text-sm">{project.githubOwner}/{project.githubRepo} · Branch: <span className="font-mono">{project.trackedBranch}</span></p>
     <p className="text-sm">{project.leadDeveloperUserId ? `Lead developer: ${currentLead?.displayName ?? "Loading member"}${currentLead && !currentLead.active ? " (inactive)" : ""}` : "No lead developer"}</p>
     {redirected ? <p role="status" className="rounded-control border border-tone-attention-border bg-tone-attention-bg p-3 text-tone-attention-fg">Now at {redirected}; update the registration.</p> : null}

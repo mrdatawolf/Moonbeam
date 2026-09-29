@@ -254,9 +254,34 @@ ui/src/components/  Layout, Dialog, common
 ui/src/pages/       Dashboard, Projects, Setup, Users, NotFound
 ```
 
-The app starts at the Dashboard placeholder. Projects is also a placeholder:
-"Projects are registered from GitHub; this view is being rebuilt". Navigation
-contains Dashboard, Projects, and Users. Unknown routes show NotFound.
+The app starts at the Dashboard placeholder. Projects lists GitHub registrations
+and links to each project overview. Navigation contains Dashboard, Projects,
+and Users. Unknown routes show NotFound.
+
+Project read screens (CONTRACT-006):
+
+- `/projects/:id`: source status, proposed/approved/recently completed and other
+  tasks, twelve weeks of activity, and all flag statuses with inline evidence.
+- `/projects/:id/tasks`: the full completed list.
+- `/projects/:id/tasks/:taskId`: parsed current and historical fields, parse
+  problems, complete event history, flags, and rendered current files.
+- `/projects/:id/documents`: goals and contract/ADR metadata.
+- `/projects/:id/documents/file?path=...`: a rendered document at the snapshot head.
+
+Every screen shows head and last successful poll time, labels stale data, and
+provides viewer-accessible refresh. Snapshot queries refresh every minute;
+manual refresh invalidates all project reads and file text. File responses from
+a different head are withheld with refresh guidance, so a poll race cannot mix
+new file text with old metadata. References resolve to UI routes; missing IDs
+remain unlinked. GitHub links open a separate tab with `noopener noreferrer`.
+
+Markdown uses `react-markdown` and `remark-gfm`, skips raw HTML, permits only
+HTTP(S)/mailto links, and replaces images with their alt text instead of loading
+remote embeds. Relative links resolve against the GitHub file URL. Repository
+content is read-only. Flag evidence is escaped text, with commit/file links;
+dismiss/reopen dialogs record required notes only in Moonbeam and require a
+selected active user. Refusals retain entered notes. UI tests mock every API
+request and include malicious Markdown fixtures and axe checks.
 
 While setup is needed, the app shows only the initial-users form. The selected
 user is stored in `localStorage` (`moonbeam.selectedUserId`) and sent with API

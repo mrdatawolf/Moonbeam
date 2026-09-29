@@ -11,6 +11,10 @@ import { ProjectsPage } from "./pages/Projects";
 import { SetupPage } from "./pages/Setup";
 import { UsersPage } from "./pages/Users";
 
+import { ProjectPage, CompletedTasksPage } from "./pages/Project";
+import { ProjectTaskPage } from "./pages/ProjectTask";
+import { ProjectDocumentsPage } from "./pages/ProjectDocuments";
+
 export function App() {
   const setup = useSetupStatus();
   if (setup.isPending) {
@@ -34,6 +38,11 @@ export function App() {
         <Route element={<Layout />}>
           <Route index element={<Dashboard />} />
           <Route path="projects" element={<ProjectsPage />} />
+          <Route path="projects/:id" element={<ProjectPage />} />
+          <Route path="projects/:id/tasks" element={<CompletedTasksPage />} />
+          <Route path="projects/:id/tasks/:taskId" element={<ProjectTaskPage />} />
+          <Route path="projects/:id/documents" element={<ProjectDocumentsPage />} />
+          <Route path="projects/:id/documents/file" element={<ProjectDocumentsPage file />} />
           <Route path="users" element={<UsersPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>

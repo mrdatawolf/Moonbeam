@@ -112,3 +112,21 @@ export function useIdentityChange() {
     onSettled: () => { void qc.invalidateQueries({ queryKey: keys.identities }); },
   });
 }
+
+// All project snapshot reads share an invalidation prefix after refresh or notes.
+import { projectViewResponseSchema, projectTasksResponseSchema, projectTaskResponseSchema, projectDocumentsResponseSchema, projectFileResponseSchema, flagDetailSchema, flagSchema } from "@moonbeam/shared";
+const projectKey = (id: string) => ["project-read", id] as const;
+export const useProjectView = (id: string) => useQuery({ queryKey: [...projectKey(id), "view"], queryFn: () => request("GET", `/projects/${id}/view`, projectViewResponseSchema), refetchInterval: 60_000 });
+export const useProjectTasks = (id: string) => useQuery({ queryKey: [...projectKey(id), "tasks"], queryFn: () => request("GET", `/projects/${id}/tasks`, projectTasksResponseSchema), refetchInterval: 60_000 });
+export const useProjectTask = (id: string, task: string) => useQuery({ queryKey: [...projectKey(id), "task", task], queryFn: () => request("GET", `/projects/${id}/tasks/${encodeURIComponent(task)}`, projectTaskResponseSchema), refetchInterval: 60_000 });
+export const useProjectDocuments = (id: string) => useQuery({ queryKey: [...projectKey(id), "documents"], queryFn: () => request("GET", `/projects/${id}/documents`, projectDocumentsResponseSchema), refetchInterval: 60_000 });
+export const useProjectFile = (id: string, path: string, head: string | null) => useQuery({ queryKey: [...projectKey(id), "file", path, head], queryFn: () => request("GET", `/projects/${id}/file?path=${encodeURIComponent(path)}`, projectFileResponseSchema) });
+export const useFlagDetail = (project: string, flag: string) => useQuery({ queryKey: [...projectKey(project), "flag", flag], queryFn: () => request("GET", `/flags/${flag}`, flagDetailSchema) });
+export function useProjectRefresh(id: string) {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: () => request("POST", `/projects/${id}/refresh`, sourceViewSchema, {}), onSettled: async () => { await qc.invalidateQueries({ queryKey: projectKey(id) }); await qc.invalidateQueries({ queryKey: ["registration-source", id] }); } });
+}
+export function useFlagNote(project: string, flag: string) {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: ({ action, note }: { action: "dismiss" | "reopen"; note: string }) => request("POST", `/flags/${flag}/${action}`, flagSchema, { note }), onSettled: async () => { await qc.invalidateQueries({ queryKey: projectKey(project) }); } });
+}
