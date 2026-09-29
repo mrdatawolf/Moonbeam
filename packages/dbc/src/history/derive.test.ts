@@ -291,3 +291,25 @@ describe("deriveSnapshot", () => {
     expect(reads).toEqual([`b:${path("approved")}`, `c:${path("approved")}`]);
   });
 });
+
+it("FL-2/N3: version 3 retains distinct raw headers at head and historical entries", async () => {
+  const original = text().replace("## Scope", "Approved by: Alice  \n  duplicate continuation\n\n## Scope");
+  const changed = original.replace("Alice", "Bob");
+  const snapshot = await derive([
+    { sha: "root", files: {} },
+    { sha: "approve", files: { [path("approved")]: original } },
+    { sha: "edit", files: { [path("approved")]: changed } },
+  ]);
+  expect(snapshot.version).toBe(3);
+  const entry = snapshot.tasks[0]!.entries[0]!.files[0]!.parsed!;
+  const head = snapshot.taskFiles[0]!.parsed!;
+  expect(entry.rawHeaderLines).toContain("Approved by: Alice  ");
+  expect(head.rawHeaderLines).toContain("Approved by: Bob  ");
+  expect(entry.header).toEqual(head.header);
+  expect(JSON.parse(JSON.stringify(snapshot))).toEqual(snapshot);
+  const other = await derive([
+    { sha: "root", files: {} }, { sha: "approve", files: { [path("approved")]: changed } },
+    { sha: "edit", files: { [path("approved")]: changed } },
+  ]);
+  expect(snapshot).not.toEqual(other);
+});

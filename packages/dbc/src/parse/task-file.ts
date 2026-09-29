@@ -23,6 +23,9 @@ export interface ParsedTaskFile {
   /** Null when the first non-blank line is not `# TASK-<digits>: <title>` (P3). */
   title: TaskTitle | null;
   header: HeaderBlock;
+  /** P4/FL-2: original header lines, including duplicates, blanks and whitespace.
+   * Line terminators are normalized by splitLines; the title is not part of P4. */
+  rawHeaderLines: string[];
   /** The `Format` value as written, or null when there is no `Format:` field (P9). */
   format: string | null;
   isV1: boolean;
@@ -55,7 +58,7 @@ export function parseTaskFile(text: string): ParsedTaskFile {
   const format = formatField ? formatField.value : null;
   const isV1 = format !== null && format.trim().toLowerCase() === DBC_TASK_V1.toLowerCase();
 
-  return { title, header, format, isV1, paths: parsePathsSection(lines) };
+  return { title, header, rawHeaderLines: lines.slice(headerStart, headerEnd), format, isV1, paths: parsePathsSection(lines) };
 }
 
 /** P7: the first `### Paths` heading up to the next heading of level 1 to 3. */

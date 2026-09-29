@@ -3,7 +3,7 @@ import type {
   AdrHeader, ArtifactPath, ContractHeader, FileRead, ParsedTaskFile, TaskPath, TaskState, Unknown,
 } from "../parse/index.js";
 
-export const SNAPSHOT_VERSION = 2;
+export const SNAPSHOT_VERSION = 3;
 
 export interface ChainCommit {
   sha: string;
@@ -18,7 +18,7 @@ export interface ChainCommit {
 }
 
 export type FileReader = (sha: string, path: string) => Promise<FileRead>;
-/** Text is read on demand by the view, never retained in the snapshot. */
+/** Full text is read on demand; parsed task records retain raw header lines for FL-2. */
 export type FileReadStatus = { kind: FileRead["kind"] };
 
 export interface CommitFacts {

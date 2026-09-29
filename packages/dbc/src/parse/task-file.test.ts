@@ -206,3 +206,15 @@ describe("P5 value formats", () => {
     expect(parseIdList("TASK-021, TASK-21", "TASK")).toEqual({ kind: "ids", ids: ["TASK-021", "TASK-21"] });
   });
 });
+
+it("FL-2/P4: raw header lines preserve duplicates and layout with LF or CRLF", () => {
+  const header = ["", "Format: DbC task v1", "  Proposed by: First  ", "Proposed by: Second",
+    "  continued duplicate", "", "Unknown field: kept", ""];
+  for (const newline of ["\n", "\r\n"]) {
+    const parsed = parseTaskFile(["# TASK-001: Title", ...header, "## Body", "not header"].join(newline));
+    expect(parsed.rawHeaderLines).toEqual(header);
+    expect(taskField(parsed, "Proposed by")?.value).toBe("First");
+  }
+  expect(parseTaskFile("Format: DbC task v1\nProposed by: Second").rawHeaderLines)
+    .toEqual(["Format: DbC task v1", "Proposed by: Second"]);
+});

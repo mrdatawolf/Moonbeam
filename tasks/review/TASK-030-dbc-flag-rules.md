@@ -97,49 +97,113 @@ None. The TASK-029 rework (event paths, snapshot version 2) is in review.
 
 ## Implementation handoff
 
-Stopped before implementation: FL-2 requires evidence that the version-2
-snapshot does not retain. The FL-9 event-path blocker from the earlier run is
-fixed, but this separate gap requires changes outside the authorized paths.
+Implemented TASK-030 in the shared checkout on main. Ready for independent
+review; not marked accepted. The task remains in-progress for the dispatcher.
 
-- Files changed: only `tasks/in-progress/TASK-030-dbc-flag-rules.md`, this
-  Implementation handoff section. `packages/dbc/src/flags/index.ts` remains
-  the stub. No public API or flag implementation was added.
-- Blocker: CONTRACT-006 FL-2 requires "the header block as found" in evidence.
-  `ParsedTaskFile.header` retains normalized fields, duplicate field names,
-  and unattached lines, but loses duplicate values, original whitespace,
-  blank lines, and continuation layout. `ProjectSnapshot` retains neither
-  the raw header nor task text. A pure evaluator cannot reconstruct it.
-- Reproduction: executed a Node fixture against the freshly built DBC
-  exports using `buildChainFixture` and `deriveSnapshot`. Both fixtures have
-  root → head and `tasks/proposed/TASK-001-example.md`, a valid v1 header
-  except for duplicated `Proposed by`. The first occurrence is `Patrick`;
-  the second is `Alice` in one fixture and `Bob` in the other. Result:
-  `snapshotVersion: 2`, `identicalSnapshots: true`. `v1Problems` returns
-  exactly `{ kind: "duplicate_field", field: "Proposed by" }` in both.
-  The headers required as evidence differ, but the evaluator inputs do not.
-- Required dependency repair: retain the original header block in the parsed
-  task record and expose it through the snapshot, including duplicate lines.
-  This requires changes under `packages/dbc/src/parse/` and/or
-  `packages/dbc/src/history/`, which this assignment prohibits. No such
-  changes were made. A file-reader input would also change the assigned
-  pure snapshot-based API and was not introduced.
-- Validation of existing code (all exit 0; not evidence of implemented flags):
-  - `pnpm --filter @moonbeam/dbc typecheck`: passed.
-  - `pnpm --filter @moonbeam/dbc test`: 133 tests passed in 12 files.
-  - `pnpm typecheck`: passed across all five workspace packages.
-  - `pnpm test`: 176 tests passed in 21 files: dbc 133, db 6, shared 4,
-    server 12, UI 21.
-  - `pnpm build`: passed across all five workspace packages.
-  - Commands used `/home/patrick/.nvm/versions/node/v24.16.0/bin` on PATH.
-- Acceptance criteria: FL-2's required evidence cannot be produced from the
-  supplied snapshot. FL-1–FL-11, Baseline, N3, and UX4 remain unimplemented
-  and unverified for TASK-030; no acceptance criterion is claimed complete.
-- Deviations and assumptions: stopped under the explicit instruction to stop
-  when an out-of-scope change is necessary. "Header block as found" means
-  preserving the original header, not substituting normalized fields that
-  omit the offending duplicate value. Persistence remains TASK-035 and
-  rewrite detection TASK-034. No git write commands were run; no server or
-  process was left running. The task remains in-progress for the dispatcher.
+### Flags work
+
+Files changed:
+- `packages/dbc/src/flags/index.ts`
+- `packages/dbc/src/flags/types.ts`
+- `packages/dbc/src/flags/evaluate.ts`
+- `packages/dbc/src/flags/evaluate.test.ts`
+
+Public API: `evaluateFlags(snapshot, registration, matcher, now)` returns typed
+flags, canonical project-local subject keys, baseline-reset information,
+evaluated commit SHAs, and scope/incomplete-check annotations.
+`rewriteFlag(previousHead, newHead, detectedAt, comparison)` builds FL-10.
+Exports include `EvaluatedFlag`, `FlagFor`, `FlagRule`, `FlagRegistration`,
+`FlagEvaluation`, `FlagHistoryEvent`, and `UnreadableReason`.
+Times are explicit ISO strings; lead developer is
+`{ userId, displayName } | null`. Event flags expose `subjectCommitSha` for
+FG5; FL-8 exposes `autoResolves: true` for FG3. Evidence includes resolved
+commit facts rather than only snapshot-local indexes.
+
+### Parse and history evidence changes
+
+Files changed:
+- `packages/dbc/src/parse/task-file.ts`
+- `packages/dbc/src/parse/task-file.test.ts`
+- `packages/dbc/src/history/types.ts`
+- `packages/dbc/src/history/derive.test.ts`
+
+Audited FL-1–FL-11 evidence and FG3/FG5 needs before implementation. The sole
+remaining retention gap was FL-2's header block. Added
+`ParsedTaskFile.rawHeaderLines`, retained automatically in snapshot head and
+historical task records, and bumped `SNAPSHOT_VERSION` from 2 to 3.
+Duplicate values, continuation layout, whitespace, and blank lines survive;
+LF/CRLF terminators are normalized. Existing normalized field behavior is
+unchanged. Regression tests distinguish Alice/Bob duplicate-header evidence
+and verify historical versus head headers.
+
+### Validation performed
+
+Commands used `/home/patrick/.nvm/versions/node/v24.16.0/bin` on PATH.
+Final results, all exit 0:
+- `pnpm --filter @moonbeam/dbc typecheck`: passed.
+- `pnpm --filter @moonbeam/dbc test`: 182 tests passed in 13 files.
+- `pnpm typecheck`: passed across all five workspace packages.
+- `pnpm test`: 225 tests passed in 22 files: dbc 182, db 6, shared 4,
+  server 12, UI 21.
+- `pnpm build`: passed across all five workspace packages.
+- `git diff --check`: passed.
+
+All 133 existing dbc tests remain passing; 49 tests were added.
+
+### Acceptance criteria evidence
+
+- FL-1: detects completion without strictly earlier approval; an older
+  approval followed by a merge is a tested near miss.
+- FL-2: v1-only problems, canonical problem-set subjects, and raw header
+  evidence; valid v1 and pre-v1 near misses tested.
+- FL-3: evaluates non-exempt W(C); proposals, approvals, header-only contract
+  edits, and exempt work are tested near misses.
+- FL-4: checks the union of completing tasks' patterns; missing/unreadable
+  Paths annotate scope as uncheckable. Best-effort pre-v1 paths, directory
+  patterns with/without trailing slash, and `**` are tested.
+- FL-5: approved-only state, strictly exceeded threshold, most recent entry,
+  lead developer, and per-file Assigned agent are tested.
+- FL-6: canonical duplicate path sets retain each path's latest addition
+  commit; a single file is a tested near miss.
+- FL-7: all P2 stray reasons, P10 failures, absent reads, and not-v1 files
+  preserve reason-specific evidence; ignored paths and valid files are tested.
+- FL-8: author and approval-name failures are distinguished; acceptance
+  checks author alone. Historical names, ambiguity, pre-v1 names, and
+  resolution after identity remapping are tested.
+- FL-9: removal after approval/completion retains last paths and history,
+  including rename/reappearance cases; withdrawn proposals are near misses.
+- FL-10: helper retains both heads, detection time, dropped count, and changed
+  tasks. Rewrite/fast-forward detection remains TASK-034, as assigned.
+- FL-11: each work-state entry raises a flag; edits and departures do not.
+- Baseline: events exclude baseline/older commits; all condition rules ignore
+  baseline. F6 fallback includes nonmonotonic timestamps and no eligible commit.
+- N3/N4: deterministic, JSON-safe evaluation without clock reads or input
+  mutation; malformed files and empty snapshots remain evaluable.
+- UX4: messages are observational and contain neither prohibited term.
+  F9 annotations accompany best-effort FL-3/FL-4 evaluation.
+
+### Assumptions, deviations, and unresolved risks
+
+No scope deviations or unresolved implementation blockers. Exempt paths use P7
+semantics. Empty Paths sections are present but declare no matching patterns;
+absent or unreadable Paths make scope uncheckable. Duplicate task records
+retain evidence per file. FL-10's subject commit is its new head.
+
+Version-2 snapshots require rebuilding before use with this evaluator.
+Persistence, dismissals, stale-flag re-raising, and withdrawal/attachment of
+withdrawn records to FL-10 remain TASK-035; rewrite detection remains TASK-034.
+
+The only documentation edit is this Implementation handoff section in
+`tasks/in-progress/TASK-030-dbc-flag-rules.md`. No git write commands were run,
+no unrelated files were changed, and no server or process was left running.
+
+**Dispatcher check:**
+
+- Outside `flags/`, the changes are `parse/task-file.ts` (plus its test),
+  which adds `rawHeaderLines`, and `history/types.ts` (plus the derive test),
+  which bumps `SNAPSHOT_VERSION` to 3. Both are within the board's widened
+  scope.
+- Re-ran dbc tests (182 passed) and workspace typecheck.
 
 ## Review
 
