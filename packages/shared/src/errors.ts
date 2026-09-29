@@ -7,6 +7,7 @@ export const failureCategorySchema = z.enum([
   "invalid_transition",
   "conflict",
   "validation",
+  "github_unavailable",
 ]);
 export type FailureCategory = z.infer<typeof failureCategorySchema>;
 
@@ -17,6 +18,7 @@ export const failureHttpStatus: Record<FailureCategory, number> = {
   invalid_transition: 409,
   conflict: 409,
   validation: 422,
+  github_unavailable: 503,
 };
 
 /** Body of every rejected API request. */

@@ -13,7 +13,7 @@ import type { Actor, AnyActor } from "./identity/actor.js";
 // Registry changes are serialised by a transaction-scoped advisory lock, so
 // checks such as "last active user" and "names unique among active users"
 // hold under concurrency.
-const REGISTRY_LOCK = 0x6d6f6f6e; // "moon"
+export const REGISTRY_LOCK = 0x6d6f6f6e; // "moon"
 
 type UserRow = typeof schema.users.$inferSelect;
 

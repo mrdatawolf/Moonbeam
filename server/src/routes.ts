@@ -1,11 +1,18 @@
 // All request identity is resolved through the CONTRACT-002 actor seam.
 import { Router, type Request } from "express";
-import { setupStatusSchema, userListResponseSchema, userSchema, whoAmIResponseSchema } from "@moonbeam/shared";
+import { githubTokensResponseSchema, projectListResponseSchema, setupStatusSchema, userListResponseSchema, userSchema, whoAmIResponseSchema } from "@moonbeam/shared";
 import type { Database } from "@moonbeam/db";
 import { actorView, requireActor, resolveActor } from "./identity/actor.js";
 import type { RegistryService } from "./registry.js";
 
+import type { ProjectsService } from "./projects/service.js";
+import type { IdentitiesService } from "./identities/service.js";
+import type { TokenFile } from "./github/tokens.js";
+
 export interface Services {
+  projects: ProjectsService;
+  identities: IdentitiesService;
+  tokens: TokenFile;
   db: Database;
   clock: () => Date;
   registry: RegistryService;
@@ -15,7 +22,7 @@ const param = (req: Request, name: string): string => String(req.params[name] ??
 const userView = (u: { id: string; displayName: string; email: string; active: boolean; createdAt: Date; updatedAt: Date }) =>
   userSchema.parse({ ...u, createdAt: u.createdAt.toISOString(), updatedAt: u.updatedAt.toISOString() });
 
-export function apiRoutes({ db, registry }: Services): Router {
+export function apiRoutes({ db, registry, projects, identities, tokens }: Services): Router {
   const router = Router();
   const resolve = (req: Request) => resolveActor(db, req.headers);
 
@@ -55,6 +62,44 @@ export function apiRoutes({ db, registry }: Services): Router {
 
   router.post("/users/:id/reactivate", async (req, res) => {
     res.json(userView(await registry.setActive(requireActor(await resolve(req)), param(req, "id"), true)));
+  });
+
+  router.get("/github/tokens", async (req, res) => {
+    await resolve(req);
+    const result = await tokens.labels();
+    res.json(githubTokensResponseSchema.parse({ state: result.kind, tokens: result.kind === "ok" ? result.labels : [] }));
+  });
+  router.get("/projects", async (req, res) => {
+    await resolve(req);
+    res.json(projectListResponseSchema.parse({ projects: await projects.list() }));
+  });
+  router.post("/projects", async (req, res) => {
+    res.status(201).json(await projects.register(requireActor(await resolve(req)), req.body));
+  });
+  router.get("/projects/:id", async (req, res) => {
+    await resolve(req);
+    res.json(await projects.get(param(req, "id")));
+  });
+  router.patch("/projects/:id", async (req, res) => {
+    res.json(await projects.update(requireActor(await resolve(req)), param(req, "id"), req.body));
+  });
+  router.delete("/projects/:id", async (req, res) => {
+    await projects.remove(requireActor(await resolve(req)), param(req, "id"));
+    res.status(204).end();
+  });
+  router.put("/projects/:id/lead-developer", async (req, res) => {
+    res.json(await projects.setLeadDeveloper(requireActor(await resolve(req)), param(req, "id"), req.body));
+  });
+  router.get("/identities", async (req, res) => {
+    await resolve(req);
+    res.json(await identities.list());
+  });
+  router.post("/users/:id/identities", async (req, res) => {
+    res.status(201).json(await identities.add(requireActor(await resolve(req)), param(req, "id"), req.body));
+  });
+  router.delete("/identities/:id", async (req, res) => {
+    await identities.remove(requireActor(await resolve(req)), param(req, "id"));
+    res.status(204).end();
   });
 
   return router;

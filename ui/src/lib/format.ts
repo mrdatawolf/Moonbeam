@@ -8,6 +8,7 @@ export const CATEGORY_LABEL: Record<ErrorCategory, string> = {
   invalid_transition: "Not allowed in this state",
   conflict: "Changed by someone else",
   validation: "Missing or invalid input",
+  github_unavailable: "GitHub unavailable",
   connection: "Connection lost",
   unexpected: "Unexpected response",
 } satisfies Record<FailureCategory | "connection" | "unexpected", string>;

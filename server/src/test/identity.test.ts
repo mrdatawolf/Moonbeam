@@ -140,7 +140,7 @@ describe("registry audit", () => {
 describe("remaining API surface", () => {
   it("returns 404 for removed and unknown routes with registry services installed", async () => {
     w = await world();
-    for (const path of ["/projects", "/tasks", "/audit/recent", "/settings", "/unknown", "/users/unknown/extra"]) {
+    for (const path of ["/tasks", "/audit/recent", "/settings", "/unknown", "/users/unknown/extra"]) {
       for (const method of ["GET", "POST", "PATCH", "DELETE"]) {
         expect((await w.h.req(method, path, { as: w.A })).status).toBe(404);
       }

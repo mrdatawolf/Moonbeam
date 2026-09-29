@@ -2,6 +2,11 @@ import { createDatabaseClient, pingDatabase, runMigrations, startDatabase } from
 import { createApp } from "./app.js";
 import { RegistryService } from "./registry.js";
 
+import { ProjectsService } from "./projects/service.js";
+import { IdentitiesService } from "./identities/service.js";
+import { RestGitHubApi } from "./github/api.js";
+import { TokenFile } from "./github/tokens.js";
+
 const host = process.env.MOONBEAM_SERVER_HOST ?? "127.0.0.1";
 const port = Number(process.env.MOONBEAM_SERVER_PORT ?? 3100);
 
@@ -13,9 +18,13 @@ const client = createDatabaseClient(connection.connectionString);
 const clock = () => new Date();
 const registry = new RegistryService({ db: client.db, clock });
 
+const tokens = new TokenFile();
+const projects = new ProjectsService({ db: client.db, clock, tokens, github: new RestGitHubApi() });
+const identities = new IdentitiesService({ db: client.db, clock });
+
 const app = createApp({
   checkDatabase: () => pingDatabase(client.db),
-  services: { db: client.db, clock, registry },
+  services: { db: client.db, clock, registry, projects, identities, tokens },
 });
 const server = app.listen(port, host, () => {
   console.log(`[moonbeam] server listening on http://${host}:${port}`);

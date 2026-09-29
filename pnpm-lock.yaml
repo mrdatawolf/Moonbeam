@@ -73,6 +73,9 @@ importers:
       '@moonbeam/db':
         specifier: workspace:*
         version: link:../packages/db
+      '@moonbeam/dbc':
+        specifier: workspace:*
+        version: link:../packages/dbc
       '@moonbeam/shared':
         specifier: workspace:*
         version: link:../packages/shared

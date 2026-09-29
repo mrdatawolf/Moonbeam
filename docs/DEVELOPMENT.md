@@ -215,8 +215,21 @@ are retained unchanged, and the append-only trigger rejects updates and deletes.
 | `PATCH /api/users/:id` | edit name and/or e-mail |
 | `POST /api/users/:id/deactivate` | deactivate a user |
 | `POST /api/users/:id/reactivate` | reactivate a user |
+| `GET /api/github/tokens` | configured token labels with masked tokens, and the file state (`ok`, `missing`, `unreadable`); never the tokens |
+| `GET /api/projects` | registered projects (removed ones are hidden) |
+| `GET /api/projects/:id` | one project; `not_found` once removed |
+| `POST /api/projects` | register a GitHub repository (CONTRACT-006 S1); records its numeric ID, and defaults the baseline to the branch head, the token label to the owner, the branch to `main`, and the threshold to 14 days; 201 |
+| `PATCH /api/projects/:id` | change name, owner or repo (must resolve to the recorded ID, F4), tracked branch, token label, baseline, exempt paths, or threshold |
+| `DELETE /api/projects/:id` | remove a project (soft: its snapshot, flags, and audit are kept, and the repository can be registered again); 204 |
+| `PUT /api/projects/:id/lead-developer` | set or clear the lead developer (`{ "userId": uuid \| null }`; active users only) |
+| `GET /api/identities` | every member's e-mails, logins, and aliases, including the automatic registry e-mail, and identity conflicts (I4) |
+| `POST /api/users/:id/identities` | add an e-mail, login, or alias (`{ "kind", "value" }`); 201 |
+| `DELETE /api/identities/:id` | remove a stored identity; 204 |
 
-All other API paths return 404. There is no audit read endpoint at present.
+Reads need no selected user. Every change needs a selected active user and
+writes an audit record. Project IDs from GitHub are returned as decimal
+strings. All other API paths return 404. There is no audit read endpoint at
+present.
 
 ### Failures
 
@@ -229,7 +242,8 @@ Rejected actions change nothing and return
 | `not_found` | 404 | the user does not exist |
 | `invalid_transition` | 409 | setup already finished, or user already has the requested active status |
 | `conflict` | 409 | conflicting change |
-| `validation` | 422 | invalid input, duplicate active name, or last-active-user restriction |
+| `validation` | 422 | invalid input, duplicate active name, last-active-user restriction, duplicate active repository, unknown token label, or a repository, branch, or baseline GitHub can't find |
+| `github_unavailable` | 503 | GitHub unreachable or rate-limited while registering or changing a project |
 
 ## UI shell
 

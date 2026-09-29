@@ -9,6 +9,24 @@ import type { User } from "@moonbeam/shared";
 import { createApp } from "../app.js";
 import { RegistryService } from "../registry.js";
 
+import { mkdtemp, writeFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { ProjectsService } from "../projects/service.js";
+import { IdentitiesService } from "../identities/service.js";
+import { TokenFile } from "../github/tokens.js";
+import type { GitHubApi } from "../github/api.js";
+
+/** Unexpected GitHub requests fail locally; the harness can never reach GitHub. */
+const noGitHub: GitHubApi = {
+  getRepository: async () => ({ kind: "unreachable" }),
+  getRepositoryById: async () => ({ kind: "unreachable" }),
+  getBranchHead: async () => ({ kind: "unreachable" }),
+  getCommit: async () => ({ kind: "unreachable" }),
+  listCommitLogins: async () => ({ kind: "unreachable" }),
+};
+export interface HarnessOptions { github?: GitHubApi; tokens?: Record<string, string> }
+
 export const TEMPLATE_DB = "moonbeam_template";
 
 /** Real time plus an offset the test can advance. */
@@ -29,13 +47,15 @@ export interface Res<T = any> {
 
 export interface Harness {
   base: string;
+  home: string;
+  tokensFile: string;
   db: Database;
   clock: TestClock;
   req<T = any>(method: string, path: string, opts?: { as?: As; body?: unknown }): Promise<Res<T>>;
   close(): Promise<void>;
 }
 
-export async function createHarness(): Promise<Harness> {
+export async function createHarness(options: HarnessOptions = {}): Promise<Harness> {
   const dbName = `t_${randomUUID().replaceAll("-", "")}`;
   const admin = postgres(inject("pgAdminUrl"), { max: 1, onnotice: () => {} });
   await admin.unsafe(`create database ${dbName} template ${TEMPLATE_DB}`);
@@ -44,7 +64,12 @@ export async function createHarness(): Promise<Harness> {
 
   const clock = new TestClock();
   const registry = new RegistryService({ db: client.db, clock: clock.now });
-  const app = createApp({ checkDatabase: async () => {}, services: { db: client.db, clock: clock.now, registry } });
+  const home = await mkdtemp(join(tmpdir(), "moonbeam-api-"));
+  const tokens = new TokenFile({ env: { MOONBEAM_HOME: home, MOONBEAM_GITHUB_TOKENS_FILE: join(home, "github-tokens.json") } });
+  await writeFile(tokens.path, JSON.stringify({ tokens: options.tokens ?? {} }), { mode: 0o600 });
+  const projects = new ProjectsService({ db: client.db, clock: clock.now, github: options.github ?? noGitHub, tokens });
+  const identities = new IdentitiesService({ db: client.db, clock: clock.now });
+  const app = createApp({ checkDatabase: async () => {}, services: { db: client.db, clock: clock.now, registry, projects, identities, tokens } });
   const server = await new Promise<Server>((resolve) => {
     const s = app.listen(0, "127.0.0.1", () => resolve(s));
   });
@@ -52,6 +77,8 @@ export async function createHarness(): Promise<Harness> {
 
   return {
     base,
+    home,
+    tokensFile: tokens.path,
     db: client.db,
     clock,
     async req(method, path, { as, body } = {}) {
@@ -73,6 +100,7 @@ export async function createHarness(): Promise<Harness> {
       const a = postgres(inject("pgAdminUrl"), { max: 1, onnotice: () => {} });
       await a.unsafe(`drop database if exists ${dbName} with (force)`);
       await a.end();
+      await rm(home, { recursive: true, force: true });
     },
   };
 }
@@ -85,8 +113,8 @@ export interface World {
   B: As;
 }
 
-export async function world(): Promise<World> {
-  const h = await createHarness();
+export async function world(options: HarnessOptions = {}): Promise<World> {
+  const h = await createHarness(options);
   const setup = await h.req("POST", "/setup", {
     body: {
       users: [

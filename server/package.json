@@ -15,7 +15,8 @@
     "@moonbeam/shared": "workspace:*",
     "drizzle-orm": "^0.45.3",
     "express": "^5.2.1",
-    "zod": "^4.6.5"
+    "zod": "^4.6.5",
+    "@moonbeam/dbc": "workspace:*"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
