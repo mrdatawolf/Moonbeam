@@ -69,11 +69,6 @@ export function Layout() {
                   </NavLink>
                 </li>
                 <li>
-                  <NavLink to="/decisions" className={navClass}>
-                    Decision queue
-                  </NavLink>
-                </li>
-                <li>
                   <NavLink to="/projects" className={navClass}>
                     Projects
                   </NavLink>

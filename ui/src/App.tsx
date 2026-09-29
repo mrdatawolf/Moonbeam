@@ -6,13 +6,9 @@ import { LoadError, Skeleton } from "./components/common";
 import { Layout } from "./components/Layout";
 import { CurrentUserProvider } from "./lib/currentUser";
 import { Dashboard } from "./pages/Dashboard";
-import { DecisionQueuePage } from "./pages/DecisionQueue";
 import { NotFoundPage } from "./pages/NotFound";
-import { ProjectPage } from "./pages/Project";
 import { ProjectsPage } from "./pages/Projects";
-import { ProposeTaskPage } from "./pages/ProposeTask";
 import { SetupPage } from "./pages/Setup";
-import { TaskPage } from "./pages/Task";
 import { UsersPage } from "./pages/Users";
 
 export function App() {
@@ -37,11 +33,7 @@ export function App() {
       <Routes>
         <Route element={<Layout />}>
           <Route index element={<Dashboard />} />
-          <Route path="decisions" element={<DecisionQueuePage />} />
           <Route path="projects" element={<ProjectsPage />} />
-          <Route path="projects/:projectId" element={<ProjectPage />} />
-          <Route path="projects/:projectId/tasks/new" element={<ProposeTaskPage />} />
-          <Route path="tasks/:taskId" element={<TaskPage />} />
           <Route path="users" element={<UsersPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>

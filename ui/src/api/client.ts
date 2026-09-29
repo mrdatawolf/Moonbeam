@@ -1,4 +1,4 @@
-// HTTP client for the Moonbeam API (docs/DEVELOPMENT.md "Lifecycle API").
+// HTTP client for the Moonbeam API (docs/DEVELOPMENT.md "Endpoints").
 // Every request carries the user selected in this browser as
 // `X-Moonbeam-User` (CONTRACT-002 "Human user selection"); reads work without
 // one. Responses are validated with the shared zod schemas; rejections become

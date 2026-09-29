@@ -16,4 +16,3 @@ export {
 } from "./client.js";
 export { startDatabase, type DatabaseConnection } from "./database.js";
 export * as schema from "./schema/index.js";
-export type { HandoffRecordContent, InclusionRecord, ReviewFinding, ScopeEnvelopeRecord } from "./schema/index.js";

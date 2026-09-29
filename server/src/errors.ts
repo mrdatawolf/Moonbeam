@@ -13,31 +13,11 @@ export class ActionError extends Error {
   }
 }
 
-/**
- * An agent attempted a human-only action. The attempt is recorded in the audit
- * trail after the action's transaction has rolled back (CONTRACT-005 "Audit
- * record": rejected authority violations are recorded).
- */
-export class AuthorityViolation extends ActionError {
-  constructor(
-    readonly action: string,
-    message: string,
-    readonly target: { projectId?: string | null; taskId?: string | null; subjectUserId?: string | null; requested?: Record<string, unknown> },
-  ) {
-    super("authority_violation", message);
-    this.name = "AuthorityViolation";
-  }
-}
-
 export const reject = (category: FailureCategory, message: string, details?: unknown): never => {
   throw new ActionError(category, message, details);
 };
 
-/**
- * Stands in for a request body that was not valid JSON. The failure is
- * reported by `parseInput`, i.e. in the lifecycle step, so identity and
- * permission are still checked first (CONTRACT-002 order).
- */
+/** Invalid JSON is reported after request identity has been resolved. */
 export const INVALID_JSON = Symbol("invalid JSON body");
 
 /** Parse action input; any failure is `validation`, listing each failing rule. */

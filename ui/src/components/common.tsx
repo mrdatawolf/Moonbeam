@@ -1,4 +1,4 @@
-// Small shared pieces: timestamps, task references, empty and loading states,
+// Small shared pieces: timestamps, empty and loading states,
 // refusal messages, and form fields. One component per job (Paperclip
 // DESIGN.md principle 1).
 import { useId, type ReactNode, type Ref } from "react";
@@ -14,15 +14,6 @@ export function Time({ iso }: { iso: string }) {
       <span aria-hidden>{relativeTime(iso)}</span>
       <span className="sr-only">{abs}</span>
     </time>
-  );
-}
-
-export function TaskRef({ id, number, title }: { id: string; number: number; title?: string }) {
-  return (
-    <Link to={`/tasks/${id}`} className="underline-offset-2 hover:underline">
-      <span className="font-mono text-muted-foreground">#{number}</span>
-      {title ? <span className="ml-1.5">{title}</span> : null}
-    </Link>
   );
 }
 
@@ -73,22 +64,6 @@ function detailLines(details: unknown): string[] {
   const d = details as Record<string, unknown>;
   const out: string[] = [];
   if (Array.isArray(d.issues)) out.push(...d.issues.map(String));
-  if (Array.isArray(d.unfinishedDependencies)) {
-    for (const dep of d.unfinishedDependencies as Record<string, unknown>[]) {
-      out.push(`Waiting for #${String(dep.number ?? "?")} ${String(dep.title ?? "")} (${String(dep.kind ?? "dependency")})`.trim());
-    }
-  }
-  if (d.claimant && typeof d.claimant === "object") {
-    const c = d.claimant as Record<string, unknown>;
-    out.push(`Current claimant: ${String(c.displayName ?? c.model ?? c.kind ?? "unknown")}`);
-  }
-  if (Array.isArray(d.startedTasks)) {
-    for (const t of d.startedTasks as Record<string, unknown>[]) {
-      out.push(`#${String(t.number)} would wait on ${(t.gained as number[] | undefined)?.map((n) => `#${n}`).join(", ") ?? "an unfinished task"}`);
-    }
-  }
-  if (Array.isArray(d.conflictingFiles)) out.push(`Conflicting files: ${d.conflictingFiles.join(", ")}`);
-  if (Array.isArray(d.outOfScopeFiles)) out.push(`Files outside the declared paths: ${d.outOfScopeFiles.join(", ")}`);
   return out;
 }
 
@@ -192,13 +167,6 @@ export function Field({ label, hint, required, value, onChange, multiline, rows 
     </div>
   );
 }
-
-/** Split a textarea into one entry per non-empty line. */
-export const lines = (s: string) =>
-  s
-    .split("\n")
-    .map((l) => l.trim())
-    .filter(Boolean);
 
 export function SectionHeading({ id, children, count }: { id: string; children: ReactNode; count?: number }) {
   return (

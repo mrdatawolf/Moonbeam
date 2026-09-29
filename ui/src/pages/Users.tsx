@@ -14,10 +14,12 @@ import { useConnectionLost } from "../api/connection";
 import { useAllUsers, useUserChange } from "../api/queries";
 import { EmptyState, Field, LoadError, Mono, Refusal, SectionHeading, Skeleton, Time } from "../components/common";
 import { Dialog } from "../components/Dialog";
-import { CHOOSE_USER, CONNECTION_LOST } from "../lib/actionPresentation";
 import { focusUserPicker, useCurrentUser } from "../lib/currentUser";
 
 /** Anchor of the add form; the header's "Add a user" link points here. */
+const CHOOSE_USER = "Choose who you are to take this action";
+const CONNECTION_LOST = "Connection lost. Retrying.";
+
 export const ADD_USER_ANCHOR = "add-user";
 
 export const LAST_ACTIVE_USER = "The last active user can't be deactivated. Add or reactivate someone else first.";
@@ -296,7 +298,6 @@ function SetActiveDialog({ open, kind, target, onClose, onDone }: { open: boolea
           <ul className="list-disc space-y-1 pl-5">
             <li>{target.displayName} will no longer appear in "Acting as" and can't take actions.</li>
             <li>Past records keep showing their name, marked inactive.</li>
-            <li>Any task they have claimed stays claimed by them. Any board member can break that claim.</li>
             <li>Users are never deleted. You can reactivate {target.displayName} later.</li>
           </ul>
           {self ? (

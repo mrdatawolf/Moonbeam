@@ -6,7 +6,7 @@ import { apiRoutes, type Services } from "./routes.js";
 export interface AppDependencies {
   /** Resolves when the database answers; rejects otherwise. */
   checkDatabase(): Promise<void>;
-  /** Lifecycle and identity services; without them only `/api/health` is served. */
+  /** User registry services; without them only `/api/health` is served. */
   services?: Services;
 }
 

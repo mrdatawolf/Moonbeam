@@ -23,10 +23,6 @@ function actorColumns(actor: AnyActor) {
   switch (actor.kind) {
     case "human":
       return { actorKind: "human" as const, actorUserId: actor.userId, identityMode: actor.identityMode };
-    case "agent":
-      return { actorKind: "agent" as const, actorRunId: actor.runId, actorRole: actor.role, actorModel: actor.model };
-    case "system":
-      return { actorKind: "system" as const, systemTrigger: actor.trigger };
     case "setup":
       return { actorKind: "setup" as const, systemTrigger: "first_run_setup" };
   }

@@ -4,5 +4,5 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   resolve: { conditions: ["source"] },
   ssr: { resolve: { conditions: ["source"] } },
-  test: { include: ["src/discovery.test.ts", "src/lifecycle/*.test.ts", "src/identity/*.test.ts"] },
+  test: { include: ["src/identity/*.test.ts"], passWithNoTests: true },
 });
