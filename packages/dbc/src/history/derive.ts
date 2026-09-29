@@ -76,10 +76,10 @@ export async function deriveSnapshot(chain: readonly ChainCommit[], readFile: Fi
       const after = current.get(id);
       for (const state of TASK_STATES) {
         if (before?.has(state) && !after?.has(state)) {
-          history.events.push({ kind: "leaves", state, commitIndex });
+          history.events.push({ kind: "leaves", state, commitIndex, paths: [...before.get(state)!] });
         }
         if (!before?.has(state) && after?.has(state)) {
-          history.events.push({ kind: "enters", state, commitIndex });
+          history.events.push({ kind: "enters", state, commitIndex, paths: [...after.get(state)!] });
           if (state === "proposed") history.firstProposed ??= commitIndex;
           if (state === "approved") {
             history.firstApproved ??= commitIndex;
@@ -96,7 +96,9 @@ export async function deriveSnapshot(chain: readonly ChainCommit[], readFile: Fi
           }
         }
       }
-      if (before && !after) history.events.push({ kind: "removed", commitIndex });
+      if (before && !after) {
+        history.events.push({ kind: "removed", commitIndex, paths: [...before.values()].flat().sort() });
+      }
     }
     const work = await Promise.all(commit.changes.map(async (change) => {
       if (change.path.startsWith("tasks/")) return null;

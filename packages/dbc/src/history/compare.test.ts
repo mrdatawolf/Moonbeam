@@ -37,3 +37,16 @@ it("FL-10 H4: the same transition on a replacement commit changes history", asyn
   const next = await snapshot([{ sha: "new", files: { [approved]: "task" } }]);
   expect(compareSnapshots(previous, next)).toEqual({ droppedCommitCount: 1, changedTaskIds: ["TASK-001"] });
 });
+
+it("FL-10: differing event paths change history even with identical commit facts", async () => {
+  async function renamed(slug: string) {
+    return snapshot([
+      { sha: "approve", files: { [approved]: "task" } },
+      { sha: "rename", files: { [`tasks/approved/TASK-001-${slug}.md`]: "task" } },
+      { sha: "remove", files: {} },
+    ]);
+  }
+  expect(compareSnapshots(await renamed("a"), await renamed("b"))).toEqual({
+    droppedCommitCount: 0, changedTaskIds: ["TASK-001"],
+  });
+});

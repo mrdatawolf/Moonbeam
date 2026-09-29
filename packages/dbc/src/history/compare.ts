@@ -5,7 +5,7 @@ function eventHistory(snapshot: ProjectSnapshot, task: TaskHistory): string {
   return JSON.stringify(task.events.map((event) => {
     const commit = snapshot.commits[event.commitIndex];
     return {
-      kind: event.kind, state: event.kind === "removed" ? null : event.state,
+      kind: event.kind, paths: event.paths, state: event.kind === "removed" ? null : event.state,
       commit: commit ? {
         sha: commit.sha, subject: commit.subject, author: commit.author,
         committer: commit.committer, committedAt: commit.committedAt, isMerge: commit.isMerge,

@@ -91,9 +91,7 @@ in TASK-035. The poller detects rewrites (TASK-034) and uses `rewriteFlag`.
 
 ## Blocker
 
-Waiting on the TASK-029 rework (board, 2026-09-29): the snapshot must keep task
-file paths on events, so FL-9 can report a removed task's last path. See
-TASK-029 "Board notes". This task then runs again unchanged.
+None. The TASK-029 rework (event paths, snapshot version 2) is in review.
 
 ## Implementation handoff
 

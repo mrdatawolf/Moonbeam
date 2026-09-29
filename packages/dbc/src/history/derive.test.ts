@@ -21,13 +21,78 @@ describe("deriveSnapshot", () => {
     ]);
     expect(snapshot.tasks).toHaveLength(1);
     expect(snapshot.tasks[0]?.events).toEqual([
-      { kind: "enters", state: "proposed", commitIndex: 0 },
-      { kind: "leaves", state: "proposed", commitIndex: 1 },
-      { kind: "enters", state: "approved", commitIndex: 1 },
-      { kind: "leaves", state: "approved", commitIndex: 3 },
-      { kind: "removed", commitIndex: 3 },
+      { kind: "enters", state: "proposed", commitIndex: 0, paths: [path("proposed")] },
+      { kind: "leaves", state: "proposed", commitIndex: 1, paths: [path("proposed")] },
+      { kind: "enters", state: "approved", commitIndex: 1, paths: [path("approved", "renamed")] },
+      { kind: "leaves", state: "approved", commitIndex: 3, paths: [path("approved", "another")] },
+      { kind: "removed", commitIndex: 3, paths: [path("approved", "another")] },
     ]);
     expect(snapshot.tasks[0]?.currentStates).toEqual(["removed"]);
+  });
+
+  it("FL-9: rename then remove retains each fixture's final path", async () => {
+    async function renamed(slug: string) {
+      return derive([
+        { sha: "root", files: {} },
+        { sha: "approve", files: { [path("approved", "original")]: text() } },
+        { sha: "rename", files: { [path("approved", slug)]: text() } },
+        { sha: "remove", files: {} },
+      ]);
+    }
+    const a = await renamed("last-a");
+    const b = await renamed("last-b");
+    expect(JSON.stringify(a)).not.toBe(JSON.stringify(b));
+    for (const [snapshot, slug] of [[a, "last-a"], [b, "last-b"]] as const) {
+      expect(snapshot.tasks[0]?.events.at(-1)).toEqual({
+        kind: "removed", commitIndex: 3, paths: [path("approved", slug)],
+      });
+      expect(snapshot.tasks[0]?.headFiles).toEqual([]);
+    }
+  });
+
+  it("FL-9 H9 V3: repeated removals retain sorted duplicates from each first parent", async () => {
+    const first = [path("approved", "z"), path("approved", "a"), path("review", "b")];
+    const last = [path("completed", "new"), path("completed", "duplicate")];
+    const files = (paths: string[]) => Object.fromEntries(paths.map((p) => [p, { kind: "not_utf8" as const }]));
+    const fixture = buildChainFixture([
+      { sha: "root", files: files(first) },
+      { sha: "remove", files: {} },
+      { sha: "return", files: files([path("completed", "original")]) },
+      { sha: "rename", files: files(last) },
+      { sha: "side", files: files([path("proposed", "side")]) },
+      { sha: "merge-remove", parents: ["rename", "side"], files: {} },
+    ]);
+    const snapshot = await deriveSnapshot(fixture.chain, fixture.readFile);
+    const events = snapshot.tasks[0]!.events;
+    expect(events.filter((e) => e.kind === "removed")).toEqual([
+      { kind: "removed", commitIndex: 1, paths: [...first].sort() },
+      { kind: "removed", commitIndex: 4, paths: [...last].sort() },
+    ]);
+    expect(events.filter((e) => e.kind === "leaves").map((e) => e.paths)).toEqual([
+      first.slice(0, 2).sort(), [first[2]], [...last].sort(),
+    ]);
+    for (let length = 1; length <= fixture.chain.length; length++) {
+      const prefix = fixture.chain.slice(0, length);
+      const expected = await deriveSnapshot(prefix, fixture.readFile);
+      const reversed = prefix.map((c) => ({ ...c, changes: [...c.changes].reverse() }));
+      expect(JSON.stringify(await deriveSnapshot(reversed, fixture.readFile))).toBe(JSON.stringify(expected));
+    }
+  });
+
+  it("FL-11: work-state entry paths survive later renames and deletion", async () => {
+    const snapshot = await derive([
+      { sha: "work", files: { [path("in-progress", "initial")]: text() } },
+      { sha: "rename", files: { [path("in-progress", "renamed")]: text() } },
+      { sha: "review", files: { [path("review", "reviewed")]: text() } },
+      { sha: "remove", files: {} },
+    ]);
+    expect(snapshot.tasks[0]?.events).toEqual([
+      { kind: "enters", state: "in-progress", commitIndex: 0, paths: [path("in-progress", "initial")] },
+      { kind: "leaves", state: "in-progress", commitIndex: 2, paths: [path("in-progress", "renamed")] },
+      { kind: "enters", state: "review", commitIndex: 2, paths: [path("review", "reviewed")] },
+      { kind: "leaves", state: "review", commitIndex: 3, paths: [path("review", "reviewed")] },
+      { kind: "removed", commitIndex: 3, paths: [path("review", "reviewed")] },
+    ]);
   });
 
   it("H2 H3 H7: duplicates in one or several directories use set presence", async () => {
@@ -39,8 +104,8 @@ describe("deriveSnapshot", () => {
       { sha: "b", files: { [duplicate]: text(), [completed]: text() } },
     ]);
     expect(snapshot.tasks[0]?.events).toEqual([
-      { kind: "enters", state: "approved", commitIndex: 0 },
-      { kind: "enters", state: "completed", commitIndex: 1 },
+      { kind: "enters", state: "approved", commitIndex: 0, paths: [duplicate, approved].sort() },
+      { kind: "enters", state: "completed", commitIndex: 1, paths: [path("completed")] },
     ]);
     expect(snapshot.tasks[0]?.currentStates).toEqual(["approved", "completed"]);
     expect(snapshot.tasks[0]?.entries[0]?.files.map((f) => f.path)).toEqual([duplicate, approved].sort());
@@ -60,11 +125,11 @@ describe("deriveSnapshot", () => {
     const snapshot = await deriveSnapshot(fixture.chain, fixture.readFile);
     expect(snapshot.chainShas).toEqual(["root", "approval", "merge"]);
     expect(snapshot.tasks[0]?.events).toEqual([
-      { kind: "enters", state: "proposed", commitIndex: 0 },
-      { kind: "leaves", state: "proposed", commitIndex: 1 },
-      { kind: "enters", state: "approved", commitIndex: 1 },
-      { kind: "leaves", state: "approved", commitIndex: 2 },
-      { kind: "enters", state: "completed", commitIndex: 2 },
+      { kind: "enters", state: "proposed", commitIndex: 0, paths: [path("proposed")] },
+      { kind: "leaves", state: "proposed", commitIndex: 1, paths: [path("proposed")] },
+      { kind: "enters", state: "approved", commitIndex: 1, paths: [path("approved")] },
+      { kind: "leaves", state: "approved", commitIndex: 2, paths: [path("approved")] },
+      { kind: "enters", state: "completed", commitIndex: 2, paths: [path("completed")] },
     ]);
     expect(snapshot.tasks[0]).toMatchObject({ firstProposed: 0, firstApproved: 1, firstCompleted: 2,
       latestApproved: 1, acceptance: { commitIndex: 2, kind: "merged" } });

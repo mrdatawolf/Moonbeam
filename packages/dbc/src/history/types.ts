@@ -3,7 +3,7 @@ import type {
   AdrHeader, ArtifactPath, ContractHeader, FileRead, ParsedTaskFile, TaskPath, TaskState, Unknown,
 } from "../parse/index.js";
 
-export const SNAPSHOT_VERSION = 1;
+export const SNAPSHOT_VERSION = 2;
 
 export interface ChainCommit {
   sha: string;
@@ -44,9 +44,11 @@ export interface TaskFileRecord {
   approvedDate: string | null;
 }
 
+/** Sorted task paths: enters uses C; leaves uses its state at C's first parent;
+ * removed uses all states at C's first parent (FL-9 last paths for that removal). */
 export type TaskEvent =
-  | { kind: "enters" | "leaves"; state: TaskState; commitIndex: number }
-  | { kind: "removed"; commitIndex: number };
+  | { kind: "enters" | "leaves"; state: TaskState; commitIndex: number; paths: string[] }
+  | { kind: "removed"; commitIndex: number; paths: string[] };
 
 export interface TaskEntry {
   state: "approved" | "completed";

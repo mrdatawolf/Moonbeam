@@ -167,6 +167,45 @@ Assumptions and deviations:
 - Changes are only under `packages/dbc/src/history/` and in this handoff.
 - Re-ran dbc tests (12 files, 129 passed) and workspace typecheck.
 
+### Rework (2026-09-29)
+
+Implemented the returned path-evidence requirement; ready for independent review.
+
+Files changed:
+
+- `packages/dbc/src/history/types.ts`
+- `packages/dbc/src/history/derive.ts`
+- `packages/dbc/src/history/compare.ts`
+- `packages/dbc/src/history/derive.test.ts`
+- `packages/dbc/src/history/compare.test.ts`
+- `tasks/in-progress/TASK-029-dbc-task-history.md` (this subsection only)
+
+API and behavior:
+
+- Bumped `SNAPSHOT_VERSION` from 1 to 2. Every `TaskEvent` now requires `paths: string[]`, sorted by path.
+- Enter events retain all matching paths in their state at C. Leave events retain that state's paths at C's first parent. Removed events retain all paths for the ID across states at C's first parent.
+- Each removal event exposes its own last paths through `TaskHistory.events`, preserving repeated removals and duplicate IDs. For an absent task, the latest removal event supplies its last paths. No extra file reads or new event kinds are needed; same-state renames still produce no state transition.
+- `compareSnapshots` now includes event paths when detecting changed histories. Function signatures are unchanged.
+
+Validation (all commands exited 0, with `/home/patrick/.nvm/versions/node/v24.16.0/bin` prepended to PATH):
+
+- `pnpm --filter @moonbeam/dbc typecheck`: passed.
+- `pnpm --filter @moonbeam/dbc test`: 133 tests passed across 12 files; history has 30 tests, including 4 new regression tests.
+- `pnpm typecheck`: all 5 workspace packages passed.
+- `pnpm test`: 176 tests passed across 21 files: dbc 133, db 6, shared 4, server 12, UI 21. Database/API tests passed.
+- `pnpm build`: all 5 workspace packages passed.
+- `git diff --check`: passed.
+
+Rework evidence: the two rename-then-remove fixtures now serialize differently and each reports its own final filename. Tests also cover repeated removals, sorted duplicate paths within and across states, unreadable files, removal at a merge against its first parent, historical work-state paths, path-sensitive comparisons, and deterministic prefix rebuilds with reversed changes. Existing read-completion-order determinism tests pass.
+
+Other evidence gaps: FL-11's historical in-progress/review paths are now preserved after rename or deletion. FL-10 comparison now detects differences in event path evidence. Reviewed FL-1 through FL-11; other required paths are already retained in entry files, head files, or commit work paths.
+
+No scope deviations or unresolved blockers. Parse and identity files are unchanged. No git write commands were run, and no task-started server or process remains running. The task remains in `in-progress/` for the dispatcher; independent review and human acceptance are outstanding.
+
+**Dispatcher check (rework):** changes are only under
+`packages/dbc/src/history/` and in this handoff. Re-ran dbc tests (133
+passed) and workspace typecheck.
+
 ## Review
 
 Not reviewed.
