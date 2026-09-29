@@ -1,6 +1,6 @@
 {
   "job": "categorize",
-  "description": "Classify a pause question into exactly one of the five pause categories (TEMPLATE/docs/workflow/pauses.md). Exact match.",
+  "description": "Classify a pause question into exactly one of the five pause categories (TEMPLATE/docs/workflow/pauses.md as of commit 7cea412; the folder was retired by ADR-008). Exact match.",
   "maxTokens": 40,
   "cases": [
     {

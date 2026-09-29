@@ -106,7 +106,8 @@ catch invented events that the forbidden list does not anticipate.
 
 ### 2. categorize: categorize a pause (exact match)
 
-Input: a pause question in the `TEMPLATE/docs/workflow/pauses.md` format
+Input: a pause question in the `TEMPLATE/docs/workflow/pauses.md` format (as
+of commit `7cea412`; the folder was retired by ADR-008)
 (question, context, options, effect), without the category. There are ten
 cases, two per category. The prompt gives the five categories with their
 "use when" and "usually closed by" text.

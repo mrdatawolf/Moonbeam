@@ -94,7 +94,25 @@ None.
 
 ## Implementation handoff
 
-Not started.
+Done by Claude.
+
+**Changed:**
+
+- `tools/model-eval/README.md` and
+  `tools/model-eval/fixtures/categorize/cases.json`: the `pauses.md`
+  reference now reads "as of commit `7cea412`; the folder was retired by
+  ADR-008". In the JSON, only the `description` string changed.
+- `docs/contracts/README.md`: a "shelved" paragraph, as ADR-008 defines it.
+- `docs/contracts/CONTRACT-006-what-moonbeam-reads.md`: `Approved date`
+  changed from 2026-09-25 to 2026-09-28. That is the only change.
+
+**Validated:**
+
+- `cases.json` parses as JSON.
+- `node --test tools/model-eval/test/*.test.mjs`: 8 of 8 pass.
+- `git diff -U0` on CONTRACT-006 shows one changed line.
+- The grep for `TEMPLATE/` in `tools/` and `docs/contracts/README.md` finds
+  only the two references, both of which now name the historical commit.
 
 ## Review
 
