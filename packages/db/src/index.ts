@@ -16,3 +16,8 @@ export {
 } from "./client.js";
 export { startDatabase, type DatabaseConnection } from "./database.js";
 export * as schema from "./schema/index.js";
+export type {
+  Project, NewProject, UserIdentity, NewUserIdentity,
+  ProjectSource, NewProjectSource, ProjectSnapshot, NewProjectSnapshot,
+  CommitLogin, NewCommitLogin, Flag, NewFlag,
+} from "./schema/index.js";
