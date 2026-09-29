@@ -7,9 +7,11 @@ import type { RegistryService } from "./registry.js";
 
 import type { ProjectsService } from "./projects/service.js";
 import type { IdentitiesService } from "./identities/service.js";
+import type { PollScheduler } from "./poller/scheduler.js";
 import type { TokenFile } from "./github/tokens.js";
 
 export interface Services {
+  poller: PollScheduler;
   projects: ProjectsService;
   identities: IdentitiesService;
   tokens: TokenFile;
@@ -22,7 +24,7 @@ const param = (req: Request, name: string): string => String(req.params[name] ??
 const userView = (u: { id: string; displayName: string; email: string; active: boolean; createdAt: Date; updatedAt: Date }) =>
   userSchema.parse({ ...u, createdAt: u.createdAt.toISOString(), updatedAt: u.updatedAt.toISOString() });
 
-export function apiRoutes({ db, registry, projects, identities, tokens }: Services): Router {
+export function apiRoutes({ db, registry, projects, identities, tokens, poller }: Services): Router {
   const router = Router();
   const resolve = (req: Request) => resolveActor(db, req.headers);
 
@@ -79,6 +81,10 @@ export function apiRoutes({ db, registry, projects, identities, tokens }: Servic
   router.get("/projects/:id", async (req, res) => {
     await resolve(req);
     res.json(await projects.get(param(req, "id")));
+  });
+  router.post("/projects/:id/refresh", async (req, res) => {
+    await resolve(req);
+    res.json(await poller.refresh(param(req, "id")));
   });
   router.patch("/projects/:id", async (req, res) => {
     res.json(await projects.update(requireActor(await resolve(req)), param(req, "id"), req.body));

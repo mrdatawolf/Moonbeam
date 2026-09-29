@@ -69,6 +69,7 @@ Express server, so the browser only talks to one origin.
 | `MOONBEAM_HOME` | `~/.moonbeam` | Local state directory; embedded Postgres data lives in `$MOONBEAM_HOME/db`. |
 | `MOONBEAM_GITHUB_TOKENS_FILE` | `$MOONBEAM_HOME/github-tokens.json` | Override the host-side GitHub token file. |
 | `MOONBEAM_EMBEDDED_PG_PORT` | `54330` | Port for embedded Postgres (loopback only). |
+| `MOONBEAM_POLL_INTERVAL_SECONDS` | `300` | Positive polling interval in seconds. Every active project is also polled on startup. |
 | `MOONBEAM_SERVER_HOST` | `127.0.0.1` | Express bind address. |
 | `MOONBEAM_SERVER_PORT` | `3100` | Express port; also the UI dev proxy target. |
 | `MOONBEAM_UI_PORT` | `5180` | Vite dev server port (fails rather than picking another port). |
@@ -106,8 +107,7 @@ never the URL, command arguments, or mirror config. Classic-token write scopes
 (`repo`, `public_repo`, `write:*`) are reported when GitHub supplies them;
 fine-grained tokens generally have no scope header and return `null`.
 
-The primitives in `server/src/github/` are not yet connected to registration or
-polling. `TokenFile.labels()` returns masked entries; `lookup(label)` privately
+The primitives in `server/src/github/` support registration and polling. `TokenFile.labels()` returns masked entries; `lookup(label)` privately
 returns a token, or `missing`/`unreadable`. `RestGitHubApi` implements `GitHubApi`
 with injectable fetch/base URL/timeout. Use `getRepository(owner, repo, token,
 etag?)` for registration and `getRepositoryById(id, registeredFullName, token,
@@ -269,3 +269,67 @@ entered values after a refusal. An `unidentified` read clears the stale
 selection and retries as a viewer; writes never retry. A newer browser
 selection is not cleared by an older request's response. The connection banner
 shows failures and user actions are disabled while the connection is lost.
+
+
+### Project polling and refresh
+
+`POST /api/projects/:id/refresh` needs no selected user and returns a validated
+`SourceView` (`packages/shared/src/source.ts`). Concurrent refreshes in this
+server join the same poll. The view includes status and its since-time, last
+attempt/success times, last processed head, rate-limit reset, redirected name,
+write-scope warning, failure count, and baseline-reset notice. A missing or
+removed project returns `not_found`. Registration names are never changed by
+polling. The last successful snapshot, head, and time survive all source errors.
+
+`Poller.poll(id, manual?)` orchestrates the source read. `PollScheduler` provides
+`start()`, `pollAll()`, `refresh(id)`, and `stop()`. It polls every active project
+at startup and every `MOONBEAM_POLL_INTERVAL_SECONDS` (default 300). Invalid or
+non-positive intervals are rejected. `stop()` clears the interval and waits for
+active reads before the database is closed. Source failures are isolated per
+project. Unreachable retries wait 5, 10, 20, then 30 minutes; manual refresh can
+retry immediately. All refreshes, including manual refreshes, respect a stored
+rate-limit reset. If GitHub supplies no reset, the fallback wait is five minutes.
+Other source failures retry at the normal interval, reloading the token file.
+
+The source row is created lazily on first poll. Repository metadata is resolved
+by numeric ID with its persisted ETag (ADR-010). A numeric-ID lookup returning
+not-found triggers a name-only metadata check to distinguish a replaced
+repository (`identity_changed`); no branch or content of that replacement is
+read. A successful metadata response must match the registered ID. A 304 uses
+the previously verified name. Branch heads are read on each poll. If REST and
+git observe different heads, the poll fails as unreachable and retries, keeping
+the previous snapshot instead of combining two versions.
+
+An in-process promise map serializes each project's polls. PostgreSQL
+`pg_try_advisory_lock` covers other server instances on a connection held by a
+transaction; a matching transaction lock retains exclusion through commit.
+A refresh on another instance waits for that transaction to finish and returns
+its committed source status. A project row share lock keeps registration edits/removal from
+racing a poll. Each new head derives the whole version-3 snapshot, using cached
+REST author logins and decoded mirror files. Unknown login entries are filled
+before derivation; null means GitHub reported no associated login.
+
+Snapshot replacement, source success, login-cache updates, and
+`FlagSink.apply(transaction, input)` commit together. A sink failure rolls back
+all those writes before recording failure status. `FlagInput` supplies the
+project ID, evaluation time, `full` or `conditions` mode, snapshot, evaluation,
+and optional FL-10 rewrite evidence. The default `nullFlagSink` records nothing;
+flag persistence, dismissal, reconciliation, and their audits belong to TASK-035.
+An unchanged head evaluates conditions with event rules skipped. A snapshot
+version change triggers full derivation without FL-10. A deliberately changed
+tracked branch uses TASK-033's cleared cursor and likewise produces no FL-10.
+
+After commit, the last-processed ref is pinned under the project advisory lock,
+with a cursor recheck to prevent an older poll overwriting a newer pin. A failed
+pin logs a generic message and is retried on the next poll; committed results
+remain visible. A deleted mirror is recreated even when the head is unchanged.
+If a rewrite also removed the old objects, the stored snapshot supplies FL-10
+comparison evidence. No registrations, identities, or audit history are deleted.
+
+Tests in `src/test/poller.test.ts`, `src/test/source-failures.test.ts`, and
+`src/poller/scheduler.test.ts` use temporary homes, local git fixtures, stubbed
+REST responses, real isolated Postgres, and controllable clocks. The harness
+accepts `remoteUrl`, `mirror`, `flags`, and `intervalMs`, exposes `poller` and
+`newScheduler()`, and stops every scheduler in `close()`. It never defaults to a
+real GitHub remote. `fixtureGitHub()` exercises the actual REST decoder over a
+controllable fake HTTP transport.
