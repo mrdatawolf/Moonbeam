@@ -50,6 +50,8 @@ in TASK-035. The poller detects rewrites (TASK-034) and uses `rewriteFlag`.
 ### Paths
 
 - `packages/dbc/src/flags/`
+- `packages/dbc/src/parse/` and `packages/dbc/src/history/`: only to keep
+  evidence the flags need (board, 2026-09-29, see "Board notes")
 
 ## Plan
 
@@ -95,43 +97,67 @@ None. The TASK-029 rework (event paths, snapshot version 2) is in review.
 
 ## Implementation handoff
 
-Stopped before implementation: FL-9 requires information absent from the
-TASK-029 snapshot. The user's instruction requires stopping when a change
-outside the assigned paths is necessary.
+Stopped before implementation: FL-2 requires evidence that the version-2
+snapshot does not retain. The FL-9 event-path blocker from the earlier run is
+fixed, but this separate gap requires changes outside the authorized paths.
 
 - Files changed: only `tasks/in-progress/TASK-030-dbc-flag-rules.md`, this
-  Implementation handoff section. No flag implementation or public API added;
-  `packages/dbc/src/flags/index.ts` remains the stub.
-- Blocker: `TaskEvent` retains state and commit index but no paths.
-  `TaskHistory.entries` retains files only on entry into approved/completed,
-  and `headFiles` is empty after removal. A rename within the same state is
-  not retained. Thus FL-9 cannot report the last path from the snapshot.
-- Reproduction: using `buildChainFixture` and `deriveSnapshot`, build root →
-  approve `tasks/approved/TASK-001-original.md` → rename within approved →
-  remove. Two fixtures renaming to `TASK-001-last-a.md` and
-  `TASK-001-last-b.md`, respectively, produce identical serialized snapshots.
-  Both retain only the original entry path and empty head files. This was
-  executed against the built history exports with Node and confirmed true.
-- Required dependency repair: TASK-029 must retain the paths immediately
-  before each removal (including repeated removals and duplicate IDs), exposed
-  through its snapshot API. That requires changes under
-  `packages/dbc/src/history/`, outside this assignment. No such changes made.
-- Validation (existing code, not evidence of implemented flags; all exit 0):
+  Implementation handoff section. `packages/dbc/src/flags/index.ts` remains
+  the stub. No public API or flag implementation was added.
+- Blocker: CONTRACT-006 FL-2 requires "the header block as found" in evidence.
+  `ParsedTaskFile.header` retains normalized fields, duplicate field names,
+  and unattached lines, but loses duplicate values, original whitespace,
+  blank lines, and continuation layout. `ProjectSnapshot` retains neither
+  the raw header nor task text. A pure evaluator cannot reconstruct it.
+- Reproduction: executed a Node fixture against the freshly built DBC
+  exports using `buildChainFixture` and `deriveSnapshot`. Both fixtures have
+  root → head and `tasks/proposed/TASK-001-example.md`, a valid v1 header
+  except for duplicated `Proposed by`. The first occurrence is `Patrick`;
+  the second is `Alice` in one fixture and `Bob` in the other. Result:
+  `snapshotVersion: 2`, `identicalSnapshots: true`. `v1Problems` returns
+  exactly `{ kind: "duplicate_field", field: "Proposed by" }` in both.
+  The headers required as evidence differ, but the evaluator inputs do not.
+- Required dependency repair: retain the original header block in the parsed
+  task record and expose it through the snapshot, including duplicate lines.
+  This requires changes under `packages/dbc/src/parse/` and/or
+  `packages/dbc/src/history/`, which this assignment prohibits. No such
+  changes were made. A file-reader input would also change the assigned
+  pure snapshot-based API and was not introduced.
+- Validation of existing code (all exit 0; not evidence of implemented flags):
   - `pnpm --filter @moonbeam/dbc typecheck`: passed.
-  - `pnpm --filter @moonbeam/dbc test`: 129 tests passed in 12 files.
+  - `pnpm --filter @moonbeam/dbc test`: 133 tests passed in 12 files.
   - `pnpm typecheck`: passed across all five workspace packages.
-  - `pnpm test`: 172 tests passed in 21 files: dbc 129, db 6, shared 4,
+  - `pnpm test`: 176 tests passed in 21 files: dbc 133, db 6, shared 4,
     server 12, UI 21.
   - `pnpm build`: passed across all five workspace packages.
   - Commands used `/home/patrick/.nvm/versions/node/v24.16.0/bin` on PATH.
-- Acceptance criteria: FL-9 cannot be met with the supplied snapshot;
-  FL-1–FL-8, FL-10, FL-11, Baseline, N3, and UX4 remain unimplemented and
-  unverified for TASK-030. No acceptance criterion is claimed complete.
-- Deviations and assumptions: stopped as explicitly instructed; no substitute
-  for missing evidence or change to the public input contract was invented.
-  Persistence remains TASK-035. No git write commands were run, and no server
-  or process was left running.
+- Acceptance criteria: FL-2's required evidence cannot be produced from the
+  supplied snapshot. FL-1–FL-11, Baseline, N3, and UX4 remain unimplemented
+  and unverified for TASK-030; no acceptance criterion is claimed complete.
+- Deviations and assumptions: stopped under the explicit instruction to stop
+  when an out-of-scope change is necessary. "Header block as found" means
+  preserving the original header, not substituting normalized fields that
+  omit the offending duplicate value. Persistence remains TASK-035 and
+  rewrite detection TASK-034. No git write commands were run; no server or
+  process was left running. The task remains in-progress for the dispatcher.
 
 ## Review
 
 Not reviewed.
+
+## Board notes
+
+**Scope widened by Patrick, 2026-09-29.** The second Codex run stopped
+because FL-2's evidence needs "the header block as found". The parser keeps
+only normalized fields (a duplicate field's second value is lost), and the
+snapshot keeps no raw header.
+
+- This task may also change `packages/dbc/src/parse/` and
+  `packages/dbc/src/history/`, only to keep evidence the flags need, such as
+  the raw header lines.
+- It first checks every flag's evidence (FL-1 to FL-11) against the snapshot
+  and fixes every gap in one pass, so it doesn't stop again.
+- The handoff lists the parse and history changes separately for review.
+  Existing tests keep passing. A snapshot shape change bumps
+  `SNAPSHOT_VERSION`.
+
