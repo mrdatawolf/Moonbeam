@@ -107,7 +107,65 @@ None.
 
 ## Implementation handoff
 
-Not started.
+Implemented TASK-029; ready for independent review. Task remains in `in-progress/` for the dispatcher. No git write commands were run.
+
+Files changed:
+
+- `packages/dbc/src/history/types.ts`
+- `packages/dbc/src/history/derive.ts`
+- `packages/dbc/src/history/compare.ts`
+- `packages/dbc/src/history/fixtures.ts`
+- `packages/dbc/src/history/index.ts`
+- `packages/dbc/src/history/derive.test.ts`
+- `packages/dbc/src/history/compare.test.ts`
+- `packages/dbc/src/history/fixtures.test.ts`
+- `tasks/in-progress/TASK-029-dbc-task-history.md` (Implementation handoff only)
+
+Public API:
+
+- `deriveSnapshot(chain, readFile): Promise<ProjectSnapshot>` rebuilds the versioned snapshot from an oldest-first first-parent chain.
+- `compareSnapshots(previous, next): SnapshotComparison` returns `droppedCommitCount` and sorted `changedTaskIds`, comparing event commit facts rather than snapshot-local indexes.
+- `buildChainFixture(fixtures, head?)` returns a first-parent `chain` and `readFile` from full file maps, supporting merges, authors, timestamps, and unreadable files.
+- `SNAPSHOT_VERSION = 1`; exported types: `ChainCommit`, `FileReader`, `FileReadStatus`, `CommitFacts`, `TaskFileRecord`, `TaskEvent`, `TaskEntry`, `TaskHistory`, `ArtifactRecord`, `ProjectSnapshot`, `SnapshotComparison`, and `FixtureCommit`.
+
+Validation (all exited 0; commands used `/home/patrick/.nvm/versions/node/v24.16.0/bin` prepended to PATH):
+
+- `pnpm --filter @moonbeam/dbc typecheck`: passed.
+- `pnpm --filter @moonbeam/dbc test`: 129 tests passed across 12 files, including 26 new history tests across 3 files.
+- `pnpm typecheck`: all 5 workspace packages passed.
+- `pnpm test`: 172 tests passed across 21 files: dbc 129, db 6, shared 4, server 12, UI 21. Database/API tests ran successfully.
+- `pnpm build`: all 5 workspace packages passed.
+- `git diff --check`: passed. No task-started server or process remains running.
+
+Acceptance criteria evidence:
+
+- H1: histories are keyed by filename ID across directory moves and slug changes.
+- H2/H3: set-based presence produces exact enter, leave, and removed events; duplicate slugs and multiple directories are covered.
+- H3 merges: fixture diffs use the first parent; second-parent-only commits produce no events, while merged work appears in the merge change set.
+- H4/H5: events reference the commit facts table, including author, committer, timestamp, subject, SHA, and merge status. First proposal/approval/completion, latest approval, and first acceptance with merged/direct classification are retained.
+- H6: in-progress and review entries are recorded and tested.
+- H7: all current states are retained; absent IDs become withdrawn only when exclusively proposed, otherwise removed. Re-entry preserves history.
+- H8: head approval values remain per-file and unreconciled, including conflicting or invalid values.
+- H9/N3/V3: full rebuilding uses no clock; repeated derivation and prefix-poll rebuilding produce identical JSON despite reversed change ordering and different read completion order.
+- Q4/W(C): task paths and header-only edits are excluded; body edits, additions, deletions, sectionless files, and unreadable comparisons remain work paths, using the existing parser helper.
+- Entry files: every approved/completed entry retains all matching files parsed at that commit, including historical Paths and approval fields.
+- P10: too-large, non-UTF-8, and absent read outcomes do not remove tracked task presence.
+- F7/R1–R3/R6: head task-directory presence, contracts, ADRs, and project-definition presence/readability are retained; artifacts remain visible without tasks.
+- F9: incomplete change-set status is carried on each commit.
+- N4: malformed/pre-v1 files, duplicate headers, stray paths, and missing reads are tolerated.
+- FL-10: rewritten fixtures report dropped commits and changed/new/vanished histories; index shifts and text-only edits do not falsely change event history.
+
+Assumptions and deviations:
+
+- No scope deviations or changes to the parse/identity layers. Snapshot read results retain status and parsed metadata, not raw file text, as required by the task.
+- The source supplies the oldest-first first-parent chain and its diffs. Incomplete diffs are applied as supplied; a modified path with no observed addition has a null last-added index. Directory presence means at least one tracked descendant, including ignored files.
+- File-level failures use `FileRead` outcomes. Rejected reader promises propagate to the poller rather than silently converting transport failures into successful snapshots.
+- No unresolved implementation blockers. Independent review and human acceptance remain outstanding.
+
+**Dispatcher check:**
+
+- Changes are only under `packages/dbc/src/history/` and in this handoff.
+- Re-ran dbc tests (12 files, 129 passed) and workspace typecheck.
 
 ## Review
 
