@@ -1,3 +1,4 @@
+import { flagSink } from "./flags/sink.js";
 import { createDatabaseClient, pingDatabase, runMigrations, startDatabase } from "@moonbeam/db";
 import { createApp } from "./app.js";
 import { RegistryService } from "./registry.js";
@@ -25,7 +26,7 @@ const registry = new RegistryService({ db: client.db, clock });
 const tokens = new TokenFile();
 const github = new RestGitHubApi();
 const projects = new ProjectsService({ db: client.db, clock, tokens, github });
-const poller = new PollScheduler({ db: client.db, intervalMs, poller: new Poller({ db: client.db, clock, tokens, github }) });
+const poller = new PollScheduler({ db: client.db, intervalMs, poller: new Poller({ db: client.db, clock, tokens, github, flags: flagSink }) });
 const identities = new IdentitiesService({ db: client.db, clock });
 
 const app = createApp({

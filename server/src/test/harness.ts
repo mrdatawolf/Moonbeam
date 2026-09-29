@@ -1,3 +1,4 @@
+import { flagSink } from "../flags/sink.js";
 // Fresh database, real HTTP app, and controllable clock for registry tests.
 import type { Server } from "node:http";
 import type { AddressInfo } from "node:net";
@@ -61,6 +62,7 @@ export interface Harness {
   db: Database;
   poller: PollScheduler;
   newScheduler(): PollScheduler;
+  restartServer(): Promise<void>;
   clock: TestClock;
   req<T = any>(method: string, path: string, opts?: { as?: As; body?: unknown }): Promise<Res<T>>;
   close(): Promise<void>;
@@ -74,17 +76,14 @@ export async function createHarness(options: HarnessOptions = {}): Promise<Harne
   const client: DatabaseClient = createDatabaseClient(`${inject("pgBaseUrl")}/${dbName}`);
 
   const clock = new TestClock();
-  const registry = new RegistryService({ db: client.db, clock: clock.now });
   const home = await mkdtemp(join(tmpdir(), "moonbeam-api-"));
   const tokens = new TokenFile({ env: { MOONBEAM_HOME: home, MOONBEAM_GITHUB_TOKENS_FILE: join(home, "github-tokens.json") } });
   await writeFile(tokens.path, JSON.stringify({ tokens: options.tokens ?? {} }), { mode: 0o600 });
-  const projects = new ProjectsService({ db: client.db, clock: clock.now, github: options.github ?? noGitHub, tokens });
-  const identities = new IdentitiesService({ db: client.db, clock: clock.now });
   const schedulers: PollScheduler[] = [];
   const newScheduler = () => {
     const scheduler = new PollScheduler({ db: client.db, intervalMs: options.intervalMs,
       poller: new Poller({ db: client.db, clock: clock.now, tokens, github: options.github ?? noGitHub,
-        flags: options.flags, mirror: (id) => {
+        flags: options.flags ?? flagSink, mirror: (id) => {
           const directory = join(home, "mirrors", `${id}.git`);
           return options.mirror?.(directory) ?? new Mirror(directory, {
             remoteUrl: options.remoteUrl ?? (() => { throw new Error("No fixture remote configured"); }),
@@ -94,20 +93,33 @@ export async function createHarness(options: HarnessOptions = {}): Promise<Harne
     schedulers.push(scheduler);
     return scheduler;
   };
-  const poller = newScheduler();
-  const app = createApp({ checkDatabase: async () => {}, services: { db: client.db, clock: clock.now, registry, projects, identities, tokens, poller } });
-  const server = await new Promise<Server>((resolve) => {
-    const s = app.listen(0, "127.0.0.1", () => resolve(s));
-  });
-  const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+  let poller = newScheduler();
+  const listen = () => {
+    const registry = new RegistryService({ db: client.db, clock: clock.now });
+    const projects = new ProjectsService({ db: client.db, clock: clock.now, github: options.github ?? noGitHub, tokens });
+    const identities = new IdentitiesService({ db: client.db, clock: clock.now });
+    const app = createApp({ checkDatabase: async () => {}, services: { db: client.db, clock: clock.now, registry, projects, identities, tokens, poller } });
+    return new Promise<Server>((resolve) => {
+      const s = app.listen(0, "127.0.0.1", () => resolve(s));
+    });
+  };
+  let server = await listen();
+  let base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 
   return {
-    base,
+    get base() { return base; },
     home,
     tokensFile: tokens.path,
     db: client.db,
-    poller,
+    get poller() { return poller; },
     newScheduler,
+    async restartServer() {
+      await Promise.all(schedulers.map((scheduler) => scheduler.stop()));
+      await new Promise<void>((r) => server.close(() => r()));
+      poller = newScheduler();
+      server = await listen();
+      base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+    },
     clock,
     async req(method, path, { as, body } = {}) {
       const headers: Record<string, string> = {};

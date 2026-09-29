@@ -313,8 +313,9 @@ Snapshot replacement, source success, login-cache updates, and
 `FlagSink.apply(transaction, input)` commit together. A sink failure rolls back
 all those writes before recording failure status. `FlagInput` supplies the
 project ID, evaluation time, `full` or `conditions` mode, snapshot, evaluation,
-and optional FL-10 rewrite evidence. The default `nullFlagSink` records nothing;
-flag persistence, dismissal, reconciliation, and their audits belong to TASK-035.
+and optional FL-10 rewrite evidence. Server startup and the test harness inject
+`flagSink` from `server/src/flags/sink.ts`; the poller retains its injectable
+`nullFlagSink` for callers that explicitly need no persistence.
 An unchanged head evaluates conditions with event rules skipped. A snapshot
 version change triggers full derivation without FL-10. A deliberately changed
 tracked branch uses TASK-033's cleared cursor and likewise produces no FL-10.
@@ -333,3 +334,59 @@ accepts `remoteUrl`, `mirror`, `flags`, and `intervalMs`, exposes `poller` and
 `newScheduler()`, and stops every scheduler in `close()`. It never defaults to a
 real GitHub remote. `fixtureGitHub()` exercises the actual REST decoder over a
 controllable fake HTTP transport.
+
+
+### Flag records and review
+
+`flagSink.apply(tx, input)` reconciles flags in the poll transaction. Records
+retain rule, canonical subject, project, first-raised time, evidence, and status.
+A project-specific transaction advisory lock serializes reconciliation and
+human flag actions; the database also enforces one open row per rule/subject.
+Open evidence changes and every raise, resolution, withdrawal, dismissal, and
+reopen append an audit record with `flag_id`, before/after values, and time.
+Automatic changes use system actor `poller`; human changes record the selected
+user and note. Flags are observations and are never consulted as action gates.
+
+Conditions resolve when absent, including dismissed conditions. FL-8 resolves
+on full re-evaluation when no longer raised. Other events remain open or
+dismissed even if registration settings stop detecting them. Conditions-only
+polls leave FL-8 and other event records untouched. A dismissed FL-5 produces a
+new open row once more than the current threshold has elapsed since the latest
+dismissal for that subject. Old rows and notes remain. A resolved condition
+that recurs produces a new row. Rewrites withdraw event records whose commits
+left the chain, including dismissed/resolved events, and add their records to
+FL-10 evidence as `withdrawnFlags`. A returning withdrawn event gets a new row.
+
+| Method and path | Behavior |
+| --- | --- |
+| `GET /api/projects/:id/flags?status=` | `{ flags }`; omit status for all, open first; filter by `open`, `dismissed`, `resolved`, or `withdrawn` |
+| `GET /api/flags/:id` | flag fields plus chronological `history` from the audit trail, including actors, times, notes, and before/after evidence |
+| `POST /api/flags/:id/dismiss` | `{ note: string }`; open to dismissed; returns the updated flag |
+| `POST /api/flags/:id/reopen` | `{ note: string }`; dismissed to open; returns the updated flag |
+
+Reads allow viewers and retain access to archived project flags. Mutations
+require a selected active user and a trimmed, nonempty note. An invalid status
+transition returns `invalid_transition`; reopening when another open occurrence
+exists returns `conflict`. Invalid notes/filters return `validation`, and
+unknown IDs return `not_found`. Shared schemas/types are in
+`packages/shared/src/flags.ts`. `FlagsService` exposes `list`, `get`, `dismiss`,
+and `reopen`.
+
+`reevaluateFlags(tx, now, projectId?)` evaluates compatible stored snapshots
+without source calls. Explicit identity additions/removals reevaluate all active
+projects in the mutation transaction. Baseline, exempt-path, threshold, and
+lead-developer edits reevaluate the affected project in their transaction. A
+branch change waits for the next poll instead of evaluating the retained old
+branch snapshot. Missing/incompatible snapshots wait for rebuilding by the
+poller. Registration row locks serialize these reads against poll publication.
+Registry API additions and name/email edits call `reevaluateAll(db, now)` after
+the registry transaction commits; direct RegistryService callers do not trigger
+this route hook. A failure in this hook does not undo the committed registry
+edit. Inactive members still match, so activation changes need no flag refresh.
+
+`src/test/flags.test.ts` uses TASK-034 git/HTTP fixtures, temporary homes and
+isolated Postgres. It covers reconciliation races, rollback, notes, cache
+rebuilds, HTTP server/service/scheduler recreation against the same database,
+staleness boundaries, identity/registration re-evaluation, and rewrites.
+The harness `restartServer()` stops schedulers and HTTP, then recreates the
+application services using the retained test database and temporary home.

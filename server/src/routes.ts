@@ -1,3 +1,5 @@
+import { FlagsService } from "./flags/service.js";
+import { reevaluateAll } from "./flags/reevaluate.js";
 // All request identity is resolved through the CONTRACT-002 actor seam.
 import { Router, type Request } from "express";
 import { githubTokensResponseSchema, projectListResponseSchema, setupStatusSchema, userListResponseSchema, userSchema, whoAmIResponseSchema } from "@moonbeam/shared";
@@ -24,8 +26,9 @@ const param = (req: Request, name: string): string => String(req.params[name] ??
 const userView = (u: { id: string; displayName: string; email: string; active: boolean; createdAt: Date; updatedAt: Date }) =>
   userSchema.parse({ ...u, createdAt: u.createdAt.toISOString(), updatedAt: u.updatedAt.toISOString() });
 
-export function apiRoutes({ db, registry, projects, identities, tokens, poller }: Services): Router {
+export function apiRoutes({ db, registry, projects, identities, tokens, poller, clock }: Services): Router {
   const router = Router();
+  const flags = new FlagsService({ db, clock });
   const resolve = (req: Request) => resolveActor(db, req.headers);
 
   // ---- identity ----------------------------------------------------------
@@ -51,11 +54,15 @@ export function apiRoutes({ db, registry, projects, identities, tokens, poller }
   });
 
   router.post("/users", async (req, res) => {
-    res.status(201).json(userView(await registry.addUser(requireActor(await resolve(req)), req.body)));
+    const user = await registry.addUser(requireActor(await resolve(req)), req.body);
+    await reevaluateAll(db, clock());
+    res.status(201).json(userView(user));
   });
 
   router.patch("/users/:id", async (req, res) => {
-    res.json(userView(await registry.editUser(requireActor(await resolve(req)), param(req, "id"), req.body)));
+    const user = await registry.editUser(requireActor(await resolve(req)), param(req, "id"), req.body);
+    await reevaluateAll(db, clock());
+    res.json(userView(user));
   });
 
   router.post("/users/:id/deactivate", async (req, res) => {
@@ -108,5 +115,19 @@ export function apiRoutes({ db, registry, projects, identities, tokens, poller }
     res.status(204).end();
   });
 
+  router.get("/projects/:id/flags", async (req, res) => {
+    await resolve(req);
+    res.json(await flags.list(param(req, "id"), req.query.status));
+  });
+  router.get("/flags/:id", async (req, res) => {
+    await resolve(req);
+    res.json(await flags.get(param(req, "id")));
+  });
+  router.post("/flags/:id/dismiss", async (req, res) => {
+    res.json(await flags.dismiss(requireActor(await resolve(req)), param(req, "id"), req.body));
+  });
+  router.post("/flags/:id/reopen", async (req, res) => {
+    res.json(await flags.reopen(requireActor(await resolve(req)), param(req, "id"), req.body));
+  });
   return router;
 }

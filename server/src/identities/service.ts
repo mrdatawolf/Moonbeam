@@ -1,3 +1,4 @@
+import { reevaluateFlags } from "../flags/reevaluate.js";
 import { and, eq, sql } from "drizzle-orm";
 import { schema, type Database } from "@moonbeam/db";
 import { findConflicts } from "@moonbeam/dbc";
@@ -53,6 +54,7 @@ export class IdentitiesService {
       }).returning();
       const after = view(row!);
       await writeAudit(tx, actor, { subjectUserId: userId, action: "identity_added", details: { before: null, after } }, now);
+      await reevaluateFlags(tx, now);
       return after;
     });
   }
@@ -63,6 +65,7 @@ export class IdentitiesService {
       if (!before) return reject("not_found", "The stored identity does not exist. Automatic e-mail identities cannot be removed here.");
       await tx.delete(schema.userIdentities).where(eq(schema.userIdentities.id, id));
       await writeAudit(tx, actor, { subjectUserId: before.userId, action: "identity_removed", details: { before: view(before), after: null } }, this.opts.clock());
+      await reevaluateFlags(tx, this.opts.clock());
     });
   }
 }

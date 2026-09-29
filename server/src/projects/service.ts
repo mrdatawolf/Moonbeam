@@ -1,3 +1,4 @@
+import { reevaluateFlags } from "../flags/reevaluate.js";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { schema, type Database, type Transaction } from "@moonbeam/db";
 import { projectRegistrationInputSchema, projectUpdateInputSchema, projectSchema, leadDeveloperInputSchema } from "@moonbeam/shared";
@@ -129,6 +130,9 @@ export class ProjectsService {
         }).where(eq(schema.projectSources.projectId, id));
       }
       await this.audit(tx, actor, "project_updated", before, after!);
+      if (!branchChanged && (baselineSha !== undefined || input.exemptPaths !== undefined || input.staleThresholdDays !== undefined)) {
+        await reevaluateFlags(tx, this.opts.clock(), id);
+      }
       return projectView(after!);
     });
   }
@@ -141,6 +145,7 @@ export class ProjectsService {
       await this.activeLead(tx, userId);
       const [after] = await tx.update(schema.projects).set({ leadDeveloperUserId: userId }).where(eq(schema.projects.id, id)).returning();
       await this.audit(tx, actor, "project_lead_developer_changed", before, after!);
+      await reevaluateFlags(tx, this.opts.clock(), id);
       return projectView(after!);
     });
   }
