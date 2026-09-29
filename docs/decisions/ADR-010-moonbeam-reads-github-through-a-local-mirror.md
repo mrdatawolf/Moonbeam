@@ -1,6 +1,6 @@
 # ADR-010: Moonbeam reads GitHub through a local mirror and the REST API
 
-Status: Proposed
+Status: Approved
 Date: 2026-09-28
 Decision owners: Board (TASK-023 decisions 1 and 2, answered by Patrick on
 2026-09-28)
