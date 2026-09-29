@@ -170,3 +170,22 @@ Assumptions and deviations:
 ## Review
 
 Not reviewed.
+
+## Board notes
+
+**Returned by Patrick, 2026-09-29.** TASK-030 found that the snapshot loses
+task file paths.
+
+- `TaskEvent` records a state and a commit index, but no path.
+  `TaskHistory.entries` keeps files only on entry into `approved/` or
+  `completed/`, and `headFiles` is empty after a removal.
+- So a rename within a state, followed by a removal, loses the last path.
+  Two such histories with different final names give identical snapshots.
+- FL-9 needs "T's last path" as evidence, and cannot get it.
+
+**Rework:** every task event carries the path or paths involved. An enter
+event has the path at C. A leave or removed event has the path at C's first
+parent. The snapshot then gives a removed task's last path, including after
+repeated removals and with duplicate IDs. Add a test for the
+rename-then-remove case.
+

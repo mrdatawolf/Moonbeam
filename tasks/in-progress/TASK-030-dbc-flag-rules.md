@@ -91,11 +91,48 @@ in TASK-035. The poller detects rewrites (TASK-034) and uses `rewriteFlag`.
 
 ## Blocker
 
-None.
+Waiting on the TASK-029 rework (board, 2026-09-29): the snapshot must keep task
+file paths on events, so FL-9 can report a removed task's last path. See
+TASK-029 "Board notes". This task then runs again unchanged.
 
 ## Implementation handoff
 
-Not started.
+Stopped before implementation: FL-9 requires information absent from the
+TASK-029 snapshot. The user's instruction requires stopping when a change
+outside the assigned paths is necessary.
+
+- Files changed: only `tasks/in-progress/TASK-030-dbc-flag-rules.md`, this
+  Implementation handoff section. No flag implementation or public API added;
+  `packages/dbc/src/flags/index.ts` remains the stub.
+- Blocker: `TaskEvent` retains state and commit index but no paths.
+  `TaskHistory.entries` retains files only on entry into approved/completed,
+  and `headFiles` is empty after removal. A rename within the same state is
+  not retained. Thus FL-9 cannot report the last path from the snapshot.
+- Reproduction: using `buildChainFixture` and `deriveSnapshot`, build root →
+  approve `tasks/approved/TASK-001-original.md` → rename within approved →
+  remove. Two fixtures renaming to `TASK-001-last-a.md` and
+  `TASK-001-last-b.md`, respectively, produce identical serialized snapshots.
+  Both retain only the original entry path and empty head files. This was
+  executed against the built history exports with Node and confirmed true.
+- Required dependency repair: TASK-029 must retain the paths immediately
+  before each removal (including repeated removals and duplicate IDs), exposed
+  through its snapshot API. That requires changes under
+  `packages/dbc/src/history/`, outside this assignment. No such changes made.
+- Validation (existing code, not evidence of implemented flags; all exit 0):
+  - `pnpm --filter @moonbeam/dbc typecheck`: passed.
+  - `pnpm --filter @moonbeam/dbc test`: 129 tests passed in 12 files.
+  - `pnpm typecheck`: passed across all five workspace packages.
+  - `pnpm test`: 172 tests passed in 21 files: dbc 129, db 6, shared 4,
+    server 12, UI 21.
+  - `pnpm build`: passed across all five workspace packages.
+  - Commands used `/home/patrick/.nvm/versions/node/v24.16.0/bin` on PATH.
+- Acceptance criteria: FL-9 cannot be met with the supplied snapshot;
+  FL-1–FL-8, FL-10, FL-11, Baseline, N3, and UX4 remain unimplemented and
+  unverified for TASK-030. No acceptance criterion is claimed complete.
+- Deviations and assumptions: stopped as explicitly instructed; no substitute
+  for missing evidence or change to the public input contract was invented.
+  Persistence remains TASK-035. No git write commands were run, and no server
+  or process was left running.
 
 ## Review
 
