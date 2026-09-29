@@ -90,6 +90,31 @@ need an independent build or run environment. In that case:
 - Check for duplicate task-lifecycle files left by the merge and remove any
   superseded copy.
 
+### Dispatching to Codex
+
+Adopted by the board on 2026-09-29, after TASK-026 and TASK-027:
+
+- **One Codex job per repository at a time.** The Codex plugin resumes the most
+  recent Codex conversation in the repository, not a chosen one, and it
+  refuses to resume while any job is still running. Tasks that can run in
+  parallel go to Claude agents. Codex takes the next task when it's free.
+- **Always a fresh, self-contained prompt.** Never resume. A follow-up (for
+  example, a board answer to a question Codex asked) is a new job whose prompt
+  says where the earlier run stopped and what is already on disk.
+- **The dispatcher starts Codex directly**, with the plugin's companion script
+  (`task --background --write --fresh`), not through a relay agent. The script
+  prints a job ID.
+- **The dispatcher watches the job log.** If the log shows no new activity for
+  about 15 minutes, the dispatcher tells the board and the job is cancelled.
+  The dispatcher reads the job's result directly when it finishes.
+- **Codex writes its own handoff.** The prompt lets Codex write the task
+  file's "Implementation handoff" section, and nothing else in the task file,
+  so its report is kept in the repository even if a relay loses it.
+- **The dispatcher validates what Codex's sandbox can't.** If Codex couldn't
+  run a check (for example, tests that need local network access), the
+  dispatcher runs it before moving the task to `review/`, and records the
+  results in the handoff.
+
 These rules come from a run in which three parallel worktree tasks reached
 review but existed only on hidden side branches. The board could not see
 CONTRACT-001 or the other results, and lifecycle state was split across four
