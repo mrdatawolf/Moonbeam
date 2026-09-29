@@ -13,6 +13,7 @@ import { useLocation } from "react-router";
 import { useConnectionLost } from "../api/connection";
 import { useAllUsers, useUserChange } from "../api/queries";
 import { EmptyState, Field, LoadError, Mono, Refusal, SectionHeading, Skeleton, Time } from "../components/common";
+import { Identities } from "../components/Identities";
 import { Dialog } from "../components/Dialog";
 import { focusUserPicker, useCurrentUser } from "../lib/currentUser";
 
@@ -132,7 +133,7 @@ function AddUser({ activeUsers, onAdded }: { activeUsers: User[]; onAdded: (u: U
           <Field label="Display name" required value={displayName} onChange={setDisplayName} error={errors.displayName} inputRef={nameRef} autoComplete="off" />
           <Field
             label="E-mail address"
-            hint="Used as the git author of the merges into main this person requests."
+            hint="Automatically included among this member's git identities."
             type="email"
             required
             value={email}
@@ -235,7 +236,7 @@ function EditDialog({ open, target, activeUsers, onClose, onDone }: { open: bool
       <Field label="Display name" required value={displayName} onChange={setDisplayName} error={errors.displayName} autoFocus autoComplete="off" />
       <Field
         label="E-mail address"
-        hint="Merges made from now on use the new address. Commits already made keep the name and address they were made with."
+        hint="Updates the automatic git identity and current attribution of past events. Recorded commits keep their original address."
         type="email"
         required
         value={email}
@@ -372,8 +373,7 @@ export function UsersPage() {
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold tracking-tight">Users</h1>
       <p className="max-w-3xl text-sm text-muted-foreground">
-        Every active user is a board member who approves and accepts work. Each e-mail address is used as the git author of the merges
-        into main that person requests. Users are never deleted: deactivate someone who should no longer act.
+        Every active user is a board member. Each registry e-mail automatically counts as a git identity for attributing observed commits. Users are never deleted: deactivate someone who should no longer act.
       </p>
 
       {done ? (
@@ -391,6 +391,8 @@ export function UsersPage() {
       ) : null}
 
       <AddUser activeUsers={active} onAdded={(u) => setDone({ msg: `Added ${u.displayName}. They can now be chosen in "Acting as".`, switchTo: u })} />
+
+      <Identities />
 
       {users.isPending ? (
         <Skeleton lines={3} label="Loading users" />

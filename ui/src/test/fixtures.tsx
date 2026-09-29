@@ -1,6 +1,6 @@
 // Test fixtures: schema-valid API objects and a render helper with the app's
 // providers and a fake `fetch` that answers per method and path.
-import type { User } from "@moonbeam/shared";
+import type { User, ProjectView, IdentitiesResponse } from "@moonbeam/shared";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render } from "@testing-library/react";
 import type { ReactElement } from "react";
@@ -37,6 +37,9 @@ export function mockApi(routes: Routes) {
 }
 
 export const baseRoutes: Routes = {
+  "GET /identities": { members: [], conflicts: [] },
+  "GET /projects": { projects: [] },
+  "GET /github/tokens": { state: "ok", tokens: [{ label: "example", masked: "••••1234" }] },
   "GET /setup": { needsSetup: false },
   "GET /users": { users: [user, otherUser] },
 };
@@ -60,3 +63,8 @@ export function renderAt(ui: ReactElement, { path = "/", route = "/" }: { path?:
     </QueryClientProvider>,
   );
 }
+
+export const PROJECT_ID = "44444444-4444-4444-8444-444444444444";
+export const IDENTITY_ID = "55555555-5555-4555-8555-555555555555";
+export const project: ProjectView = { id: PROJECT_ID, name: "Moonbeam", githubOwner: "example", githubRepo: "moonbeam", githubRepoId: "123", trackedBranch: "main", tokenLabel: "example", leadDeveloperUserId: null, baselineSha: "a".repeat(40), baselineCommittedAt: NOW, exemptPaths: [], staleThresholdDays: 14, registeredAt: NOW, registeredByUserId: USER_ID, removedAt: null };
+export const identities: IdentitiesResponse = { members: [user, otherUser].map((u) => ({ userId: u.id, displayName: u.displayName, active: u.active, identities: [{ id: null, userId: u.id, kind: "email", value: u.email, automatic: true }] })), conflicts: [] };

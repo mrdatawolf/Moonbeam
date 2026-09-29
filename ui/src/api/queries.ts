@@ -1,11 +1,13 @@
 // User registry queries and mutations. Reads need no selected user.
-import { setupStatusSchema, userSchema } from "@moonbeam/shared";
+import { projectListResponseSchema, projectSchema, githubTokensResponseSchema, identitiesResponseSchema, memberIdentitySchema, sourceViewSchema, type ProjectRegistrationInput, type ProjectUpdateInput, type IdentityInput, setupStatusSchema, userSchema } from "@moonbeam/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { invalidateSelection, readSelectedUserId } from "../lib/selection";
 import { ApiRequestError, request } from "./client";
 
 export const keys = {
+  projects: ["projects"] as const,
+  identities: ["identities"] as const,
   setup: ["setup"] as const,
   users: ["users"] as const,
   allUsers: ["users", "all"] as const,
@@ -34,6 +36,7 @@ export function useFirstRunSetup() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: keys.setup });
       void qc.invalidateQueries({ queryKey: keys.users });
+      void qc.invalidateQueries({ queryKey: keys.identities });
     },
   });
 }
@@ -66,10 +69,46 @@ export function useUserChange() {
     onSuccess: (u) => {
       if (!u.active && readSelectedUserId() === u.id) invalidateSelection();
       void qc.invalidateQueries({ queryKey: keys.users });
+      void qc.invalidateQueries({ queryKey: keys.identities });
     },
     onError: () => {
       // A refusal may mean the list is stale (another browser changed it).
       void qc.invalidateQueries({ queryKey: keys.users });
+      void qc.invalidateQueries({ queryKey: keys.identities });
     },
+  });
+}
+
+// Registration and identity reads are available to viewers; writes use the common actor transport.
+export const useProjects = () => useQuery({ queryKey: keys.projects, queryFn: () => request("GET", "/projects", projectListResponseSchema), refetchInterval: 60_000 });
+export const useGitHubTokens = () => useQuery({ queryKey: ["github-tokens"], queryFn: () => request("GET", "/github/tokens", githubTokensResponseSchema) });
+export const useIdentities = () => useQuery({ queryKey: keys.identities, queryFn: () => request("GET", "/identities", identitiesResponseSchema), refetchInterval: 60_000 });
+// Read only the source metadata needed for F4 from the existing viewer endpoint.
+export const useRegistrationSource = (id: string) => useQuery({ queryKey: ["registration-source", id], queryFn: () => request("GET", `/projects/${id}/view`, z.object({ source: sourceViewSchema.nullable() })), refetchInterval: 60_000 });
+
+type ProjectChange =
+  | { kind: "register"; body: ProjectRegistrationInput }
+  | { kind: "edit"; id: string; body: ProjectUpdateInput }
+  | { kind: "lead"; id: string; userId: string | null }
+  | { kind: "remove"; id: string };
+export function useProjectChange() {
+  const qc = useQueryClient();
+  return useMutation<unknown, ApiRequestError, ProjectChange>({
+    mutationFn: (c) => {
+      switch (c.kind) {
+        case "register": return request("POST", "/projects", projectSchema, c.body);
+        case "edit": return request("PATCH", `/projects/${c.id}`, projectSchema, c.body);
+        case "lead": return request("PUT", `/projects/${c.id}/lead-developer`, projectSchema, { userId: c.userId });
+        case "remove": return request("DELETE", `/projects/${c.id}`, z.undefined());
+      }
+    },
+    onSettled: () => { void qc.invalidateQueries({ queryKey: keys.projects }); void qc.invalidateQueries({ queryKey: ["registration-source"] }); },
+  });
+}
+export function useIdentityChange() {
+  const qc = useQueryClient();
+  return useMutation<unknown, ApiRequestError, { kind: "add"; userId: string; body: IdentityInput } | { kind: "remove"; id: string }>({
+    mutationFn: (c) => c.kind === "add" ? request("POST", `/users/${c.userId}/identities`, memberIdentitySchema, c.body) : request("DELETE", `/identities/${c.id}`, z.undefined()),
+    onSettled: () => { void qc.invalidateQueries({ queryKey: keys.identities }); },
   });
 }

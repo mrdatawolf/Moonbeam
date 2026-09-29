@@ -275,3 +275,77 @@ describe("user management", () => {
   });
 
 });
+
+import { identities, IDENTITY_ID } from "../test/fixtures";
+
+describe("member identities", () => {
+  it("shows automatic e-mails and every conflict, including inactive members, with axe coverage", async () => {
+    mockApi({ ...baseRoutes, "GET /identities": { ...identities, conflicts: [
+      { kind: "email", value: "shared@example.com", members: [{ userId: user.id, displayName: "Patrick", inactive: false }, { userId: otherUser.id, displayName: "Dana", inactive: true }] },
+      { kind: "name", value: "shared", members: [{ userId: user.id, displayName: "Patrick", inactive: false }, { userId: otherUser.id, displayName: "Dana", inactive: true }] },
+    ] } });
+    const { container } = renderUsers();
+    const member = await screen.findByRole("region", { name: "Identities for Patrick" });
+    expect(member).toHaveTextContent("Automatic from registry e-mail");
+    expect(within(member).queryByRole("button", { name: /Remove/ })).toBeNull();
+    const warning = screen.getByRole("alert");
+    expect(warning).toHaveTextContent("shared@example.com — Patrick, Dana (inactive)");
+    expect(warning).toHaveTextContent("name: shared — Patrick, Dana (inactive)");
+    expect((await axe.run(container, { rules: { "color-contrast": { enabled: false } } })).violations.filter((v) => v.impact === "serious" || v.impact === "critical")).toEqual([]);
+  });
+
+  it.each([['email', 'extra@example.com'], ['login', 'octocat'], ['alias', 'P. Example']])("adds and removes a %s identity with actor and refreshed data", async (kind, value) => {
+    selectUser(USER_ID);
+    let data = structuredClone(identities);
+    const stored = { id: IDENTITY_ID, userId: USER_ID, kind, value, automatic: false };
+    const calls = mockApi({ ...baseRoutes, "GET /identities": () => ({ json: data }), [`POST /users/${USER_ID}/identities`]: () => {
+      data = { ...data, members: data.members.map((m) => m.userId === USER_ID ? { ...m, identities: [...m.identities, stored as typeof m.identities[number]] } : m) };
+      return { status: 201, json: stored };
+    }, [`DELETE /identities/${IDENTITY_ID}`]: () => { data = structuredClone(identities); return { status: 204, json: undefined }; } });
+    renderUsers();
+    const member = within(await screen.findByRole("region", { name: "Identities for Patrick" }));
+    await userEvent.selectOptions(member.getByLabelText("Identity kind for Patrick"), kind);
+    await userEvent.type(member.getByLabelText(/Identity value/), value);
+    await userEvent.click(member.getByRole("button", { name: "Add identity for Patrick" }));
+    const remove = await member.findByRole("button", { name: `Remove ${value} from Patrick` });
+    expect(calls.find((c) => c.method === "POST")?.body).toEqual({ kind, value });
+    expect(calls.find((c) => c.method === "POST")?.headers["x-moonbeam-user"]).toBe(USER_ID);
+    await userEvent.click(remove);
+    const dialog = await screen.findByRole("dialog", { name: "Remove identity from Patrick?" });
+    expect(dialog).toHaveTextContent("Moonbeam's data is kept");
+    await userEvent.click(within(dialog).getByRole("button", { name: "Confirm identity removal" }));
+    await waitFor(() => expect(member.queryByRole("button", { name: `Remove ${value} from Patrick` })).toBeNull());
+    expect(calls.find((c) => c.method === "DELETE")?.headers["x-moonbeam-user"]).toBe(USER_ID);
+  });
+
+  it("gates identity writes without a selection and preserves refused input", async () => {
+    const calls = mockApi({ ...baseRoutes, "GET /identities": identities, [`POST /users/${USER_ID}/identities`]: () => ({ status: 422, json: { error: { category: "validation", message: "Identity already exists" } } }) });
+    renderUsers();
+    const member = within(await screen.findByRole("region", { name: "Identities for Patrick" }));
+    const add = member.getByRole("button", { name: "Add identity for Patrick" });
+    await userEvent.type(member.getByLabelText(/Identity value/), "extra@example.com");
+    expect(add).toHaveAttribute("aria-disabled", "true");
+    await userEvent.click(add);
+    expect(calls.some((c) => c.method !== "GET")).toBe(false);
+    await userEvent.selectOptions(screen.getByLabelText("Acting as"), USER_ID);
+    await userEvent.click(add);
+    expect(await member.findByRole("alert")).toHaveTextContent("(validation)");
+    expect(member.getByLabelText(/Identity value/)).toHaveValue("extra@example.com");
+  });
+});
+
+describe("identity edge cases", () => {
+  it("lets active actors manage inactive members and retains a refused removal", async () => {
+    selectUser(USER_ID);
+    const stored = { id: IDENTITY_ID, userId: USER_ID, kind: "alias", value: "Old name", automatic: false };
+    mockApi({ ...baseRoutes, "GET /identities": { members: [{ ...identities.members[0], active: false, identities: [stored] }], conflicts: [] }, [`DELETE /identities/${IDENTITY_ID}`]: () => ({ status: 409, json: { error: { category: "conflict", message: "Identity changed" } } }) });
+    renderUsers();
+    const member = within(await screen.findByRole("region", { name: "Identities for Patrick (inactive)" }));
+    await userEvent.click(member.getByRole("button", { name: "Remove Old name from Patrick" }));
+    const dialog = await screen.findByRole("dialog");
+    expect((await axe.run(dialog, { rules: { "color-contrast": { enabled: false } } })).violations).toEqual([]);
+    await userEvent.click(within(dialog).getByRole("button", { name: "Confirm identity removal" }));
+    expect(await within(dialog).findByRole("alert")).toHaveTextContent("(conflict)");
+    expect(member.getByText("Name alias: Old name")).toBeInTheDocument();
+  });
+});
