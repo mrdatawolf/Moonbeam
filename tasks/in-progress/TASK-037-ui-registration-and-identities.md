@@ -88,8 +88,81 @@ None.
 
 ## Implementation handoff
 
-Not started.
+Blocked before implementation; not ready for review.
+
+Task: TASK-037. Implementer: Codex. Date: 2026-09-29.
+
+### Changes made
+
+Only `tasks/in-progress/TASK-037-ui-registration-and-identities.md`, this
+Implementation handoff section, changed. No screens or interactions were
+implemented.
+
+### Unresolved blocker
+
+`ui/src/api/client.ts` excludes `DELETE` from its `Method` type. Both required
+removal endpoints use DELETE and return 204. Reusing the existing client's
+selected-user header, categorized refusals, selection invalidation, and
+connection handling requires adding `DELETE` to that type. Empty success
+responses can already be parsed by passing `z.undefined()` from the query hook.
+
+The client file is outside the assigned Paths. Following the direct instruction
+to stop if an outside file must change, implementation stopped without editing
+it. The dispatcher/board needs to authorize that additional path or supply the
+client extension before implementation resumes. No dependency is needed.
+
+### Validation performed
+
+These are baseline results, not validation of a TASK-037 implementation. Commands
+used `/home/patrick/.nvm/versions/node/v24.16.0/bin` prepended to PATH and
+`pnpm_config_verify_deps_before_run=false` to prevent automatic installation.
+
+- `pnpm --filter @moonbeam/ui test`: passed, 21 tests across 5 files, including
+  the existing axe checks.
+- `pnpm typecheck`: passed for all five workspace packages.
+- `pnpm -r --reporter=append-only run test`: passed, 376 tests across 33 files:
+  db 6, shared 4, dbc 182, UI 21, server 163. No reported failures.
+- `pnpm build`: passed for all five workspace packages.
+- No installation, pnpm store change, dev server, or git write command was run.
+  All launched validation commands finished; no validation process was left
+  running. UI tests used the existing mocked API setup.
+
+### Acceptance criteria evidence
+
+- S1 registration fields/defaults: not implemented.
+- S4 masked token selection: not implemented.
+- L1 lead assignment/change/clear: not implemented.
+- I1 identity add/remove and automatic e-mail: not implemented.
+- I4 conflict warnings naming members: not implemented.
+- Selected-user action gate, categorized refusals, and retained input for the
+  new actions: not implemented.
+- Removal confirmation and retained-data explanation: not implemented.
+- UX6: no new controls were introduced; the requested screens remain pending.
+- Existing UI tests and axe checks pass; TASK-037 coverage remains pending.
+
+### Assumptions and deviations
+
+The existing API client should remain the common transport for these actions;
+duplicating its behavior in queries or casting around its method type would
+bypass that convention. The only deviation is stopping for the path blocker
+before implementation. No unrelated tracked changes were present or modified.
+Task lifecycle and acceptance remain with the dispatcher/board.
+
+### Documentation updated
+
+This handoff only. The task remains in `tasks/in-progress/`.
 
 ## Review
 
 Not reviewed.
+
+## Board notes
+
+**Patrick, 2026-09-29.** The first Codex run stopped because
+`ui/src/api/client.ts` has no `DELETE` in its `Method` type, and the two
+remove endpoints need it. The board adopted a standing rule (AGENTS.md,
+"Dispatching to Codex"). Codex may make the smallest outside-path change that
+only follows from the task's own work, and lists it in the handoff under
+"Outside-path changes". So this task may add `DELETE` to that type. The task
+runs again.
+

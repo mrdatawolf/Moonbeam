@@ -110,6 +110,13 @@ Adopted by the board on 2026-09-29, after TASK-026 and TASK-027:
 - **Codex writes its own handoff.** The prompt lets Codex write the task
   file's "Implementation handoff" section, and nothing else in the task file,
   so its report is kept in the repository even if a relay loses it.
+- **Small changes outside a task's paths are allowed** (board, 2026-09-29).
+  Codex may make the smallest change needed to a file outside the task's
+  paths when that change only follows from the task's own work. Examples: a
+  type union, a label map, a stale test assertion, an export line. Each such
+  change is listed in the handoff under "Outside-path changes", for review.
+  Anything larger, or anything that changes behavior, still stops for the
+  board.
 - **The dispatcher validates what Codex's sandbox can't.** If Codex couldn't
   run a check (for example, tests that need local network access), the
   dispatcher runs it before moving the task to `review/`, and records the
