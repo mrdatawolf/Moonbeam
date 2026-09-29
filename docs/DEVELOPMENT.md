@@ -390,3 +390,69 @@ rebuilds, HTTP server/service/scheduler recreation against the same database,
 staleness boundaries, identity/registration re-evaluation, and rewrites.
 The harness `restartServer()` stops schedulers and HTTP, then recreates the
 application services using the retained test database and temporary home.
+
+### Per-project read API
+
+TASK-036 adds viewer-accessible GET endpoints. `ProjectViewsService` in
+`server/src/views/project.ts` reads registration, source status, the version-3
+snapshot, flags/notes, and current identities in one read-only repeatable-read
+transaction. It never polls, changes stored data, or contacts GitHub. Shared
+response schemas and types are in `packages/shared/src/project-view.ts`.
+
+| Method and path | Response |
+| --- | --- |
+| `GET /api/projects/:id/view` | D1 header/notices, `proposed`, `approved`, `recentlyCompleted`, `other`, 12 `activity` buckets, and all `flags` with open first |
+| `GET /api/projects/:id/tasks` | Every historical task ID in `tasks`, including the full completed list and removed/withdrawn tasks |
+| `GET /api/projects/:id/tasks/:taskId` | `task`, full chronological `history`, historical approval/completion `entries`, and task flags (including file-keyed FL-7) |
+| `GET /api/projects/:id/documents` | `goals`, `goalsMessage`, `contracts`, and `adrs`; document metadata and file references |
+| `GET /api/projects/:id/file?path=` | Raw UTF-8 `text` in JSON, `file` reference, `status`, and optional failure `reason` |
+
+Every successful response has `projectId`, `headSha`, `lastSuccessfulPollAt`,
+`notCurrent`, `readState`, and `source`. Before a successful poll, `readState`
+is `not yet read`; lists are empty. Missing/incompatible snapshot caches after
+an earlier success report `not available until the next poll`. Source failures
+retain the last successful head, time, and task facts. Unknown/removed projects,
+unknown tasks, and files outside the snapshot allowlist return `not_found`.
+Task/file not-found errors include the available read metadata in error details.
+
+Task models retain all head files and states for duplicate IDs. Each file
+includes its complete parsed header (including unknown fields), raw header
+lines, Paths, parse problems, format label, recorded dates/names, assigned agent,
+and related references. Pre-v1 parse problems are informational; reads raise no
+flags. Related IDs resolve only against files present at head; missing or removed
+targets say `not found on main`. Historical entry files have their historical
+head and GitHub URL; their API `href` is null unless they refer to the current
+snapshot head, because the file endpoint serves only that head.
+
+Attribution is rebuilt from current users/identities on every read. Recorded
+values stay intact; matches include member ID/display name and inactive status.
+Unmatched and ambiguous identities say `not a board member`; matches do not
+verify who acted. Committers are shown without mapping. Flag evidence remains
+unchanged, with current `attributions` alongside it, source links, and all notes;
+`href` opens the existing flag detail/history endpoint.
+
+Task ages/waits are milliseconds as of the last successful poll. `staleApproval`
+reports the FL-5 condition, independently of dismissal, using that poll time and
+the current threshold. Acceptance is the first completed entry; its duration
+uses the latest approval preceding that entry in chain order, or null if absent.
+Recorded negative durations are preserved because commit times are not verified.
+Recently completed contains current completed tasks from the last 30 days plus
+at least the ten newest (or all if fewer exist), newest first. Activity counts
+state-entry events, first-parent commits, and persisted flag occurrences in
+12 rolling seven-day windows ending at the request clock, oldest bucket first.
+Each window is `(start, end]`, so a boundary counts once and now is included.
+
+Files are read by exact allowlisted path and immutable snapshot SHA through
+`Mirror.readFile`; no mirror is created or fetched by a read. Only recognized
+task files, recognized contracts/ADRs, and present `docs/PROJECT.md` qualify.
+Missing mirrors return `status: "not available until the next poll"` with null
+text while the other endpoints remain usable. Oversized/invalid UTF-8 files
+return `could not be read`. Document metadata marks unreadable/unknown status;
+missing goals say `No project definition found`. Markdown is raw JSON text;
+safe rendering belongs to TASK-038.
+
+`src/test/project-view.test.ts` uses TASK-034/035 local git and stubbed HTTP
+fixtures through the poller, temporary homes, and isolated Postgres. It covers
+selection and timing boundaries, merge/re-approval history, current identities,
+notes, duplicate/unreadable files, source and mirror failures, allowlisting,
+read-only behavior, and reads during atomic poll publication.

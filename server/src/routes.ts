@@ -1,3 +1,4 @@
+import { ProjectViewsService } from "./views/project.js";
 import { FlagsService } from "./flags/service.js";
 import { reevaluateAll } from "./flags/reevaluate.js";
 // All request identity is resolved through the CONTRACT-002 actor seam.
@@ -29,6 +30,7 @@ const userView = (u: { id: string; displayName: string; email: string; active: b
 export function apiRoutes({ db, registry, projects, identities, tokens, poller, clock }: Services): Router {
   const router = Router();
   const flags = new FlagsService({ db, clock });
+  const views = new ProjectViewsService({ db, clock });
   const resolve = (req: Request) => resolveActor(db, req.headers);
 
   // ---- identity ----------------------------------------------------------
@@ -128,6 +130,26 @@ export function apiRoutes({ db, registry, projects, identities, tokens, poller, 
   });
   router.post("/flags/:id/reopen", async (req, res) => {
     res.json(await flags.reopen(requireActor(await resolve(req)), param(req, "id"), req.body));
+  });
+  router.get("/projects/:id/view", async (req, res) => {
+    await resolve(req);
+    res.json(await views.view(param(req, "id")));
+  });
+  router.get("/projects/:id/tasks", async (req, res) => {
+    await resolve(req);
+    res.json(await views.tasks(param(req, "id")));
+  });
+  router.get("/projects/:id/tasks/:taskId", async (req, res) => {
+    await resolve(req);
+    res.json(await views.task(param(req, "id"), param(req, "taskId")));
+  });
+  router.get("/projects/:id/documents", async (req, res) => {
+    await resolve(req);
+    res.json(await views.documents(param(req, "id")));
+  });
+  router.get("/projects/:id/file", async (req, res) => {
+    await resolve(req);
+    res.json(await views.file(param(req, "id"), req.query.path));
   });
   return router;
 }
