@@ -1,3 +1,4 @@
+import { DashboardService } from "./views/dashboard.js";
 import { ProjectViewsService } from "./views/project.js";
 import { FlagsService } from "./flags/service.js";
 import { reevaluateAll } from "./flags/reevaluate.js";
@@ -32,6 +33,11 @@ export function apiRoutes({ db, registry, projects, identities, tokens, poller, 
   const flags = new FlagsService({ db, clock });
   const views = new ProjectViewsService({ db, clock });
   const resolve = (req: Request) => resolveActor(db, req.headers);
+
+  router.get("/dashboard", async (req, res) => {
+    await resolve(req);
+    res.json(await new DashboardService({ db, clock }).view());
+  });
 
   // ---- identity ----------------------------------------------------------
 

@@ -254,7 +254,7 @@ ui/src/components/  Layout, Dialog, common
 ui/src/pages/       Dashboard, Projects, Setup, Users, NotFound
 ```
 
-The app starts at the Dashboard placeholder. Projects lists GitHub registrations
+The app starts at the cross-project Dashboard. Projects lists GitHub registrations
 and links to each project overview. Navigation contains Dashboard, Projects,
 and Users. Unknown routes show NotFound.
 
@@ -481,3 +481,31 @@ fixtures through the poller, temporary homes, and isolated Postgres. It covers
 selection and timing boundaries, merge/re-approval history, current identities,
 notes, duplicate/unreadable files, source and mirror failures, allowlisting,
 read-only behavior, and reads during atomic poll publication.
+
+
+### Cross-project dashboard
+
+`GET /api/dashboard` is a viewer read. It returns `projects`,
+`recentAcceptances`, and `recentFlags`, validated by
+`packages/shared/src/dashboard.ts`. Removed registrations are excluded.
+Project rows contain name/lead, source/head/last successful poll metadata,
+proposed and approved task counts, open FL-5 count, all open flags, and
+completions whose acceptance time is in the inclusive interval [now minus
+30 days, now]. Missing or incompatible snapshots retain source metadata;
+the UI labels their task counts unavailable.
+
+The endpoint reuses project read projections inside one read-only,
+repeatable-read transaction. Nested project reads use savepoints in that
+transaction. It performs no GitHub, mirror, poll, or database write operation.
+Acceptances follow D4: tasks currently in completed, ordered by their first
+acceptance commit time, newest first, capped at ten across projects (without
+a 30-day cutoff). Flags include all statuses, ordered by first-raised time,
+capped at ten. Stable IDs break timestamp ties. The response adds no stored state.
+
+At `/`, project entries link to project overviews; acceptance entries also
+link to task details. Existing SourceStatus and FlagList components provide
+viewer refresh, inline evidence, and Moonbeam-only flag notes. Source status
+and flag counts/evidence are separate. Dashboard queries refresh each minute
+and invalidate after refresh, flag notes, registration, user, or identity
+changes. UI tests mock API responses; server tests use isolated database and
+local source fixtures. No real GitHub calls are used in these tests.

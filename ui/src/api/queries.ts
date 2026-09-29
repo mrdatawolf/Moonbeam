@@ -1,5 +1,5 @@
 // User registry queries and mutations. Reads need no selected user.
-import { projectListResponseSchema, projectSchema, githubTokensResponseSchema, identitiesResponseSchema, memberIdentitySchema, sourceViewSchema, type ProjectRegistrationInput, type ProjectUpdateInput, type IdentityInput, setupStatusSchema, userSchema } from "@moonbeam/shared";
+import { dashboardResponseSchema, projectListResponseSchema, projectSchema, githubTokensResponseSchema, identitiesResponseSchema, memberIdentitySchema, sourceViewSchema, type ProjectRegistrationInput, type ProjectUpdateInput, type IdentityInput, setupStatusSchema, userSchema } from "@moonbeam/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { invalidateSelection, readSelectedUserId } from "../lib/selection";
@@ -7,11 +7,14 @@ import { ApiRequestError, request } from "./client";
 
 export const keys = {
   projects: ["projects"] as const,
+  dashboard: ["dashboard"] as const,
   identities: ["identities"] as const,
   setup: ["setup"] as const,
   users: ["users"] as const,
   allUsers: ["users", "all"] as const,
 };
+
+export const useDashboard = () => useQuery({ queryKey: keys.dashboard, queryFn: () => request("GET", "/dashboard", dashboardResponseSchema), refetchInterval: 60_000 });
 
 export const useSetupStatus = () => useQuery({ queryKey: keys.setup, queryFn: () => request("GET", "/setup", setupStatusSchema) });
 
@@ -37,6 +40,7 @@ export function useFirstRunSetup() {
       void qc.invalidateQueries({ queryKey: keys.setup });
       void qc.invalidateQueries({ queryKey: keys.users });
       void qc.invalidateQueries({ queryKey: keys.identities });
+      void qc.invalidateQueries({ queryKey: keys.dashboard });
     },
   });
 }
@@ -70,11 +74,13 @@ export function useUserChange() {
       if (!u.active && readSelectedUserId() === u.id) invalidateSelection();
       void qc.invalidateQueries({ queryKey: keys.users });
       void qc.invalidateQueries({ queryKey: keys.identities });
+      void qc.invalidateQueries({ queryKey: keys.dashboard });
     },
     onError: () => {
       // A refusal may mean the list is stale (another browser changed it).
       void qc.invalidateQueries({ queryKey: keys.users });
       void qc.invalidateQueries({ queryKey: keys.identities });
+      void qc.invalidateQueries({ queryKey: keys.dashboard });
     },
   });
 }
@@ -102,14 +108,15 @@ export function useProjectChange() {
         case "remove": return request("DELETE", `/projects/${c.id}`, z.undefined());
       }
     },
-    onSettled: () => { void qc.invalidateQueries({ queryKey: keys.projects }); void qc.invalidateQueries({ queryKey: ["registration-source"] }); },
+    onSettled: () => { void qc.invalidateQueries({ queryKey: keys.dashboard }); void qc.invalidateQueries({ queryKey: keys.projects }); void qc.invalidateQueries({ queryKey: ["registration-source"] }); },
   });
 }
 export function useIdentityChange() {
   const qc = useQueryClient();
   return useMutation<unknown, ApiRequestError, { kind: "add"; userId: string; body: IdentityInput } | { kind: "remove"; id: string }>({
     mutationFn: (c) => c.kind === "add" ? request("POST", `/users/${c.userId}/identities`, memberIdentitySchema, c.body) : request("DELETE", `/identities/${c.id}`, z.undefined()),
-    onSettled: () => { void qc.invalidateQueries({ queryKey: keys.identities }); },
+    onSettled: () => { void qc.invalidateQueries({ queryKey: keys.identities });
+      void qc.invalidateQueries({ queryKey: keys.dashboard }); },
   });
 }
 
@@ -124,9 +131,9 @@ export const useProjectFile = (id: string, path: string, head: string | null) =>
 export const useFlagDetail = (project: string, flag: string) => useQuery({ queryKey: [...projectKey(project), "flag", flag], queryFn: () => request("GET", `/flags/${flag}`, flagDetailSchema) });
 export function useProjectRefresh(id: string) {
   const qc = useQueryClient();
-  return useMutation({ mutationFn: () => request("POST", `/projects/${id}/refresh`, sourceViewSchema, {}), onSettled: async () => { await qc.invalidateQueries({ queryKey: projectKey(id) }); await qc.invalidateQueries({ queryKey: ["registration-source", id] }); } });
+  return useMutation({ mutationFn: () => request("POST", `/projects/${id}/refresh`, sourceViewSchema, {}), onSettled: async () => { await qc.invalidateQueries({ queryKey: keys.dashboard }); await qc.invalidateQueries({ queryKey: projectKey(id) }); await qc.invalidateQueries({ queryKey: ["registration-source", id] }); } });
 }
 export function useFlagNote(project: string, flag: string) {
   const qc = useQueryClient();
-  return useMutation({ mutationFn: ({ action, note }: { action: "dismiss" | "reopen"; note: string }) => request("POST", `/flags/${flag}/${action}`, flagSchema, { note }), onSettled: async () => { await qc.invalidateQueries({ queryKey: projectKey(project) }); } });
+  return useMutation({ mutationFn: ({ action, note }: { action: "dismiss" | "reopen"; note: string }) => request("POST", `/flags/${flag}/${action}`, flagSchema, { note }), onSettled: async () => { await qc.invalidateQueries({ queryKey: keys.dashboard }); await qc.invalidateQueries({ queryKey: projectKey(project) }); } });
 }

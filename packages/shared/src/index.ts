@@ -12,3 +12,4 @@ export * from "./source.js";
 
 export * from "./flags.js";
 export * from "./project-view.js";
+export * from "./dashboard.js";
