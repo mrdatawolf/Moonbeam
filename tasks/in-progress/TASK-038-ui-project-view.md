@@ -105,8 +105,31 @@ None.
 
 ## Implementation handoff
 
-Not started.
+Blocked on dependency installation; TASK-038 is not implemented or ready for review.
+
+Files changed:
+
+- `ui/package.json`: declared `react-markdown` (`^10.1.0`) and `remark-gfm` (`^4.0.1`), the renderer dependencies proposed by the task.
+- `tasks/in-progress/TASK-038-ui-project-view.md`: Implementation handoff only.
+
+Screens and interactions: none added. Implementation stopped at the dependency boundary required by the assignment: “Add it to ui/package.json, say so in the handoff, and stop.”
+
+Validation: `pnpm --filter @moonbeam/ui test`, `pnpm typecheck`, `pnpm -r --reporter=append-only run test`, and `pnpm build` were not run because of that stop instruction. Test counts: not measured; no passing validation is claimed. The manual app check was not run, as instructed; it remains with the dispatcher after implementation.
+
+Acceptance criteria: all remain pending, including D1–D9 fields and completed-list navigation; D10/UX6 observational controls; UX1/N6 source freshness; UX2 separate source status and flags; UX3 inline evidence and GitHub links; UX4 wording; UX5 pre-v1 labels; FG4 selected-user/note requirements and history; S5 refresh; R4/V7 safe Markdown and malicious-content tests; I7/I8 unmatched attribution; and UI tests with axe checks.
+
+Assumptions and deviations: use the task's proposed Markdown libraries instead of introducing a custom Markdown parser. Declaring these dependencies does not itself implement safe rendering; raw HTML exclusion, safe links, and security tests remain required. No dependencies were installed, no pnpm store or lockfile was changed, no git write commands were run, and no server or background process was started. No outside-path changes were made.
+
+Next step: the dispatcher installs the declared dependencies and updates the lockfile, then assigns a fresh implementation run. The task remains in `in-progress/`.
 
 ## Review
 
 Not reviewed.
+
+## Board notes
+
+**Dispatcher, 2026-09-29.** The first Codex run declared `react-markdown`
+`^10.1.0` and `remark-gfm` `^4.0.1` in `ui/package.json` and stopped, as
+instructed. The dispatcher ran `pnpm install` against the default store: 97
+packages added, `pnpm-lock.yaml` updated. The task runs again.
+
